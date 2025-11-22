@@ -6,10 +6,8 @@ import {
   Bot,
   User,
   AlertCircle,
-  MessageSquare,
-  Plus,
-  Trash2,
   Workflow,
+  X,
 } from "lucide-react";
 import {
   PromptInput,
@@ -52,60 +50,18 @@ import {
   featureDevelopmentExample,
   bugFixExample,
 } from "@/components/ai-elements/examples";
+import {
+  LeftSidebar,
+  type ChatSession,
+  type Message,
+  type UploadedFile,
+} from "@/components/leftsidebar";
 
 const suggestions = [
   "SDI",
   "EMJAC",
   "Harmonic",
 ];
-
-
-
-interface ReasoningStep {
-  label: string;
-  description?: string;
-  status?: "complete" | "active" | "pending";
-}
-
-interface TaskStep {
-  id: string;
-  title: string;
-  description?: string;
-  status: "pending" | "active" | "complete";
-  items?: string[];
-}
-
-interface Message {
-  id: string;
-  sender: "user" | "bot";
-  text: string;
-  timestamp: Date;
-  files?: UploadedFile[];
-  reasoning?: ReasoningStep[];
-  tasks?: TaskStep[];
-}
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-}
-
-interface ChatSession {
-  id: string;
-  title: string;
-  messages: Message[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const Example = () => {
-  const handleSuggestionClick = (suggestion: string) => {
-    console.log("Selected suggestion:", suggestion);
-  };
-}
-
 
 export function Chat() {
   const router = useRouter();
@@ -114,7 +70,6 @@ export function Chat() {
   const [error, setError] = useState<string | null>(null);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -288,93 +243,21 @@ export function Chat() {
 
   return (
     <div className="flex h-full w-full relative">
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
-
-      {/* Chat History Sidebar */}
-      <div
-        className={`${
-          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50  w-72 lg:w-80 flex justify-between overflow-y-auto p-6 shrink-0 flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm transition-transform duration-300 dark:border-[#2a2a2a] dark:bg-[#0d0d0d]`}
-      >
-        <>
-          {/* New Chat Button */}
-          <div className="mb-6 px-2">
-              <button
-                onClick={startNewChat}
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-100 to-slate-50 px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-md transition-all duration-200 hover:border-blue-400 hover:from-slate-50 hover:to-white hover:text-blue-600 active:scale-95 dark:border-[#3a3a3a] dark:bg-[#1a1a1a] dark:bg-none dark:text-[#e5e5e5] dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-[#252525] dark:hover:text-blue-400"
-              >
-                <Plus className="h-5 w-5" />
-                New Chat
-              </button>
-            </div>
-
-            {/* Chat Sessions List */}
-            <div className="flex-1 overflow-y-auto px-2 pb-6">
-              <p className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#a3a3a3]">
-                Recent Chats
-              </p>
-              <div className="space-y-2">
-                {chatSessions.length === 0 ? (
-                  <p className="px-3 py-6 text-center text-xs text-slate-500 dark:text-[#737373]">
-                    No chat history yet
-                  </p>
-                ) : (
-                  chatSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      onClick={() => selectSession(session.id)}
-                      className={`group flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-all duration-200 ${
-                        currentSessionId === session.id
-                          ? "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-600 shadow-sm dark:from-blue-600/20 dark:to-blue-500/10 dark:bg-none dark:text-blue-400 dark:shadow-md"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-800 dark:text-[#d4d4d4] dark:hover:bg-[#1a1a1a] dark:hover:text-[#f5f5f5]"
-                      }`}
-                    >
-                      <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                      <span className="flex-1 truncate text-sm font-medium">{session.title}</span>
-                      <button
-                        onClick={(e) => deleteSession(session.id, e)}
-                        className="hidden rounded-lg p-1.5 text-slate-500 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:text-[#a3a3a3] dark:hover:bg-[#2a2a2a] dark:hover:text-red-400 lg:block"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-        </>
-      </div>
+      {/* Left Sidebar */}
+      <LeftSidebar
+        chatSessions={chatSessions}
+        currentSessionId={currentSessionId}
+        onNewChat={startNewChat}
+        onSelectSession={selectSession}
+        onDeleteSession={deleteSession}
+      />
 
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col items-center w-full">
-        {/* Mobile Sidebar Toggle */}
-        <div className="flex items-center gap-3 border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur-sm dark:border-[#2a2a2a] dark:bg-[#0d0d0d] lg:hidden">
-          <button
-            onClick={() => setMobileSidebarOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-200 active:scale-95 dark:bg-[#1a1a1a] dark:text-[#e5e5e5] dark:shadow-md dark:hover:bg-[#252525] dark:hover:text-blue-400"
-          >
-            <MessageSquare className="h-4 w-4" />
-            Chats
-          </button>
-          <button
-            onClick={startNewChat}
-            className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-200 active:scale-95 dark:bg-[#1a1a1a] dark:text-[#e5e5e5] dark:shadow-md dark:hover:bg-[#252525] dark:hover:text-blue-400"
-          >
-            <Plus className="h-4 w-4" />
-            New
-          </button>
-        </div>
-
         {/* Messages Area */}
         <div className="w-full flex-1 overflow-y-auto px-6 py-4 sm:px-8">
           {messages.length === 0 ? (
-            <WelcomeScreen />
+            <WelcomeScreen onSuggestionClick={(text) => handleSubmit({ text, files: [] })} />
           ) : (
             <div className="mx-auto max-w-4xl space-y-8">
               {messages.map((msg) => (
@@ -388,14 +271,24 @@ export function Chat() {
 
         {/* Error Display */}
         {error && (
-          <div className="mx-auto w-full max-w-4xl flex items-center gap-3 rounded-lg bg-red-50 px-6 py-3 text-sm text-red-600 shadow-md dark:bg-red-500/10 dark:text-red-400">
-            <AlertCircle className="h-5 w-5" />
-            <span>{error}</span>
+          <div
+            role="alert"
+            className="mx-auto w-full max-w-4xl flex items-center gap-3 rounded-lg bg-red-50 px-6 py-3 text-sm text-red-600 shadow-md dark:bg-destructive/10 dark:text-red-400"
+          >
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span className="flex-1">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              aria-label="Dismiss error"
+              className="rounded-md p-1.5 transition-colors hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-red-900/20"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
 
         {/* Input Area */}
-        <div className="w-full shrink-0 border-slate-200 px-6 py-3 backdrop-blur-sm dark:border-[#2a2a2a] dark:bg-[#0d0d0d] sm:px-8">
+        <div className="w-full shrink-0 border-slate-200 px-6 py-3 backdrop-blur-sm dark:border-border dark:bg-background sm:px-8">
           <div className="mx-auto w-full max-w-4xl">
             {/* Input Container with Glow Effect */}
             <div className="relative">
@@ -409,7 +302,7 @@ export function Chat() {
               {/* Main Input Container */}
               <PromptInput
                 onSubmit={handleSubmit}
-                className="relative rounded-2xl bg-gradient-to-b from-slate-100 to-slate-50 p-1.5 shadow-lg transition-all duration-300 dark:bg-[#1a1a1a] dark:bg-none dark:shadow-xl dark:shadow-black/20"
+                className="relative rounded-2xl bg-gradient-to-b from-slate-100 to-slate-50 p-1.5 shadow-lg transition-all duration-300 dark:bg-card dark:bg-none dark:shadow-xl dark:shadow-black/20"
                 accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
                 multiple
               >
@@ -442,14 +335,14 @@ export function Chat() {
               </PromptInput>             
             </div>
             {/* Workflow Navigation Button */}
-                  <button
-                    onClick={() => router.push("/workflow")}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-linear-to-br px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-20 hover:shadow-xl active:scale-95"
-                    title="Open Workflow Visualization"
-                  >
-                    <Workflow className="h-4 w-4" />
-                    <span className="hidden sm:inline">Workflow</span>
-                  </button>           
+            <button
+              onClick={() => router.push("/workflow")}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95"
+              title="Open Workflow Visualization"
+            >
+              <Workflow className="h-4 w-4" />
+              <span>Workflow</span>
+            </button>           
           </div>
         </div>
       </div>
@@ -457,32 +350,28 @@ export function Chat() {
   );
 }
 
-function WelcomeScreen() {
-  function handleSuggestionClick(suggestion: string): void {
-    throw new Error("Function not implemented.");
-  }
-
+function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick?: (text: string) => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
-      <h2 className="mb-3 text-3xl font-bold text-slate-800 dark:text-[#f5f5f5]">
+      <h2 className="mb-3 text-3xl font-bold text-slate-800 dark:text-foreground">
         EMJAC Engineering Assistant
       </h2>
-      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-slate-600 dark:text-[#a3a3a3]">
+      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-slate-600 dark:text-muted-foreground">
         Your AI-powered helper for custom stainless steel fabrication projects.
         Ask about kitchen equipment, specifications, or engineering details.
       </p>
 
       <div className="grid w-full max-w-3xl gap-4 justify-center">
         <Suggestions>
-      {suggestions.map((suggestion) => (
-        <Suggestion
-          key={suggestion}
-          onClick={() => handleSuggestionClick(suggestion)}
-          suggestion={suggestion}
-          className="group cursor-pointer border-slate-200 bg-white shadow-md transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-lg dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-[#252525]"
-        />
-      ))}
-    </Suggestions>
+          {suggestions.map((suggestion) => (
+            <Suggestion
+              key={suggestion}
+              onClick={() => onSuggestionClick?.(suggestion)}
+              suggestion={suggestion}
+              className="group cursor-pointer border-slate-200 bg-white shadow-md transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-border dark:bg-card dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-secondary"
+            />
+          ))}
+        </Suggestions>
       </div>
     </div>
   );
@@ -504,7 +393,7 @@ function MessageBubble({ message }: { message: Message }) {
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-lg ${
           isUser
             ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/20"
-            : "bg-slate-200 text-blue-600 shadow-md dark:bg-[#1a1a1a] dark:text-blue-400 dark:shadow-black/20"
+            : "bg-slate-200 text-blue-600 shadow-md dark:bg-card dark:text-blue-400 dark:shadow-black/20"
         }`}
       >
         {isUser ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
@@ -516,7 +405,7 @@ function MessageBubble({ message }: { message: Message }) {
           className={`rounded-2xl px-6 py-4 shadow-lg ${
             isUser
               ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20"
-              : "bg-slate-100 text-slate-800 shadow-md dark:bg-[#1a1a1a] dark:text-[#f5f5f5] dark:shadow-black/20"
+              : "bg-slate-100 text-slate-800 shadow-md dark:bg-card dark:text-foreground dark:shadow-black/20"
           }`}
         >
           {/* Chain of Thought for bot messages */}
@@ -613,13 +502,11 @@ function MessageBubble({ message }: { message: Message }) {
           )}
 
           {isUser ? (
-            <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed">
-              <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-                {message.text}
-              </span>
+            <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-white">
+              {message.text}
             </p>
           ) : (
-            <MessageResponse className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-[#f5f5f5]">
+            <MessageResponse className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-foreground">
               {message.text}
             </MessageResponse>
           )}
@@ -644,7 +531,7 @@ function MessageBubble({ message }: { message: Message }) {
 
           <span
             className={`mt-3 block text-xs ${
-              isUser ? "text-blue-200" : "text-slate-600 dark:text-[#737373]"
+              isUser ? "text-blue-200" : "text-slate-600 dark:text-muted-foreground"
             }`}
           >
             {message.timestamp.toLocaleTimeString([], {
@@ -660,11 +547,11 @@ function MessageBubble({ message }: { message: Message }) {
 
 function TypingIndicator() {
   return (
-    <div className="flex items-start gap-4 animate-fade-in">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-blue-600 shadow-md dark:bg-[#1a1a1a] dark:text-blue-400 dark:shadow-lg dark:shadow-black/20">
+    <div className="flex items-start gap-4 animate-fade-in" aria-live="polite" aria-label="Jac is typing">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-blue-600 shadow-md dark:bg-card dark:text-blue-400 dark:shadow-lg dark:shadow-black/20">
         <Bot className="h-5 w-5" />
       </div>
-      <div className="rounded-2xl bg-slate-100 px-6 py-4 shadow-lg dark:bg-[#1a1a1a] dark:shadow-black/20">
+      <div className="rounded-2xl bg-slate-100 px-6 py-4 shadow-lg dark:bg-card dark:shadow-black/20">
         <div className="flex items-center gap-2">
           <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
           <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />

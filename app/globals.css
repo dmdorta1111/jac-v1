@@ -4,6 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.Models{
+width: 100vw;
+height: 100vh;
+}
+
 html {
   scrollbar-gutter: stable;
   scrollbar-width: none;
@@ -282,6 +287,72 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .typing-dot,
+  .shimmer,
+  .glow-effect::before,
+  .animate-float,
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* Slide up animation for messages */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(100px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.picker .react-colorful {
+  margin-bottom: 28px;
+   width: 120px;
+  height: 120px;
 }
 
 @source "../node_modules/streamdown/dist/index.js";
