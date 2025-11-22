@@ -281,10 +281,9 @@ export function Chat() {
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50 h-screen w-72 lg:w-80 flex justify-between overflow-y-auto p-6 shrink-0 flex-col border-r border-steel-800/50 bg-steel-950/50 backdrop-blur-sm transition-transform duration-300 dark:border-steel-800/50 dark:bg-steel-950/50 light:border-steel-200 light:bg-white/95`}
       >
-        {sidebarOpen && (
-          <>
-            {/* New Chat Button */}
-            <div className="mb-6 px-2">
+        <>
+          {/* New Chat Button */}
+          <div className="mb-6 px-2">
               <button
                 onClick={startNewChat}
                 className="flex w-full items-center justify-center gap-3 rounded-xl border border-steel-700/50 bg-gradient-to-br from-steel-900/80 to-steel-800/80 px-5 py-3.5 text-sm font-semibold text-steel-200 shadow-lg transition-all duration-200 hover:border-blue-500/40 hover:from-steel-800/80 hover:to-steel-700/80 hover:text-blue-300 hover:shadow-glow-sm active:scale-95 dark:border-steel-700/50 dark:from-steel-900/80 dark:to-steel-800/80 dark:text-steel-200 light:border-steel-300 light:from-steel-100 light:to-steel-50 light:text-steel-700 light:shadow-light-md light:hover:border-blue-400 light:hover:from-steel-50 light:hover:to-white light:hover:text-blue-600"
@@ -328,8 +327,7 @@ export function Chat() {
                 )}
               </div>
             </div>
-          </>
-        )}
+        </>
       </div>
 
       {/* Main Chat Area */}
