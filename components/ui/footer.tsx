@@ -4,8 +4,8 @@ import { Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-steel-800/50 bg-surface-dark/80 backdrop-blur-xl dark:border-steel-800/50 dark:bg-surface-dark/80 light:border-steel-200 light:bg-white/80">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+    <footer className="relative border-t border-slate-200 bg-white/80 backdrop-blur-xl dark:border-[#2a2a2a] dark:bg-[#0d0d0d] shrink-0">
+      <div className="mx-auto px-4 py-3 sm:px-6">
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-between">
           {/* Left side - Branding */}
           <div className="flex items-center gap-3">
@@ -16,10 +16,10 @@ export function Footer() {
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-steel-200 dark:text-steel-200 light:text-steel-700">
+              <span className="text-sm font-semibold text-slate-700 dark:text-[#f5f5f5]">
                 EMJAC AI Assistant
               </span>
-              <span className="text-xs text-steel-500 dark:text-steel-500 light:text-steel-600">
+              <span className="text-xs text-slate-600 dark:text-[#a3a3a3]">
                 Powered by Claude AI
               </span>
             </div>
@@ -28,19 +28,19 @@ export function Footer() {
           {/* Center - Tagline */}
           <div className="flex items-center gap-2 text-center">
             <div className="relative">
-              <p className="text-sm font-medium text-steel-400 dark:text-steel-400 light:text-steel-600">
+              <p className="text-sm font-medium text-slate-600 dark:text-[#d4d4d4]">
                 Engineering Mastery
               </p>
               <div className="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
             </div>
-            <span className="text-steel-600 dark:text-steel-600 light:text-steel-500">•</span>
-            <p className="text-sm font-medium text-steel-400 dark:text-steel-400 light:text-steel-600">
+            <span className="text-slate-500 dark:text-[#737373]">•</span>
+            <p className="text-sm font-medium text-slate-600 dark:text-[#d4d4d4]">
               Junction of Architecture & Craftsmanship
             </p>
           </div>
 
           {/* Right side - Copyright */}
-          <div className="flex items-center gap-2 text-xs text-steel-500 dark:text-steel-500 light:text-steel-600">
+          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-[#a3a3a3]">
             <span>© {new Date().getFullYear()} EMJAC</span>
             <span className="hidden sm:inline">•</span>
             <span className="hidden sm:inline">All rights reserved</span>
@@ -48,7 +48,7 @@ export function Footer() {
         </div>
 
         {/* Bottom decorative line */}
-        <div className="mt-4 h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+        <div className="mt-2 h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
       </div>
     </footer>
   );

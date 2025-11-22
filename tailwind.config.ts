@@ -86,9 +86,12 @@ const config: Config = {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
       },
-      borderRadius: {
-        "4xl": "2rem",
-        "3xl": "1.5rem",
+       borderRadius: {
+        "2": "8px",
+        "1.5": "6px",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       animation: {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
