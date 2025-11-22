@@ -49,6 +49,13 @@ const config: Config = {
           light: "#1f2937",
           lighter: "#374151",
         },
+        // Light mode specific colors for better contrast
+        lightSurface: {
+          DEFAULT: "#ffffff",
+          secondary: "#f8fafc",
+          tertiary: "#f1f5f9",
+          border: "#e2e8f0",
+        },
       },
       boxShadow: {
         "glow-sm": "0 0 10px rgba(59, 130, 246, 0.3)",
@@ -59,6 +66,18 @@ const config: Config = {
         "steel-sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
         "steel-md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         "steel-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        "steel-xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        // Light mode shadows
+        "light-sm": "0 1px 3px 0 rgba(0, 0, 0, 0.08)",
+        "light-md": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        "light-lg": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)",
+        "light-xl": "0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      },
+      spacing: {
+        18: "4.5rem",
+        22: "5.5rem",
+        26: "6.5rem",
+        30: "7.5rem",
       },
       screens: {
         xs: "420px",
@@ -74,12 +93,16 @@ const config: Config = {
       animation: {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "fade-in": "fade-in 0.3s ease-out",
+        "fade-in-slow": "fade-in 0.5s ease-out",
         "slide-up": "slide-up 0.3s ease-out",
         "slide-down": "slide-down 0.2s ease-out",
+        "slide-in-left": "slide-in-left 0.3s ease-out",
+        "slide-in-right": "slide-in-right 0.3s ease-out",
         "scale-in": "scale-in 0.2s ease-out",
         "shimmer": "shimmer 2s linear infinite",
         "glow-ring": "glow-ring 1.5s ease-in-out infinite",
         "bounce-subtle": "bounce-subtle 0.5s ease-out",
+        "float": "float 3s ease-in-out infinite",
       },
       keyframes: {
         "pulse-glow": {
@@ -102,6 +125,14 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(-10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "slide-in-left": {
+          "0%": { opacity: "0", transform: "translateX(-20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "slide-in-right": {
+          "0%": { opacity: "0", transform: "translateX(20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
         "scale-in": {
           "0%": { opacity: "0", transform: "scale(0.95)" },
           "100%": { opacity: "1", transform: "scale(1)" },
@@ -122,6 +153,10 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-3px)" },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
       },
       transitionTimingFunction: {
         "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
@@ -130,6 +165,10 @@ const config: Config = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-steel": "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
         "gradient-blue": "linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)",
+        "gradient-light": "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+      },
+      backdropBlur: {
+        xs: "2px",
       },
     },
   },
