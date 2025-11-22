@@ -15,6 +15,8 @@ import {
   FileText,
   Trash2,
 } from "lucide-react";
+import { streamText, UIMessage, convertToModelMessages } from 'ai';
+
 
 interface Message {
   id: string;
@@ -375,10 +377,11 @@ export function Chat() {
 
         {/* Input Area */}
         <div
-          className="border-t border-steel-800/30 bg-surface-dark/50 px-6 py-6 backdrop-blur-sm dark:border-steel-800/30 dark:bg-surface-dark/50 light:border-steel-200 light:bg-white/80 sm:px-8"
+          className="border-steel-800/30 bg-surface-dark/50 px-6 py-6 backdrop-blur-sm dark:border-steel-800/30 dark:bg-surface-dark/50 light:border-steel-200 light:bg-white/80 sm:px-8"
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          style={{ height: "100px" }}
         >
           <div className="mx-auto max-w-4xl">
             {/* Uploaded Files Preview */}
@@ -407,7 +410,7 @@ export function Chat() {
             <div className="relative">
               {/* Subtle Glow Behind */}
               <div
-                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-blue-400/20 to-blue-600/20 blur-xl transition-opacity duration-500 ${
+                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-blue-400/20 to-blue-600/20 blur-xl  duration-500 ${
                   isLoading ? "opacity-80" : "opacity-30"
                 }`}
               />
@@ -448,9 +451,9 @@ export function Chat() {
                     placeholder={
                       isDragging
                         ? "Drop files here..."
-                        : "Ask about stainless steel fabrication, kitchen equipment, or engineering specifications..."
+                        : "Jac is Waiting..."
                     }
-                    className="max-h-[150px] min-h-[48px] flex-1 resize-none bg-transparent py-3 text-steel-100 placeholder-steel-500 focus:outline-none dark:text-steel-100 light:text-steel-800 light:placeholder-steel-400"
+                    className="rounded-2xl max-h-[150px] min-h-[48px] flex-1 bg-transparent py-3 text-steel-100 placeholder-steel-500 dark:text-steel-100 light:text-steel-800 light:placeholder-steel-400"
                     rows={1}
                     disabled={isLoading}
                   />
@@ -459,7 +462,7 @@ export function Chat() {
                   <button
                     onClick={handleSend}
                     disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:from-blue-400 hover:to-blue-500 hover:shadow-blue-500/40 active:scale-95 disabled:cursor-not-allowed disabled:from-steel-700 disabled:to-steel-700 disabled:text-steel-500 disabled:shadow-none dark:from-blue-500 dark:to-blue-600 light:from-blue-500 light:to-blue-600"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:from-blue-400 hover:to-blue-500 hover:shadow-blue-500/40 active:scale-95 disabled:cursor-not-allowed disabled:from-steel-700 disabled:to-steel-700 disabled:text-steel-500 disabled:shadow-none dark:from-blue-500 dark:to-blue-600 light:from-blue-500 light:to-blue-600"
                     aria-label="Send message"
                   >
                     {isLoading ? (

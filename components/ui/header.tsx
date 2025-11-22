@@ -22,7 +22,7 @@ export function Header() {
           >
             <div className="relative">
               {resolvedTheme === "dark" ? (
-                <Sun className="h-5 w-5 transition-transform duration-300 group-hover:rotate-45" />
+                <Sun className= " h-5 w-5 transition-transform duration-300 group-hover:rotate-45" />
               ) : (
                 <Moon className="h-5 w-5 transition-transform duration-300 group-hover:-rotate-12" />
               )}
@@ -48,9 +48,9 @@ export function Header() {
               </span>
             </div>
             <div className="hidden h-6 w-px bg-steel-700 sm:block" />
-            <div className="group relative">
+            <div className="">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                <span className=" steel-bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text text-transparent transition-all duration-300 group-hover:from-blue-300 group-hover:via-blue-400 group-hover:to-blue-500">
+                <span className="steel-bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 bg-clip-text transition-all duration-300 group-hover:from-blue-300 group-hover:via-blue-400 group-hover:to-blue-500">
                   EMJAC
                 </span>
               </h1>
