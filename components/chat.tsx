@@ -1,22 +1,79 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, DragEvent } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
-  ArrowUp,
-  Paperclip,
   Bot,
   User,
-  Loader2,
   AlertCircle,
-  Sparkles,
   MessageSquare,
   Plus,
-  X,
-  FileText,
   Trash2,
+  Workflow,
 } from "lucide-react";
-import { streamText, UIMessage, convertToModelMessages } from 'ai';
+import {
+  PromptInput,
+  PromptInputTextarea,
+  PromptInputAttachments,
+  PromptInputAttachment,
+  PromptInputFooter,
+  PromptInputTools,
+  PromptInputSubmit,
+  PromptInputActionMenu,
+  PromptInputActionMenuTrigger,
+  PromptInputActionMenuContent,
+  PromptInputActionAddAttachments,
+  type PromptInputMessage,
+} from "@/components/ai-elements/prompt-input";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import {
+  Message as MessageComponent,
+  MessageContent,
+  MessageResponse,
+  MessageAttachment,
+  MessageAttachments,
+} from "@/components/ai-elements/message";
+import {
+  ChainOfThought,
+  ChainOfThoughtHeader,
+  ChainOfThoughtContent,
+  ChainOfThoughtStep,
+} from "@/components/ai-elements/chain-of-thought";
+import {
+  Task,
+  TaskTrigger,
+  TaskContent,
+  TaskItem,
+} from "@/components/ai-elements/task";
+import {
+  projectSetupExample,
+  codeAnalysisExample,
+  dataProcessingExample,
+  featureDevelopmentExample,
+  bugFixExample,
+} from "@/components/ai-elements/examples";
 
+const suggestions = [
+  "SDI",
+  "EMJAC",
+  "Harmonic",
+];
+
+
+
+interface ReasoningStep {
+  label: string;
+  description?: string;
+  status?: "complete" | "active" | "pending";
+}
+
+interface TaskStep {
+  id: string;
+  title: string;
+  description?: string;
+  status: "pending" | "active" | "complete";
+  items?: string[];
+}
 
 interface Message {
   id: string;
@@ -24,6 +81,8 @@ interface Message {
   text: string;
   timestamp: Date;
   files?: UploadedFile[];
+  reasoning?: ReasoningStep[];
+  tasks?: TaskStep[];
 }
 
 interface UploadedFile {
@@ -41,20 +100,23 @@ interface ChatSession {
   updatedAt: Date;
 }
 
+const Example = () => {
+  const handleSuggestionClick = (suggestion: string) => {
+    console.log("Selected suggestion:", suggestion);
+  };
+}
+
+
 export function Chat() {
-  const [input, setInput] = useState("");
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,14 +125,6 @@ export function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
-    }
-  }, [input]);
 
   // Save current session when messages change
   useEffect(() => {
@@ -111,7 +165,6 @@ export function Chat() {
     setChatSessions((prev) => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
     setMessages([]);
-    setUploadedFiles([]);
     setError(null);
   };
 
@@ -120,7 +173,6 @@ export function Chat() {
     if (session) {
       setCurrentSessionId(sessionId);
       setMessages(session.messages);
-      setUploadedFiles([]);
       setError(null);
     }
   };
@@ -134,8 +186,8 @@ export function Chat() {
     }
   };
 
-  const handleSend = async () => {
-    if ((!input.trim() && uploadedFiles.length === 0) || isLoading) return;
+  const handleSubmit = async (message: PromptInputMessage) => {
+    if ((!message.text.trim() && message.files.length === 0) || isLoading) return;
 
     // Start a new session if none exists
     if (!currentSessionId) {
@@ -150,23 +202,53 @@ export function Chat() {
       setCurrentSessionId(newSession.id);
     }
 
+    // Convert FileUIPart files to UploadedFile format
+    const convertedFiles: UploadedFile[] = message.files.map((file) => ({
+      id: generateId(),
+      name: file.filename || "file",
+      size: 0,
+      type: file.mediaType || "",
+    }));
+
     const userMessage: Message = {
       id: generateId(),
       sender: "user",
-      text: input.trim(),
+      text: message.text.trim(),
       timestamp: new Date(),
-      files: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined,
+      files: convertedFiles.length > 0 ? convertedFiles : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setUploadedFiles([]);
     setIsLoading(true);
     setError(null);
 
-    // Reset textarea height
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+    // Check for example triggers
+    const lowerText = message.text.trim().toLowerCase();
+    
+    if (lowerText.includes("project setup") || lowerText.includes("setup example")) {
+      setMessages((prev) => [...prev, projectSetupExample]);
+      setIsLoading(false);
+      return;
+    }
+    if (lowerText.includes("code analysis") || lowerText.includes("analyze code")) {
+      setMessages((prev) => [...prev, codeAnalysisExample]);
+      setIsLoading(false);
+      return;
+    }
+    if (lowerText.includes("data processing") || lowerText.includes("process data")) {
+      setMessages((prev) => [...prev, dataProcessingExample]);
+      setIsLoading(false);
+      return;
+    }
+    if (lowerText.includes("feature development") || lowerText.includes("develop feature")) {
+      setMessages((prev) => [...prev, featureDevelopmentExample]);
+      setIsLoading(false);
+      return;
+    }
+    if (lowerText.includes("bug fix") || lowerText.includes("fix bug")) {
+      setMessages((prev) => [...prev, bugFixExample]);
+      setIsLoading(false);
+      return;
     }
 
     try {
@@ -175,7 +257,7 @@ export function Chat() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: input.trim() }),
+        body: JSON.stringify({ prompt: message.text.trim() }),
       });
 
       if (!response.ok) {
@@ -204,69 +286,6 @@ export function Chat() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const handleFileUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newFiles: UploadedFile[] = Array.from(files).map((file) => ({
-        id: generateId(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      }));
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-    }
-    // Reset input so same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const removeFile = (fileId: string) => {
-    setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files) {
-      const newFiles: UploadedFile[] = Array.from(files).map((file) => ({
-        id: generateId(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      }));
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-    }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-  };
-
   return (
     <div className="flex h-full w-full relative">
       {/* Mobile Sidebar Overlay */}
@@ -281,14 +300,14 @@ export function Chat() {
       <div
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50 h-screen w-72 lg:w-80 flex justify-between overflow-y-auto p-6 shrink-0 flex-col border-r border-steel-800/50 bg-steel-950/50 backdrop-blur-sm transition-transform duration-300 dark:border-steel-800/50 dark:bg-steel-950/50 light:border-steel-200 light:bg-white/95`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50  w-72 lg:w-80 flex justify-between overflow-y-auto p-6 shrink-0 flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm transition-transform duration-300 dark:border-[#2a2a2a] dark:bg-[#0d0d0d]`}
       >
         <>
           {/* New Chat Button */}
           <div className="mb-6 px-2">
               <button
                 onClick={startNewChat}
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-steel-700/50 bg-gradient-to-br from-steel-900/80 to-steel-800/80 px-5 py-3.5 text-sm font-semibold text-steel-200 shadow-lg transition-all duration-200 hover:border-blue-500/40 hover:from-steel-800/80 hover:to-steel-700/80 hover:text-blue-300 hover:shadow-glow-sm active:scale-95 dark:border-steel-700/50 dark:from-steel-900/80 dark:to-steel-800/80 dark:text-steel-200 light:border-steel-300 light:from-steel-100 light:to-steel-50 light:text-steel-700 light:shadow-light-md light:hover:border-blue-400 light:hover:from-steel-50 light:hover:to-white light:hover:text-blue-600"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-100 to-slate-50 px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-md transition-all duration-200 hover:border-blue-400 hover:from-slate-50 hover:to-white hover:text-blue-600 active:scale-95 dark:border-[#3a3a3a] dark:bg-[#1a1a1a] dark:bg-none dark:text-[#e5e5e5] dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-[#252525] dark:hover:text-blue-400"
               >
                 <Plus className="h-5 w-5" />
                 New Chat
@@ -297,12 +316,12 @@ export function Chat() {
 
             {/* Chat Sessions List */}
             <div className="flex-1 overflow-y-auto px-2 pb-6">
-              <p className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-steel-500 dark:text-steel-500 light:text-steel-600">
+              <p className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[#a3a3a3]">
                 Recent Chats
               </p>
               <div className="space-y-2">
                 {chatSessions.length === 0 ? (
-                  <p className="px-3 py-6 text-center text-xs text-steel-600 dark:text-steel-600 light:text-steel-500">
+                  <p className="px-3 py-6 text-center text-xs text-slate-500 dark:text-[#737373]">
                     No chat history yet
                   </p>
                 ) : (
@@ -312,15 +331,15 @@ export function Chat() {
                       onClick={() => selectSession(session.id)}
                       className={`group flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 transition-all duration-200 ${
                         currentSessionId === session.id
-                          ? "bg-gradient-to-r from-blue-600/20 to-blue-500/20 text-blue-400 shadow-md dark:from-blue-600/20 dark:to-blue-500/20 dark:text-blue-400 light:from-blue-100 light:to-blue-50 light:text-blue-600 light:shadow-light-sm"
-                          : "text-steel-400 hover:bg-steel-800/60 hover:text-steel-200 dark:text-steel-400 dark:hover:bg-steel-800/60 dark:hover:text-steel-200 light:text-steel-600 light:hover:bg-steel-100 light:hover:text-steel-800"
+                          ? "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-600 shadow-sm dark:from-blue-600/20 dark:to-blue-500/10 dark:bg-none dark:text-blue-400 dark:shadow-md"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-800 dark:text-[#d4d4d4] dark:hover:bg-[#1a1a1a] dark:hover:text-[#f5f5f5]"
                       }`}
                     >
                       <MessageSquare className="h-4 w-4 flex-shrink-0" />
                       <span className="flex-1 truncate text-sm font-medium">{session.title}</span>
                       <button
                         onClick={(e) => deleteSession(session.id, e)}
-                        className="hidden rounded-lg p-1.5 text-steel-500 opacity-0 transition-all hover:bg-steel-700 hover:text-red-400 group-hover:opacity-100 dark:hover:bg-steel-700 dark:hover:text-red-400 light:hover:bg-red-50 light:hover:text-red-500 lg:block"
+                        className="hidden rounded-lg p-1.5 text-slate-500 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:text-[#a3a3a3] dark:hover:bg-[#2a2a2a] dark:hover:text-red-400 lg:block"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -333,19 +352,19 @@ export function Chat() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col items-center w-full">
         {/* Mobile Sidebar Toggle */}
-        <div className="flex items-center gap-3 border-b border-steel-800/30 bg-surface-dark/50 px-6 py-3 backdrop-blur-sm dark:border-steel-800/30 dark:bg-surface-dark/50 light:border-steel-200 light:bg-white/80 lg:hidden">
+        <div className="flex items-center gap-3 border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur-sm dark:border-[#2a2a2a] dark:bg-[#0d0d0d] lg:hidden">
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-steel-800/50 px-4 py-2 text-sm font-medium text-steel-300 shadow-md transition-all hover:bg-steel-700/50 hover:text-blue-400 active:scale-95 dark:bg-steel-800/50 dark:text-steel-300 light:bg-steel-100 light:text-steel-700 light:shadow-light-sm light:hover:bg-steel-200"
+            className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-200 active:scale-95 dark:bg-[#1a1a1a] dark:text-[#e5e5e5] dark:shadow-md dark:hover:bg-[#252525] dark:hover:text-blue-400"
           >
             <MessageSquare className="h-4 w-4" />
             Chats
           </button>
           <button
             onClick={startNewChat}
-            className="flex items-center gap-2 rounded-lg bg-steel-800/50 px-4 py-2 text-sm font-medium text-steel-300 shadow-md transition-all hover:bg-steel-700/50 hover:text-blue-400 active:scale-95 dark:bg-steel-800/50 dark:text-steel-300 light:bg-steel-100 light:text-steel-700 light:shadow-light-sm light:hover:bg-steel-200"
+            className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-200 active:scale-95 dark:bg-[#1a1a1a] dark:text-[#e5e5e5] dark:shadow-md dark:hover:bg-[#252525] dark:hover:text-blue-400"
           >
             <Plus className="h-4 w-4" />
             New
@@ -353,7 +372,7 @@ export function Chat() {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-8 sm:px-8">
+        <div className="w-full flex-1 overflow-y-auto px-6 py-4 sm:px-8">
           {messages.length === 0 ? (
             <WelcomeScreen />
           ) : (
@@ -369,124 +388,68 @@ export function Chat() {
 
         {/* Error Display */}
         {error && (
-          <div className="mx-auto flex max-w-4xl items-center gap-3 rounded-lg bg-red-500/10 px-6 py-3 text-sm text-red-400 shadow-md dark:bg-red-500/10 dark:text-red-400 light:bg-red-50 light:text-red-600">
+          <div className="mx-auto w-full max-w-4xl flex items-center gap-3 rounded-lg bg-red-50 px-6 py-3 text-sm text-red-600 shadow-md dark:bg-red-500/10 dark:text-red-400">
             <AlertCircle className="h-5 w-5" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Input Area */}
-        <div
-          className="border-steel-800/30 bg-surface-dark/50 px-6 py-6 backdrop-blur-sm dark:border-steel-800/30 dark:bg-surface-dark/50 light:border-steel-200 light:bg-white/80 sm:px-8"
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          style={{ height: "100px" }}
-        >
-          <div className="mx-auto max-w-4xl">
-            {/* Uploaded Files Preview */}
-            {uploadedFiles.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-2.5">
-                {uploadedFiles.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center gap-2.5 rounded-xl bg-steel-800/60 px-4 py-2.5 text-sm shadow-md transition-all hover:bg-steel-800/80 dark:bg-steel-800/60 light:bg-steel-100 light:shadow-light-sm light:hover:bg-steel-200"
-                  >
-                    <FileText className="h-4 w-4 text-blue-400 dark:text-blue-400 light:text-blue-600" />
-                    <span className="max-w-[150px] truncate text-steel-300 dark:text-steel-300 light:text-steel-700">{file.name}</span>
-                    <span className="text-xs text-steel-500 dark:text-steel-500 light:text-steel-600">({formatFileSize(file.size)})</span>
-                    <button
-                      onClick={() => removeFile(file.id)}
-                      className="ml-1 rounded-lg p-1 text-steel-500 transition-all hover:bg-steel-700 hover:text-red-400 dark:hover:bg-steel-700 dark:hover:text-red-400 light:hover:bg-red-50 light:hover:text-red-500"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
+        <div className="w-full shrink-0 border-slate-200 px-6 py-3 backdrop-blur-sm dark:border-[#2a2a2a] dark:bg-[#0d0d0d] sm:px-8">
+          <div className="mx-auto w-full max-w-4xl">
             {/* Input Container with Glow Effect */}
             <div className="relative">
               {/* Subtle Glow Behind */}
               <div
-                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-blue-400/20 to-blue-600/20 blur-xl  duration-500 ${
+                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-blue-400/20 to-blue-600/20 blur-xl duration-500 ${
                   isLoading ? "opacity-80" : "opacity-30"
                 }`}
               />
 
               {/* Main Input Container */}
-              <div
-                className={`relative rounded-2xl bg-gradient-to-b from-steel-800/90 to-steel-900/90 p-1.5 shadow-xl shadow-black/20 transition-all duration-300 dark:from-steel-800/90 dark:to-steel-900/90 light:from-steel-100 light:to-steel-50 light:shadow-light-lg ${
-                  isDragging ? "ring-2 ring-blue-500/50" : ""
-                }`}
+              <PromptInput
+                onSubmit={handleSubmit}
+                className="relative rounded-2xl bg-gradient-to-b from-slate-100 to-slate-50 p-1.5 shadow-lg transition-all duration-300 dark:bg-[#1a1a1a] dark:bg-none dark:shadow-xl dark:shadow-black/20"
+                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                multiple
               >
-                <div className="flex items-end gap-3 rounded-xl bg-gradient-to-b from-steel-800/50 to-steel-850/50 p-3 dark:from-steel-800/50 dark:to-steel-900/80 light:from-white light:to-steel-50/50">
-                  {/* Hidden File Input */}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                    multiple
-                    accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                  />
-
-                  {/* File Upload Button */}
-                  <button
-                    onClick={handleFileUpload}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-steel-400 transition-all duration-200 hover:bg-steel-700/50 hover:text-blue-400 active:scale-95 dark:text-steel-400 dark:hover:bg-steel-700/50 dark:hover:text-blue-400 light:text-steel-600 light:hover:bg-steel-200 light:hover:text-blue-600"
-                    aria-label="Attach file"
-                    title="Upload files (drag & drop also supported)"
-                  >
-                    <Paperclip className="h-5 w-5" />
-                  </button>
-
-                  {/* Text Input */}
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={
-                      isDragging
-                        ? "Drop files here..."
-                        : "Jac is Waiting..."
-                    }
-                    className="rounded-2xl max-h-[150px] min-h-[48px] flex-1 bg-transparent py-3 text-steel-100 placeholder-steel-500 dark:text-steel-100 light:text-steel-800 light:placeholder-steel-400"
-                    rows={1}
+                <PromptInputAttachments>
+                  {(attachment) => (
+                    <PromptInputAttachment
+                      key={attachment.id}
+                      data={attachment}
+                    />
+                  )}
+                </PromptInputAttachments>
+                <PromptInputTextarea
+                  placeholder="Jac is Waiting..."
+                  disabled={isLoading}
+                />
+                <PromptInputFooter>
+                  <PromptInputTools>
+                    <PromptInputActionMenu>
+                      <PromptInputActionMenuTrigger />
+                      <PromptInputActionMenuContent>
+                        <PromptInputActionAddAttachments />
+                      </PromptInputActionMenuContent>
+                    </PromptInputActionMenu>
+                  </PromptInputTools>                
+                  <PromptInputSubmit
                     disabled={isLoading}
+                    status={isLoading ? "submitted" : "ready"}
                   />
-
-                  {/* Send Button */}
-                  <button
-                    onClick={handleSend}
-                    disabled={(!input.trim() && uploadedFiles.length === 0) || isLoading}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:from-blue-400 hover:to-blue-500 hover:shadow-blue-500/40 active:scale-95 disabled:cursor-not-allowed disabled:from-steel-700 disabled:to-steel-700 disabled:text-steel-500 disabled:shadow-none dark:from-blue-500 dark:to-blue-600 light:from-blue-500 light:to-blue-600"
-                    aria-label="Send message"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <ArrowUp className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
+                </PromptInputFooter>
+              </PromptInput>             
             </div>
-
-            {/* Helper Text */}
-            <p className="mt-3 text-center text-xs text-steel-500 dark:text-steel-500 light:text-steel-600">
-              Press{" "}
-              <kbd className="rounded bg-steel-800 px-2 py-1 font-mono text-steel-400 shadow-sm dark:bg-steel-800 dark:text-steel-400 light:bg-steel-200 light:text-steel-700">
-                Enter
-              </kbd>{" "}
-              to send,{" "}
-              <kbd className="rounded bg-steel-800 px-2 py-1 font-mono text-steel-400 shadow-sm dark:bg-steel-800 dark:text-steel-400 light:bg-steel-200 light:text-steel-700">
-                Shift + Enter
-              </kbd>{" "}
-              for new line
-            </p>
+            {/* Workflow Navigation Button */}
+                  <button
+                    onClick={() => router.push("/workflow")}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-linear-to-br px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-20 hover:shadow-xl active:scale-95"
+                    title="Open Workflow Visualization"
+                  >
+                    <Workflow className="h-4 w-4" />
+                    <span className="hidden sm:inline">Workflow</span>
+                  </button>           
           </div>
         </div>
       </div>
@@ -495,52 +458,31 @@ export function Chat() {
 }
 
 function WelcomeScreen() {
+  function handleSuggestionClick(suggestion: string): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
-      <div className="relative mb-8 animate-fade-in">
-        <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 shadow-glow-md dark:from-blue-500/20 dark:to-blue-600/20 light:from-blue-100 light:to-blue-200 light:shadow-light-lg">
-          <Sparkles className="h-12 w-12 text-blue-400 animate-pulse dark:text-blue-400 light:text-blue-600" />
-        </div>
-        <div className="absolute -inset-3 -z-10 rounded-3xl bg-blue-500/10 blur-xl animate-pulse dark:bg-blue-500/10 light:bg-blue-300/20" />
-      </div>
-
-      <h2 className="mb-3 text-3xl font-bold text-steel-100 dark:text-steel-100 light:text-steel-800">
+      <h2 className="mb-3 text-3xl font-bold text-slate-800 dark:text-[#f5f5f5]">
         EMJAC Engineering Assistant
       </h2>
-      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-steel-400 dark:text-steel-400 light:text-steel-600">
+      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-slate-600 dark:text-[#a3a3a3]">
         Your AI-powered helper for custom stainless steel fabrication projects.
         Ask about kitchen equipment, specifications, or engineering details.
       </p>
 
-      <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-2">
-        {[
-          {
-            title: "Kitchen Equipment",
-            description: "Chef counters, cabinets, dishtables & worktables",
-          },
-          {
-            title: "Doors & Frames",
-            description: "Custom stainless steel door solutions",
-          },
-          {
-            title: "Wine Coolers",
-            description: "Elegant front-of-house display coolers",
-          },
-          {
-            title: "Engineering Specs",
-            description: "Material grades, dimensions & tolerances",
-          },
-        ].map((item, index) => (
-          <div
-            key={index}
-            className="group cursor-pointer rounded-2xl border border-steel-800/50 bg-steel-900/40 p-6 shadow-lg transition-all duration-300 hover:border-blue-500/40 hover:bg-steel-800/60 hover:shadow-glow-sm dark:border-steel-800/50 dark:bg-steel-900/40 light:border-steel-200 light:bg-white light:shadow-light-md light:hover:border-blue-400 light:hover:bg-blue-50/50 light:hover:shadow-light-lg"
-          >
-            <h3 className="mb-2 text-base font-semibold text-steel-200 transition-colors group-hover:text-blue-400 dark:text-steel-200 dark:group-hover:text-blue-400 light:text-steel-800 light:group-hover:text-blue-600">
-              {item.title}
-            </h3>
-            <p className="text-sm leading-relaxed text-steel-500 dark:text-steel-500 light:text-steel-600">{item.description}</p>
-          </div>
-        ))}
+      <div className="grid w-full max-w-3xl gap-4 justify-center">
+        <Suggestions>
+      {suggestions.map((suggestion) => (
+        <Suggestion
+          key={suggestion}
+          onClick={() => handleSuggestionClick(suggestion)}
+          suggestion={suggestion}
+          className="group cursor-pointer border-slate-200 bg-white shadow-md transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-lg dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-[#252525]"
+        />
+      ))}
+    </Suggestions>
       </div>
     </div>
   );
@@ -548,6 +490,8 @@ function WelcomeScreen() {
 
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.sender === "user";
+  const role = isUser ? "user" : "assistant";
+  const hasReasoning = !isUser && message.reasoning && message.reasoning.length > 0;
 
   return (
     <div
@@ -559,59 +503,157 @@ function MessageBubble({ message }: { message: Message }) {
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-lg ${
           isUser
-            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/20 dark:from-blue-500 dark:to-blue-600 light:from-blue-500 light:to-blue-600 light:shadow-light-md"
-            : "bg-steel-800 text-blue-400 shadow-black/20 dark:bg-steel-800 dark:text-blue-400 light:bg-steel-200 light:text-blue-600 light:shadow-light-md"
+            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/20"
+            : "bg-slate-200 text-blue-600 shadow-md dark:bg-[#1a1a1a] dark:text-blue-400 dark:shadow-black/20"
         }`}
       >
         {isUser ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
       </div>
 
       {/* Message Content */}
-      <div
-        className={`max-w-[75%] rounded-2xl px-6 py-4 shadow-lg ${
-          isUser
-            ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20 dark:from-blue-500 dark:to-blue-600 light:from-blue-500 light:to-blue-600 light:shadow-light-lg"
-            : "bg-steel-800/80 text-steel-100 shadow-black/20 dark:bg-steel-800/80 dark:text-steel-100 light:bg-steel-100 light:text-steel-800 light:shadow-light-lg"
-        }`}
-      >
-        {isUser ? (
-          <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed">
-            <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent dark:from-white dark:via-blue-100 dark:to-white light:from-white light:via-white light:to-white">
-              {message.text}
-            </span>
-          </p>
-        ) : (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-steel-100 dark:text-steel-100 light:text-steel-800">
-            {message.text}
-          </p>
-        )}
-
-        {/* File Attachments */}
-        {message.files && message.files.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3 dark:border-white/10 light:border-steel-300">
-            {message.files.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs dark:bg-white/10 light:bg-white/50"
-              >
-                <FileText className="h-3.5 w-3.5" />
-                <span className="max-w-[120px] truncate">{file.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <span
-          className={`mt-3 block text-xs ${
-            isUser ? "text-blue-200 dark:text-blue-200 light:text-blue-100" : "text-steel-500 dark:text-steel-500 light:text-steel-600"
+      <MessageComponent from={role} className="max-w-[75%]">
+        <MessageContent
+          className={`rounded-2xl px-6 py-4 shadow-lg ${
+            isUser
+              ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20"
+              : "bg-slate-100 text-slate-800 shadow-md dark:bg-[#1a1a1a] dark:text-[#f5f5f5] dark:shadow-black/20"
           }`}
         >
-          {message.timestamp.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-      </div>
+          {/* Chain of Thought for bot messages */}
+          {hasReasoning && (
+            <ChainOfThought className="mb-4">
+              <ChainOfThoughtHeader>Reasoning</ChainOfThoughtHeader>
+              <ChainOfThoughtContent>
+                {message.reasoning!.map((step, index) => (
+                  <ChainOfThoughtStep
+                    key={index}
+                    label={step.label}
+                    description={step.description}
+                    status={step.status || "complete"}
+                  />
+                ))}
+              </ChainOfThoughtContent>
+            </ChainOfThought>
+          )}
+
+          {/* Task List for process tracking */}
+          {!isUser && message.tasks && message.tasks.length > 0 && (
+            <div className="mb-4 space-y-3">
+              {message.tasks.map((task) => {
+                const statusColorMap = {
+                  pending: "text-muted-foreground",
+                  active: "text-blue-600 dark:text-blue-400",
+                  complete: "text-green-600 dark:text-green-400",
+                };
+                const statusBgMap = {
+                  pending: "bg-slate-200/50 dark:bg-slate-800/50",
+                  active: "bg-blue-100/50 dark:bg-blue-950/50",
+                  complete: "bg-green-100/50 dark:bg-green-950/50",
+                };
+                return (
+                  <Task key={task.id} defaultOpen={task.status === "active"}>
+                    <TaskTrigger
+                      title={task.title}
+                      className={`rounded-lg p-2.5 transition-all ${ statusBgMap[task.status]
+                      } hover:opacity-80`}
+                    >
+                      <div className="flex w-full items-center gap-3">
+                        <div
+                          className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${ task.status === "complete"
+                              ? "border-green-600 bg-green-600 dark:border-green-400 dark:bg-green-400"
+                              : task.status === "active"
+                                ? "border-blue-600 bg-blue-100 dark:border-blue-400 dark:bg-blue-950"
+                                : "border-slate-400 bg-transparent dark:border-slate-600"
+                          }`}
+                        >
+                          {task.status === "complete" && (
+                            <span className="text-xs font-bold text-white">✓</span>
+                          )}
+                          {task.status === "active" && (
+                            <span className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+                          )}
+                        </div>
+                        <p
+                          className={`flex-1 text-sm font-semibold ${ statusColorMap[task.status]
+                          }`}
+                        >
+                          {task.title}
+                        </p>
+                        <svg
+                          className="size-4 transition-transform group-data-[state=open]:rotate-180"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                          />
+                        </svg>
+                      </div>
+                    </TaskTrigger>
+                    {task.items && task.items.length > 0 && (
+                      <TaskContent className="mt-2">
+                        <div className="space-y-2">
+                          {task.items.map((item, idx) => (
+                            <TaskItem key={idx} className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-muted-foreground">•</span>
+                              <span>{item}</span>
+                            </TaskItem>
+                          ))}
+                        </div>
+                      </TaskContent>
+                    )}
+                  </Task>
+                );
+              })}
+            </div>
+          )}
+
+          {isUser ? (
+            <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed">
+              <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
+                {message.text}
+              </span>
+            </p>
+          ) : (
+            <MessageResponse className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-[#f5f5f5]">
+              {message.text}
+            </MessageResponse>
+          )}
+
+          {/* File Attachments */}
+          {message.files && message.files.length > 0 && (
+            <MessageAttachments className="mt-3 border-t border-slate-300 pt-3 dark:border-white/10">
+              {message.files.map((file) => (
+                <MessageAttachment
+                  key={file.id}
+                  data={{
+                    type: "file",
+                    filename: file.name,
+                    mediaType: file.type,
+                    url: "",
+                  }}
+                  className="size-auto flex-row items-center gap-1.5 rounded-lg bg-white/50 px-2.5 py-1.5 text-xs dark:bg-white/10"
+                />
+              ))}
+            </MessageAttachments>
+          )}
+
+          <span
+            className={`mt-3 block text-xs ${
+              isUser ? "text-blue-200" : "text-slate-600 dark:text-[#737373]"
+            }`}
+          >
+            {message.timestamp.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        </MessageContent>
+      </MessageComponent>
     </div>
   );
 }
@@ -619,14 +661,14 @@ function MessageBubble({ message }: { message: Message }) {
 function TypingIndicator() {
   return (
     <div className="flex items-start gap-4 animate-fade-in">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-steel-800 text-blue-400 shadow-lg shadow-black/20 dark:bg-steel-800 dark:text-blue-400 light:bg-steel-200 light:text-blue-600 light:shadow-light-md">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-blue-600 shadow-md dark:bg-[#1a1a1a] dark:text-blue-400 dark:shadow-lg dark:shadow-black/20">
         <Bot className="h-5 w-5" />
       </div>
-      <div className="rounded-2xl bg-steel-800/80 px-6 py-4 shadow-lg shadow-black/20 dark:bg-steel-800/80 light:bg-steel-100 light:shadow-light-lg">
+      <div className="rounded-2xl bg-slate-100 px-6 py-4 shadow-lg dark:bg-[#1a1a1a] dark:shadow-black/20">
         <div className="flex items-center gap-2">
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-400 dark:bg-blue-400 light:bg-blue-600" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-400 dark:bg-blue-400 light:bg-blue-600" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-400 dark:bg-blue-400 light:bg-blue-600" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
         </div>
       </div>
     </div>
