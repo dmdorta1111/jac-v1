@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
+import { ModelModalProvider } from "@/components/providers/model-modal-provider";
+import { WorkflowModalProvider } from "@/components/providers/workflow-modal-provider";
+import { ModelViewerModal } from "@/components/model-viewer-modal";
+import { WorkflowViewerModal } from "@/components/workflow-viewer-modal";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import "./globals.css";
@@ -34,11 +38,18 @@ export default function RootLayout({
       >
         <ThemeProvider defaultTheme="dark" storageKey="emjac-theme">
           <SidebarProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <ModelModalProvider>
+              <WorkflowModalProvider>
+                <div className="relative flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
+                {/* Modals rendered at root level */}
+                <ModelViewerModal />
+                <WorkflowViewerModal />
+              </WorkflowModalProvider>
+            </ModelModalProvider>
           </SidebarProvider>
         </ThemeProvider>
       </body>

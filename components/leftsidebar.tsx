@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { MessageSquare, Plus, Trash2 } from "lucide-react";
+import { Box, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
+import { useModelModal } from "@/components/providers/model-modal-provider";
+import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
 
 export interface ChatSession {
   id: string;
@@ -59,6 +61,8 @@ export function LeftSidebar({
   onDeleteSession,
 }: LeftSidebarProps) {
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
+  const { open: openModelModal } = useModelModal();
+  const { open: openWorkflowModal } = useWorkflowModal();
 
   // Close sidebar on Escape key
   useEffect(() => {
@@ -114,13 +118,49 @@ export function LeftSidebar({
         } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50 h-screen w-72 lg:w-80 flex justify-between overflow-y-auto p-6 shrink-0 flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm transition-transform duration-300 dark:border-border dark:bg-background`}
       >
         {/* New Chat Button */}
-        <div className="mb-6 px-2">
+        <div className="mb-4 px-2">
           <button
             onClick={onNewChat}
             className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-100 to-slate-50 px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-md transition-all duration-200 hover:border-blue-400 hover:from-slate-50 hover:to-white hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 dark:border-border dark:bg-card dark:bg-none dark:text-foreground dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-secondary dark:hover:text-blue-400"
           >
             <Plus className="h-5 w-5" />
             New Chat
+          </button>
+        </div>
+
+        {/* 3D Model Viewer Button */}
+        <div className="mb-4 px-2">
+          <button
+            onClick={() => {
+              openModelModal();
+              // Close mobile sidebar after opening modal
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                closeSidebar();
+              }
+            }}
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-blue-50 to-slate-50 px-5 py-3.5 text-sm font-semibold text-blue-600 shadow-md transition-all duration-200 hover:border-blue-400 hover:from-blue-100 hover:to-blue-50 hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 dark:border-blue-900/50 dark:bg-gradient-to-br dark:from-blue-950/40 dark:to-blue-900/20 dark:text-blue-400 dark:shadow-lg dark:hover:border-blue-700 dark:hover:from-blue-950/60 dark:hover:to-blue-900/30 dark:hover:text-blue-300"
+            aria-label="Open 3D Model Viewer"
+          >
+            <Box className="h-5 w-5" />
+            3D Viewer
+          </button>
+        </div>
+
+        {/* Workflow Viewer Button */}
+        <div className="mb-6 px-2">
+          <button
+            onClick={() => {
+              openWorkflowModal();
+              // Close mobile sidebar after opening modal
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                closeSidebar();
+              }
+            }}
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-emerald-50 to-slate-50 px-5 py-3.5 text-sm font-semibold text-emerald-600 shadow-md transition-all duration-200 hover:border-emerald-400 hover:from-emerald-100 hover:to-emerald-50 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 dark:border-emerald-900/50 dark:bg-gradient-to-br dark:from-emerald-950/40 dark:to-emerald-900/20 dark:text-emerald-400 dark:shadow-lg dark:hover:border-emerald-700 dark:hover:from-emerald-950/60 dark:hover:to-emerald-900/30 dark:hover:text-emerald-300"
+            aria-label="Open Workflow Viewer"
+          >
+            <GitBranch className="h-5 w-5" />
+            Workflow
           </button>
         </div>
 

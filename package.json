@@ -43,7 +43,6 @@
     "react": "19.2.0",
     "react-colorful": "^5.6.1",
     "react-dom": "19.2.0",
-    "react-three": "^0.9.7",
     "shiki": "^3.15.0",
     "streamdown": "^1.6.1",
     "tailwind-merge": "^3.4.0",
@@ -61,6 +60,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "shadcn": "^3.5.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

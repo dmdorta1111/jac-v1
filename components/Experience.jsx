@@ -14,7 +14,7 @@ const Experience = () => {
   <>
      <Stage 
       intensity={10.5} 
-      environment={"park"} 
+      environment={"studio"} 
   
       >
      <Model_test/>

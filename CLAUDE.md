@@ -80,5 +80,18 @@ The `components/ai-elements/` directory contains a comprehensive set of pre-buil
 - `code-block.tsx` - Syntax-highlighted code blocks
 - `examples.tsx` - Example usage patterns
 
+
+
+
 Reference `context/` folder for detailed best practices, guidelines documentation.
 Reference `Markdown instructions/` folder for detailed component documentation.
+
+
+## RULES
+
+  -Full context of the work proposed MUST be outlined in the .claude/sessions/context_session.md file. Before delegating tasks to sub agents outline clearly the requirements of the task so they can get the full context. If the file does not exist then create one. After you finish the work, you must update the .claude/sessions/context_session.md file with the work you do. The other sub agents will do the research and propose a solution and you must execute it. Then they will check the work and update the .claude/sessions/context_session.md file with change request or complete ok. 
+
+  ## Sub Agents
+
+  You have 3 Sub agents to delegated work to. They all perform analysis and plan execution tasks. Anytime ui components are to be made you MUST outline the request in the .claude/sessions/context_session.md and delegate the research work to shadcn-ui-designer. Then the agent will update the .md file and you must follow the proposal by the agent to execute your work. You will be updating the code and implementing the proposed solutions after which you MUST update the .claude/sessions/context_session.md file with all the work you did. Then you will have the design-reviewer agent check your work for errors. When the design-reviewer agent is finish there will be updated instruction in .claude/sessions/context_session.md file to direct you further like fixing errors or completion. After each sub agent is finished the work make sure you read the related documentation they created to get full context of he plan before you start executing.
+ 
