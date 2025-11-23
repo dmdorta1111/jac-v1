@@ -6,9 +6,9 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon, Maximize2, Minimize2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Interface } from "@/components/interface";
-import Experience from "@/components/Experience";
-import { ConfiguratorProvider } from "@/components/Configurator";
+import { Interface } from "@/components/3d-model-viewer/interface";
+import Experience from "@/components/3d-model-viewer/Experience";
+import { ConfiguratorProvider } from "@/components/3d-model-viewer/Configurator";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { Button } from "@/components/ui/button";
 

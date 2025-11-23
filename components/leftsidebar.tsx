@@ -5,6 +5,7 @@ import { Box, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
+import { Button } from "./ui/button";
 
 export interface ChatSession {
   id: string;
@@ -102,7 +103,7 @@ export function LeftSidebar({
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={closeSidebar}
           aria-hidden="true"
         />
@@ -115,39 +116,20 @@ export function LeftSidebar({
         aria-label="Chat sessions"
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50 h-screen w-72 lg:w-80 flex justify-between overflow-y-auto p-6 shrink-0 flex-col border-r border-slate-200 bg-white/95 backdrop-blur-sm transition-transform duration-300 dark:border-border dark:bg-background`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50 w-72 lg:w-80 flex justify-between overflow-y-auto p-4 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
       >
         {/* New Chat Button */}
-        <div className="mb-4 px-2">
-          <button
+        <div className="mb-3">
+          <Button
             onClick={onNewChat}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-100 to-slate-50 px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-md transition-all duration-200 hover:border-blue-400 hover:from-slate-50 hover:to-white hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 dark:border-border dark:bg-card dark:bg-none dark:text-foreground dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-secondary dark:hover:text-blue-400"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-primary/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <Plus className="h-5 w-5" />
-            New Chat
-          </button>
+            <Plus className="size-5" />
+            New Item
+          </Button>
         </div>
-
-        {/* 3D Model Viewer Button */}
-        <div className="mb-4 px-2">
-          <button
-            onClick={() => {
-              openModelModal();
-              // Close mobile sidebar after opening modal
-              if (typeof window !== "undefined" && window.innerWidth < 1024) {
-                closeSidebar();
-              }
-            }}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-blue-50 to-slate-50 px-5 py-3.5 text-sm font-semibold text-blue-600 shadow-md transition-all duration-200 hover:border-blue-400 hover:from-blue-100 hover:to-blue-50 hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 dark:border-blue-900/50 dark:bg-gradient-to-br dark:from-blue-950/40 dark:to-blue-900/20 dark:text-blue-400 dark:shadow-lg dark:hover:border-blue-700 dark:hover:from-blue-950/60 dark:hover:to-blue-900/30 dark:hover:text-blue-300"
-            aria-label="Open 3D Model Viewer"
-          >
-            <Box className="h-5 w-5" />
-            3D Viewer
-          </button>
-        </div>
-
-        {/* Workflow Viewer Button */}
-        <div className="mb-6 px-2">
+        {/* Workflow Viewer Button
+        <div className="mb-4">
           <button
             onClick={() => {
               openWorkflowModal();
@@ -156,20 +138,20 @@ export function LeftSidebar({
                 closeSidebar();
               }
             }}
-            className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-gradient-to-br from-emerald-50 to-slate-50 px-5 py-3.5 text-sm font-semibold text-emerald-600 shadow-md transition-all duration-200 hover:border-emerald-400 hover:from-emerald-100 hover:to-emerald-50 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95 dark:border-emerald-900/50 dark:bg-gradient-to-br dark:from-emerald-950/40 dark:to-emerald-900/20 dark:text-emerald-400 dark:shadow-lg dark:hover:border-emerald-700 dark:hover:from-emerald-950/60 dark:hover:to-emerald-900/30 dark:hover:text-emerald-300"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-accent-color/30 bg-accent-color/5 px-4 py-3 text-sm font-semibold text-accent-color shadow-sm transition-all duration-200 hover:bg-accent-color/10 hover:border-accent-color/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Open Workflow Viewer"
           >
-            <GitBranch className="h-5 w-5" />
+            <GitBranch className="size-5" />
             Workflow
           </button>
-        </div>
+        </div> */}
 
         {/* Chat Sessions List */}
-        <div className="flex-1 overflow-y-auto px-2 pb-6">
-          <p className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-muted-foreground">
+        <div className="flex-1 overflow-y-auto py-2">
+          <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recent Chats
           </p>
-          <div className="space-y-2" role="listbox" aria-label="Chat sessions">
+          <div className="space-y-1.5" role="listbox" aria-label="Chat sessions">
             {chatSessions.length === 0 ? (
               <EmptyState />
             ) : (
@@ -185,6 +167,23 @@ export function LeftSidebar({
             )}
           </div>
         </div>
+        {/* 3D Model Viewer Button */}
+        <div className="mb-3">
+          <Button
+            onClick={() => {
+              openModelModal();
+              // Close mobile sidebar after opening modal
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                closeSidebar();
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary shadow-sm transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="Open 3D Model Viewer"
+          >
+            <Box className="size-5" />
+            3D Viewer
+          </Button>
+        </div>
       </aside>
     </>
   );
@@ -193,11 +192,11 @@ export function LeftSidebar({
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center px-3 py-8 text-center">
-      <MessageSquare className="h-8 w-8 text-slate-300 dark:text-muted-foreground mb-2" />
-      <p className="text-sm font-medium text-slate-500 dark:text-muted-foreground">
+      <MessageSquare className="size-8 text-muted-foreground/50 mb-2" />
+      <p className="text-sm font-medium text-muted-foreground">
         No chat history yet
       </p>
-      <p className="text-xs text-slate-400 dark:text-muted-foreground/70 mt-1">
+      <p className="text-xs text-muted-foreground/70 mt-1">
         Start a conversation to see it here
       </p>
     </div>
@@ -224,26 +223,25 @@ function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemPro
           onSelect();
         }
       }}
-      className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-3.5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+      className={`group flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
         isSelected
-          ? "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-600 shadow-sm dark:from-blue-600/20 dark:to-blue-500/10 dark:bg-none dark:text-blue-400 dark:shadow-md"
-          : "text-slate-600 hover:bg-slate-100 hover:text-slate-800 dark:text-foreground/80 dark:hover:bg-secondary dark:hover:text-foreground"
+          ? "bg-primary/10 text-primary shadow-sm"
+          : "text-foreground hover:bg-accent"
       }`}
     >
-      <MessageSquare className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-      <span className="flex-1 truncate text-sm font-medium">{session.title}</span>
-      <button
+      <MessageSquare className="size-4 shrink-0" aria-hidden="true" />
+      <span className="flex-1 truncate text-sm font-medium">Item #</span>
+      <Button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           onDelete(e);
         }}
         aria-label={`Delete chat: ${session.title}`}
-        className="rounded-lg p-1.5 text-slate-500 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-muted-foreground dark:hover:bg-destructive/20 dark:hover:text-red-400"
+        className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-      </button>
+        <Trash2 className="size-3.5" aria-hidden="true" />
+      </Button>
     </div>
   );
 }
-

@@ -3,7 +3,25 @@
     "allow": [
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_snapshot",
-      "mcp__playwright__browser_click"
+      "mcp__playwright__browser_click",
+      "mcp__figma__whoami",
+      "mcp__figma__get_screenshot",
+      "mcp__figma__get_design_context",
+      "WebSearch",
+      "WebFetch(domain:shadcraft.com)",
+      "Bash(NUL)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_select_option",
+      "mcp__playwright__browser_console_messages",
+      "Bash(nul)",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_fill_form",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

@@ -251,7 +251,7 @@ export function Chat() {
         onSelectSession={selectSession}
         onDeleteSession={deleteSession}
       />
-
+    
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col items-center w-full">
         {/* Messages Area */}
@@ -288,8 +288,8 @@ export function Chat() {
         )}
 
         {/* Input Area */}
-        <div className="w-full shrink-0 border-slate-200 px-6 py-3 backdrop-blur-sm dark:border-border dark:bg-background sm:px-8">
-          <div className="mx-auto w-full max-w-4xl">
+        <div className="justify-center w-full shrink-0 border-slate-200 backdrop-blur-sm dark:border-border dark:bg-background">
+          <div className="mx-auto w-full">
             {/* Input Container with Glow Effect */}
             <div className="relative">
               {/* Subtle Glow Behind */}
@@ -330,19 +330,11 @@ export function Chat() {
                   <PromptInputSubmit
                     disabled={isLoading}
                     status={isLoading ? "submitted" : "ready"}
+                    className="relative bg-gradient-to-b p-1.5 shadow-lg transition-all duration-300"
                   />
                 </PromptInputFooter>
               </PromptInput>             
             </div>
-            {/* Workflow Navigation Button */}
-            <button
-              onClick={() => router.push("/workflow")}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-95"
-              title="Open Workflow Visualization"
-            >
-              <Workflow className="h-4 w-4" />
-              <span>Workflow</span>
-            </button>           
           </div>
         </div>
       </div>

@@ -7,9 +7,6 @@ import Model_test from "./Model_test";
 
 const Experience = () => {
 
- //const { legs } = useConfigurator(); // Force rerender the stage & shadows
-  
-
  return (
   <>
      <Stage 
