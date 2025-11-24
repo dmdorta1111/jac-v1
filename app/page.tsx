@@ -2,12 +2,12 @@ import  {ClaudeChat}  from "@/components/ClaudeChat";
 
 export default function Home() {
   return (
-    <div className="relative flex h-[calc(100vh-7.5rem)] flex-col bg-gradient-to-b from-white via-slate-50 to-slate-100 dark:bg-[#0d0d0d] dark:bg-none">
+    <div className="relative flex h-[calc(100vh-7.5rem)] flex-col bg-linear-to-b from-background via-surface to-surface-secondary dark:bg-background dark:bg-none">
       {/* Subtle background pattern - Enhanced for depth */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 left-1/2 h-[800px] w-[800px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl animate-float dark:bg-blue-500/5" />
-        <div className="absolute -bottom-1/4 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-600/10 blur-3xl dark:bg-blue-600/5" />
-        <div className="absolute top-1/4 right-1/4 h-[500px] w-[500px] rounded-full bg-blue-400/5 blur-3xl dark:bg-blue-400/3" />
+        <div className="absolute -top-1/2 left-1/2 h-[800px] w-[800px] -translate-x-1/2 rounded-full bg-zinc-500/10 blur-3xl animate-float dark:bg-zinc-500/5" />
+        <div className="absolute -bottom-1/4 left-1/4 h-[600px] w-[600px] rounded-full bg-zinc-600/10 blur-3xl dark:bg-zinc-600/5" />
+        <div className="absolute top-1/4 right-1/4 h-[500px] w-[500px] rounded-full bg-zinc-400/5 blur-3xl dark:bg-zinc-400/3" />
       </div>
 
       {/* Subtle grid pattern for depth

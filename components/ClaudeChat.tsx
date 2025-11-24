@@ -17,12 +17,11 @@ import {
   PromptInputFooter,
   PromptInputTools,
   PromptInputSubmit,
-  PromptInputActionMenu,
-  PromptInputActionMenuTrigger,
-  PromptInputActionMenuContent,
-  PromptInputActionAddAttachments,
+  PromptInputButton,
+  usePromptInputAttachments,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
+import { PaperclipIcon } from "lucide-react";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import {
   Message as MessageComponent,
@@ -86,7 +85,6 @@ const parseFormFromMessage = (content: string): { text: string; formSpec?: any }
 };
 
 export function ClaudeChat() {
-  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -337,7 +335,7 @@ export function ClaudeChat() {
   };
 
   return (
-    <div className="flex h-full w-full relative">
+    <div className="flex h-full w-full relative gap-4 lg:gap-6">
       {/* Left Sidebar */}
       <LeftSidebar
         chatSessions={chatSessions}
@@ -354,7 +352,7 @@ export function ClaudeChat() {
           {messages.length === 0 ? (
             <WelcomeScreen onSuggestionClick={(text) => handleSubmit({ text, files: [] })} />
           ) : (
-            <div className="mx-auto max-w-4xl space-y-8">
+            <div className="mx-auto flex max-w-4xl flex-col gap-6">
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} message={msg} onFormSubmit={handleFormSubmit} />
               ))}
@@ -383,13 +381,13 @@ export function ClaudeChat() {
         )}
 
         {/* Input Area */}
-        <div className="justify-center w-full shrink-0 border-slate-200 backdrop-blur-sm dark:border-border dark:bg-background">
+        <div className="justify-center w-full shrink-0 border-border backdrop-blur-sm dark:bg-background">
           <div className="mx-auto w-full">
             {/* Input Container with Glow Effect */}
             <div className="relative">
               {/* Subtle Glow Behind */}
               <div
-                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-500/20 via-blue-400/20 to-blue-600/20 blur-xl duration-500 ${
+                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-zinc-500/20 via-zinc-400/20 to-zinc-600/20 blur-xl duration-500 ${
                   isLoading ? "opacity-80" : "opacity-30"
                 }`}
               />
@@ -397,15 +395,17 @@ export function ClaudeChat() {
               {/* Main Input Container */}
               <PromptInput
                 onSubmit={handleSubmit}
-                className="relative rounded-2xl bg-gradient-to-b from-slate-100 to-slate-50 p-1.5 shadow-lg transition-all duration-300 dark:bg-card dark:bg-none dark:shadow-xl dark:shadow-black/20"
+                className="relative bg-linear-to-b from-surface to-background p-1.5 shadow-lg transition-all duration-300 has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:ring-transparent has-[[data-slot=input-group-control]:focus-visible]:border-zinc-300 dark:bg-card dark:bg-none dark:shadow-xl dark:shadow-black/20 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-transparent dark:has-[[data-slot=input-group-control]:focus-visible]:border-zinc-700"
                 accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
                 multiple
+                globalDrop
               >
-                <PromptInputAttachments>
+                <PromptInputAttachments className="gap-3 p-4">
                   {(attachment) => (
                     <PromptInputAttachment
                       key={attachment.id}
                       data={attachment}
+                      className="h-12 px-3 gap-2.5 rounded-lg text-base"
                     />
                   )}
                 </PromptInputAttachments>
@@ -415,17 +415,12 @@ export function ClaudeChat() {
                 />
                 <PromptInputFooter>
                   <PromptInputTools>
-                    <PromptInputActionMenu>
-                      <PromptInputActionMenuTrigger />
-                      <PromptInputActionMenuContent>
-                        <PromptInputActionAddAttachments />
-                      </PromptInputActionMenuContent>
-                    </PromptInputActionMenu>
-                  </PromptInputTools>                
+                    <AttachmentButton />
+                  </PromptInputTools>
                   <PromptInputSubmit
                     disabled={isLoading}
                     status={isLoading ? "submitted" : "ready"}
-                    className="relative bg-gradient-to-b p-1.5 shadow-lg transition-all duration-300"
+                    className="relative p-1.5 shadow-lg transition-all duration-300"
                   />
                 </PromptInputFooter>
               </PromptInput>             
@@ -440,10 +435,10 @@ export function ClaudeChat() {
 function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick?: (text: string) => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
-      <h2 className="mb-3 text-3xl font-bold text-slate-800 dark:text-foreground">
+      <h2 className="mb-3 text-3xl font-bold text-foreground">
         EMJAC Engineering Assistant
       </h2>
-      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-slate-600 dark:text-muted-foreground">
+      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-muted-foreground">
         Your AI-powered helper for custom stainless steel fabrication projects.
         Ask about kitchen equipment, specifications, or engineering details.
       </p>
@@ -455,7 +450,7 @@ function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick?: (text: strin
               key={suggestion}
               onClick={() => onSuggestionClick?.(suggestion)}
               suggestion={suggestion}
-              className="group cursor-pointer border-slate-200 bg-white shadow-md transition-all duration-300 hover:border-blue-400 hover:bg-blue-50/50 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-border dark:bg-card dark:shadow-lg dark:hover:border-blue-500 dark:hover:bg-secondary"
+              className="group cursor-pointer border-border bg-card px-4 py-2.5 shadow-sm transition-all duration-300 hover:border-zinc-400 hover:bg-accent hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:hover:border-zinc-500"
             />
           ))}
         </Suggestions>
@@ -470,34 +465,22 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
   const hasReasoning = !isUser && message.reasoning && message.reasoning.length > 0;
   const hasForm = !isUser && message.formSpec;
 
-  return (
+  const Avatar = (
     <div
-      className={`flex items-start gap-4 animate-slide-up ${
-        isUser ? "flex-row-reverse" : ""
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm ${
+        isUser
+          ? "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-white dark:border-zinc-700"
+          : "bg-secondary text-foreground border-transparent shadow-md dark:bg-card dark:text-muted-foreground dark:shadow-black/20"
       }`}
     >
-      {/* Avatar */}
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-lg ${
-          isUser
-            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/20"
-            : "bg-slate-200 text-blue-600 shadow-md dark:bg-card dark:text-blue-400 dark:shadow-black/20"
-        }`}
-      >
-        {isUser ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
-      </div>
+      {isUser ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
+    </div>
+  );
 
-      {/* Message Content */}
-      <MessageComponent from={role} className="max-w-[75%]">
-        <MessageContent
-          className={`rounded-2xl px-6 py-4 shadow-lg ${
-            isUser
-              ? "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20"
-              : "bg-slate-100 text-slate-800 shadow-md dark:bg-card dark:text-foreground dark:shadow-black/20"
-          }`}
-        >
-          {/* Chain of Thought for bot messages */}
-          {hasReasoning && (
+  const messageBody = (
+    <>
+      {/* Chain of Thought for bot messages */}
+      {hasReasoning && (
             <ChainOfThought className="mb-4">
               <ChainOfThoughtHeader>Reasoning</ChainOfThoughtHeader>
               <ChainOfThoughtContent>
@@ -519,13 +502,13 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
               {message.tasks.map((task) => {
                 const statusColorMap = {
                   pending: "text-muted-foreground",
-                  active: "text-blue-600 dark:text-blue-400",
-                  complete: "text-green-600 dark:text-green-400",
+                  active: "text-zinc-700 dark:text-zinc-300",
+                  complete: "text-accent-color dark:text-accent-color",
                 };
                 const statusBgMap = {
-                  pending: "bg-slate-200/50 dark:bg-slate-800/50",
-                  active: "bg-blue-100/50 dark:bg-blue-950/50",
-                  complete: "bg-green-100/50 dark:bg-green-950/50",
+                  pending: "bg-muted/50 dark:bg-muted/50",
+                  active: "bg-zinc-100/50 dark:bg-zinc-800/50",
+                  complete: "bg-accent-color/10 dark:bg-accent-color/10",
                 };
                 return (
                   <Task key={task.id} defaultOpen={task.status === "active"}>
@@ -537,17 +520,17 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
                       <div className="flex w-full items-center gap-3">
                         <div
                           className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${ task.status === "complete"
-                              ? "border-green-600 bg-green-600 dark:border-green-400 dark:bg-green-400"
+                              ? "border-accent-color bg-accent-color dark:border-accent-color dark:bg-accent-color"
                               : task.status === "active"
-                                ? "border-blue-600 bg-blue-100 dark:border-blue-400 dark:bg-blue-950"
-                                : "border-slate-400 bg-transparent dark:border-slate-600"
+                                ? "border-zinc-600 bg-zinc-100 dark:border-zinc-400 dark:bg-zinc-900"
+                                : "border-muted-foreground bg-transparent dark:border-muted-foreground"
                           }`}
                         >
                           {task.status === "complete" && (
                             <span className="text-xs font-bold text-white">✓</span>
                           )}
                           {task.status === "active" && (
-                            <span className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+                            <span className="h-2 w-2 rounded-full bg-zinc-600 dark:bg-zinc-400" />
                           )}
                         </div>
                         <p
@@ -590,11 +573,11 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
           )}
 
           {isUser ? (
-            <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-white">
+            <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-zinc-800 dark:text-zinc-100">
               {message.text}
             </p>
           ) : (
-            <MessageResponse className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-foreground">
+            <MessageResponse className="whitespace-pre-wrap text-sm leading-7 text-slate-800 dark:text-foreground">
               {message.text}
             </MessageResponse>
           )}
@@ -628,8 +611,8 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
           )}
 
           <span
-            className={`mt-3 block text-xs ${
-              isUser ? "text-blue-200" : "text-slate-600 dark:text-muted-foreground"
+            className={`mt-4 block text-xs ${
+              isUser ? "text-zinc-500" : "text-muted-foreground"
             }`}
           >
             {message.timestamp.toLocaleTimeString([], {
@@ -637,25 +620,61 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
               minute: "2-digit",
             })}
           </span>
-        </MessageContent>
-      </MessageComponent>
-    </div>
-  );
+      </>
+    );
+
+    return (
+      <div className={`flex w-full animate-slide-up ${isUser ? "justify-end" : "justify-start"}`}>
+        {isUser ? (
+          <div className="flex items-start gap-3">
+                  <MessageComponent from={role} className="flex-1 max-w-[95%] items-end text-right">
+                    <MessageContent className="w-full rounded-sm border border-zinc-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-zinc-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-50">
+                {messageBody}
+              </MessageContent>
+            </MessageComponent>
+            <div className="flex flex-col items-end">{Avatar}</div>
+          </div>
+        ) : (
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col items-start">{Avatar}</div>
+            <MessageComponent from={role} className="max-w-[90%] text-left">
+              <MessageContent className="rounded-none bg-transparent px-0 py-0 text-foreground shadow-none">
+                {messageBody}
+              </MessageContent>
+            </MessageComponent>
+          </div>
+        )}
+      </div>
+    );
 }
 
 function TypingIndicator() {
   return (
     <div className="flex items-start gap-4 animate-fade-in" aria-live="polite" aria-label="Jac is typing">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-blue-600 shadow-md dark:bg-card dark:text-blue-400 dark:shadow-lg dark:shadow-black/20">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground shadow-md dark:bg-card dark:text-muted-foreground dark:shadow-lg dark:shadow-black/20">
         <Bot className="h-5 w-5" />
       </div>
-      <div className="rounded-2xl bg-slate-100 px-6 py-4 shadow-lg dark:bg-card dark:shadow-black/20">
+      <div className="rounded-2xl bg-card px-6 py-4 shadow-lg dark:shadow-black/20">
         <div className="flex items-center gap-2">
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
         </div>
       </div>
     </div>
+  );
+}
+
+function AttachmentButton() {
+  const attachments = usePromptInputAttachments();
+
+  return (
+    <PromptInputButton
+      onClick={() => attachments.openFileDialog()}
+      aria-label="Add attachment"
+      className="bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+    >
+      <PaperclipIcon className="size-4" />
+    </PromptInputButton>
   );
 }

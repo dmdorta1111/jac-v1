@@ -23,7 +23,7 @@ export function Header() {
             aria-label="Toggle sidebar menu"
             aria-expanded={sidebarOpen}
             aria-controls="chat-sidebar"
-            className="flex size-10 items-center justify-center rounded-[10px] bg-secondary text-secondary-foreground transition-all duration-200 hover:bg-accent active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:hidden"
+            className="flex size-10 items-center justify-center rounded-[10px] text-secondary-foreground transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 lg:hidden"
           >
             <Menu className="size-5" />
           </button>
@@ -34,19 +34,15 @@ export function Header() {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="group relative flex size-10 items-center justify-center rounded-[10px] bg-secondary text-secondary-foreground transition-all duration-200 hover:bg-accent active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+            className="group relative flex size-10 items-center justify-center rounded-[10px] transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <div className="relative">
               {resolvedTheme === "dark" ? (
                 <Sun className="size-5 transition-transform duration-300 group-hover:rotate-45" />
               ) : (
-                <Moon className="size-5 transition-transform duration-300 group-hover:-rotate-12" />
+                <Moon className="size-5 transition-transform duration-300 group-hover:-rotate-20" />
               )}
             </div>
-            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-xs text-background opacity-0 transition-opacity duration-200 group-hover:opacity-100 shadow-md">
-              {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
-            </span>
           </button>
 
           {/* EMJAC Logo */}

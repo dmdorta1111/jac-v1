@@ -326,16 +326,16 @@ export function PromptInputAttachment({
           <span className="flex-1 truncate">{attachmentLabel}</span>
         </div>
       </HoverCardTrigger>
-      <PromptInputHoverCardContent className="w-auto p-2">
+      <PromptInputHoverCardContent className="w-auto p-3">
         <div className="w-auto space-y-3">
           {isImage && (
-            <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
+            <div className="flex max-h-[500px] w-[500px] items-center justify-center overflow-hidden rounded-lg border">
               <img
                 alt={filename || "attachment preview"}
                 className="max-h-full max-w-full object-contain"
-                height={384}
+                height={500}
                 src={data.url}
-                width={448}
+                width={500}
               />
             </div>
           )}
@@ -989,7 +989,7 @@ export type PromptInputSubmitProps = ComponentProps<typeof InputGroupButton> & {
 
 export const PromptInputSubmit = ({
   className,
-  variant = "default",
+  variant = "ghost",
   size = "icon-sm",
   status,
   children,
@@ -1008,7 +1008,14 @@ export const PromptInputSubmit = ({
   return (
     <InputGroupButton
       aria-label="Submit"
-      className={cn(className)}
+      className={cn(
+        "bg-zinc-100 text-zinc-700",
+        "hover:bg-zinc-200 hover:text-zinc-900",
+        "dark:bg-zinc-800 dark:text-zinc-300",
+        "dark:hover:bg-zinc-700 dark:hover:text-zinc-100",
+        "transition-all",
+        className
+      )}
       size={size}
       type="submit"
       variant={variant}

@@ -117,13 +117,13 @@ export function LeftSidebar({
         aria-label="Chat sessions"
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-0 z-50 w-72 lg:w-80 flex justify-between overflow-y-auto p-4 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-50 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden p-4 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
       >
         {/* New Chat Button */}
-        <div className="mb-3">
+        <div className="shrink-0 pb-3">
           <Button
             onClick={onNewChat}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-primary/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <Plus className="size-5" />
             New Item
@@ -148,7 +148,7 @@ export function LeftSidebar({
         </div> */}
 
         {/* Chat Sessions List */}
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 min-h-0 overflow-y-auto py-2">
           <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recent Chats
           </p>
@@ -169,7 +169,7 @@ export function LeftSidebar({
           </div>
         </div>
         {/* 3D Model Viewer Button */}
-        <div className="mb-3">
+        <div className="shrink-0 pt-3">
           <Button
             onClick={() => {
               openModelModal();
@@ -178,7 +178,7 @@ export function LeftSidebar({
                 closeSidebar();
               }
             }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary shadow-sm transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-400/30 bg-zinc-500/5 px-4 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400 shadow-sm transition-all duration-200 hover:bg-zinc-500/10 hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Open 3D Model Viewer"
           >
             <Box className="size-5" />
@@ -226,7 +226,7 @@ function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemPro
       }}
       className={`group flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
         isSelected
-          ? "bg-primary/10 text-primary shadow-sm"
+          ? "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 shadow-sm"
           : "text-foreground hover:bg-accent"
       }`}
     >
@@ -234,14 +234,15 @@ function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemPro
       <span className="flex-1 truncate text-sm font-medium">Item #</span>
       <Button
         type="button"
+        variant="ghost"
         onClick={(e) => {
           e.stopPropagation();
           onDelete(e);
         }}
         aria-label={`Delete chat: ${session.title}`}
-        className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-zinc-500/10 hover:text-zinc-600 dark:hover:text-zinc-400 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Trash2 className="size-3.5" aria-hidden="true" />
+        <Trash2 className="size-4" aria-hidden="true" />
       </Button>
     </div>
   );

@@ -453,10 +453,10 @@ body {
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(21, 93, 252, 0.3);
+    box-shadow: 0 0 20px rgba(113, 113, 122, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(21, 93, 252, 0.6);
+    box-shadow: 0 0 40px rgba(113, 113, 122, 0.6);
   }
 }
 
@@ -562,7 +562,7 @@ body {
   content: "";
   position: absolute;
   inset: -2px;
-  background: linear-gradient(135deg, #297eff, #155dfc, #0d47a1);
+  background: linear-gradient(135deg, #71717a, #52525b, #3f3f46);
   border-radius: inherit;
   opacity: 0;
   z-index: -1;

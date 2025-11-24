@@ -198,9 +198,9 @@ export default function DynamicFormRenderer({
       case 'input':
         return (
           <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-slate-700 dark:text-slate-200">
+            <Label htmlFor={field.id} className="text-foreground">
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Input
               id={field.id}
@@ -209,21 +209,21 @@ export default function DynamicFormRenderer({
               placeholder={field.placeholder}
               value={value || ''}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
-              className={`bg-white dark:bg-slate-800 ${error ? 'border-red-500' : ''}`}
+              className={`bg-background ${error ? 'border-destructive' : ''}`}
             />
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
       case 'textarea':
         return (
           <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-slate-700 dark:text-slate-200">
+            <Label htmlFor={field.id} className="text-foreground">
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Textarea
               id={field.id}
@@ -232,27 +232,27 @@ export default function DynamicFormRenderer({
               value={value || ''}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
               rows={field.rows || 4}
-              className={`bg-white dark:bg-slate-800 ${error ? 'border-red-500' : ''}`}
+              className={`bg-background ${error ? 'border-destructive' : ''}`}
             />
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
       case 'select':
         return (
           <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-slate-700 dark:text-slate-200">
+            <Label htmlFor={field.id} className="text-foreground">
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Select
               value={value}
               onValueChange={(val) => handleFieldChange(field.name, val)}
             >
-              <SelectTrigger className={`bg-white dark:bg-slate-800 ${error ? 'border-red-500' : ''}`}>
+              <SelectTrigger className={`bg-background ${error ? 'border-destructive' : ''}`}>
                 <SelectValue placeholder={field.placeholder || 'Select an option'} />
               </SelectTrigger>
               <SelectContent>
@@ -264,18 +264,18 @@ export default function DynamicFormRenderer({
               </SelectContent>
             </Select>
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
       case 'checkbox':
         return (
           <div key={field.id} className="space-y-3">
-            <Label className="text-slate-700 dark:text-slate-200">
+            <Label className="text-foreground">
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-destructive ml-1">*</span>}
             </Label>
             <div className="space-y-2">
               {field.options?.map((option) => (
@@ -293,7 +293,7 @@ export default function DynamicFormRenderer({
                   />
                   <label
                     htmlFor={`${field.id}-${option.value}`}
-                    className="text-sm font-medium leading-none text-slate-700 dark:text-slate-300 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     {option.label}
                   </label>
@@ -301,18 +301,18 @@ export default function DynamicFormRenderer({
               ))}
             </div>
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
       case 'radio':
         return (
           <div key={field.id} className="space-y-3">
-            <Label className="text-slate-700 dark:text-slate-200">
+            <Label className="text-foreground">
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-destructive ml-1">*</span>}
             </Label>
             <RadioGroup
               value={value}
@@ -321,16 +321,16 @@ export default function DynamicFormRenderer({
               {field.options?.map((option) => (
                 <div key={option.value} className="flex items-center space-x-2">
                   <RadioGroupItem value={option.value} id={`${field.id}-${option.value}`} />
-                  <Label htmlFor={`${field.id}-${option.value}`} className="font-normal text-slate-700 dark:text-slate-300">
+                  <Label htmlFor={`${field.id}-${option.value}`} className="font-normal text-foreground">
                     {option.label}
                   </Label>
                 </div>
               ))}
             </RadioGroup>
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
@@ -338,11 +338,11 @@ export default function DynamicFormRenderer({
         return (
           <div key={field.id} className="space-y-3">
             <div className="flex justify-between">
-              <Label htmlFor={field.id} className="text-slate-700 dark:text-slate-200">
+              <Label htmlFor={field.id} className="text-foreground">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                {field.required && <span className="text-destructive ml-1">*</span>}
               </Label>
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <span className="text-sm font-medium text-foreground">
                 {value || field.defaultValue || field.min} {field.unit || ''}
               </span>
             </div>
@@ -356,26 +356,26 @@ export default function DynamicFormRenderer({
               className="w-full"
             />
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
       case 'date':
         return (
           <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-slate-700 dark:text-slate-200">
+            <Label htmlFor={field.id} className="text-foreground">
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="text-destructive ml-1">*</span>}
             </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={`w-full justify-start text-left font-normal bg-white dark:bg-slate-800 ${
+                  className={`w-full justify-start text-left font-normal bg-background ${
                     !value && 'text-muted-foreground'
-                  } ${error ? 'border-red-500' : ''}`}
+                  } ${error ? 'border-destructive' : ''}`}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {value ? format(new Date(value), 'PPP') : <span>Pick a date</span>}
@@ -391,9 +391,9 @@ export default function DynamicFormRenderer({
               </PopoverContent>
             </Popover>
             {field.helperText && (
-              <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+              <p className="text-sm text-muted-foreground">{field.helperText}</p>
             )}
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         );
 
@@ -401,9 +401,9 @@ export default function DynamicFormRenderer({
         return (
           <div key={field.id} className="flex items-center justify-between space-x-2 py-2">
             <div className="space-y-0.5">
-              <Label htmlFor={field.id} className="text-slate-700 dark:text-slate-200">{field.label}</Label>
+              <Label htmlFor={field.id} className="text-foreground">{field.label}</Label>
               {field.helperText && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">{field.helperText}</p>
+                <p className="text-sm text-muted-foreground">{field.helperText}</p>
               )}
             </div>
             <Switch
@@ -420,21 +420,21 @@ export default function DynamicFormRenderer({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-slate-50 dark:bg-slate-900 rounded-lg shadow-lg p-6 space-y-6 border border-slate-200 dark:border-slate-700">
+    <div className="w-full max-w-3xl mx-auto bg-card rounded-xl shadow-md p-6 space-y-6 border border-border">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{formSpec.title}</h2>
+        <h2 className="text-2xl font-bold text-foreground">{formSpec.title}</h2>
         {formSpec.description && (
-          <p className="text-slate-600 dark:text-slate-400 mt-2">{formSpec.description}</p>
+          <p className="text-muted-foreground mt-2">{formSpec.description}</p>
         )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {formSpec.sections.map((section) => (
-          <div key={section.id} className="space-y-4 border-t border-slate-200 dark:border-slate-700 pt-6">
+          <div key={section.id} className="space-y-4 border-t border-border pt-6">
             <div>
-              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">{section.title}</h3>
+              <h3 className="text-xl font-semibold text-foreground">{section.title}</h3>
               {section.description && (
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{section.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
               )}
             </div>
             <div className="space-y-4">
@@ -443,8 +443,8 @@ export default function DynamicFormRenderer({
           </div>
         ))}
 
-        <div className="flex gap-3 pt-6 border-t border-slate-200 dark:border-slate-700">
-          <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+        <div className="flex gap-3 pt-6 border-t border-border">
+          <Button type="submit" className="flex-1">
             {formSpec.submitButton.text}
           </Button>
           {onCancel && (
