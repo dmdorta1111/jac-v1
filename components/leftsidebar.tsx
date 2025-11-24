@@ -23,6 +23,7 @@ export interface Message {
   files?: UploadedFile[];
   reasoning?: ReasoningStep[];
   tasks?: TaskStep[];
+  formSpec?: any; // Dynamic form specification from Claude
 }
 
 export interface UploadedFile {

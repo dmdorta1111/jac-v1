@@ -21,7 +21,9 @@
       "Bash(nul)",
       "mcp__playwright__browser_press_key",
       "mcp__playwright__browser_fill_form",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd project quote form and UI styling updates\n\n- Add ProjectQuoteForm component with Claude AI integration for generating project documentation\n- Add new /quote page and /api/generate-project-doc API endpoint\n- Update UI components (button, card, badge, dialog, input, textarea) with enhanced styling\n- Reorganize 3D model viewer components into dedicated folder\n- Add ShadCraft Pro styling plan documentation\n- Update globals.css with improved theme variables and styling\n- Remove deprecated workflow page\n- Add playwright screenshots for design review\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

@@ -56,6 +56,7 @@ import {
   type Message,
   type UploadedFile,
 } from "@/components/leftsidebar";
+import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 
 const suggestions = [
   "SDI",
@@ -63,7 +64,28 @@ const suggestions = [
   "Harmonic",
 ];
 
-export function Chat() {
+// Parse form specification from Claude's response
+const parseFormFromMessage = (content: string): { text: string; formSpec?: any } => {
+  // Look for ```json-form blocks
+  const formRegex = /```json-form\s*([\s\S]*?)```/;
+  const match = content.match(formRegex);
+
+  if (match && match[1]) {
+    try {
+      const formSpec = JSON.parse(match[1].trim());
+      // Remove the form block from the text content
+      const text = content.replace(formRegex, '').trim();
+      return { text, formSpec };
+    } catch (error) {
+      console.error('Failed to parse form JSON:', error);
+      return { text: content };
+    }
+  }
+
+  return { text: content };
+};
+
+export function ClaudeChat() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,6 +102,65 @@ export function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  // Handle form submission from DynamicFormRenderer
+  const handleFormSubmit = async (formData: Record<string, any>) => {
+    setIsLoading(true);
+
+    try {
+      // Send form data to generate quote/documentation
+      const response = await fetch('/api/generate-project-doc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectData: {
+            projectId: `PRJ-${Date.now()}`,
+            ...formData,
+          },
+          action: 'initial_quote',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Add success message with link to document
+        const successMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: `Great! I've generated your quote document. Here's a summary:\n\n${data.content}\n\nFull documentation saved as: ${data.filename}`,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, successMessage]);
+
+        // Ask if they need anything else
+        setTimeout(() => {
+          const followUpMessage: Message = {
+            id: generateId(),
+            sender: 'bot',
+            text: "Is there anything else you'd like to add or modify? Or would you like to start a new quote?",
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, followUpMessage]);
+        }, 500);
+      } else {
+        throw new Error(data.error || 'Failed to generate document');
+      }
+    } catch (error) {
+      console.error('Error generating document:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: 'Sorry, I had trouble generating your quote. Please try again or let me know if you need to modify any information.',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Save current session when messages change
   useEffect(() => {
@@ -207,12 +288,21 @@ export function Chat() {
     }
 
     try {
+      // Build message history for context
+      const messageHistory = [...messages, userMessage].map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: message.text.trim() }),
+        body: JSON.stringify({
+          prompt: message.text.trim(),
+          messages: messageHistory,
+        }),
       });
 
       if (!response.ok) {
@@ -220,11 +310,16 @@ export function Chat() {
       }
 
       const data = await response.json();
+
+      // Parse response for form specification
+      const { text, formSpec } = parseFormFromMessage(data.response);
+
       const botMessage: Message = {
         id: generateId(),
         sender: "bot",
-        text: data.response,
+        text: text,
         timestamp: new Date(),
+        formSpec: formSpec,
       };
       setMessages((prev) => [...prev, botMessage]);
     } catch {
@@ -261,7 +356,7 @@ export function Chat() {
           ) : (
             <div className="mx-auto max-w-4xl space-y-8">
               {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} />
+                <MessageBubble key={msg.id} message={msg} onFormSubmit={handleFormSubmit} />
               ))}
               {isLoading && <TypingIndicator />}
               <div ref={messagesEndRef} />
@@ -369,10 +464,11 @@ function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick?: (text: strin
   );
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubmit?: (data: Record<string, any>) => void }) {
   const isUser = message.sender === "user";
   const role = isUser ? "user" : "assistant";
   const hasReasoning = !isUser && message.reasoning && message.reasoning.length > 0;
+  const hasForm = !isUser && message.formSpec;
 
   return (
     <div
@@ -519,6 +615,16 @@ function MessageBubble({ message }: { message: Message }) {
                 />
               ))}
             </MessageAttachments>
+          )}
+
+          {/* Dynamic Form */}
+          {hasForm && onFormSubmit && (
+            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+              <DynamicFormRenderer
+                formSpec={message.formSpec}
+                onSubmit={onFormSubmit}
+              />
+            </div>
           )}
 
           <span

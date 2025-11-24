@@ -1,9 +1,9 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Interface } from "@/components/interface";
-import Experience from "@/components/Experience";
-import { ConfiguratorProvider } from "@/components/Configurator";
+import { Interface } from "@/components/3d-model-viewer/interface";
+import Experience from "@/components/3d-model-viewer/Experience";
+import { ConfiguratorProvider } from "@/components/3d-model-viewer/Configurator";
 
 export default function ModelsPage() {
   return (

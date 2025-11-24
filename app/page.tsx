@@ -1,4 +1,4 @@
-import { Chat } from "@/components/chat";
+import  {ClaudeChat}  from "@/components/ClaudeChat";
 
 export default function Home() {
   return (
@@ -15,7 +15,7 @@ export default function Home() {
 
       {/* Main Content - Centered Container */}
       <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl flex-1 flex-col">
-        <Chat />
+        <ClaudeChat />
       </div>
     </div>
   );
