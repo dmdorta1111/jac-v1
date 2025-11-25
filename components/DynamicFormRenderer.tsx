@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -22,17 +21,83 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldContent,
+  FieldSet,
+  FieldLegend,
+  FieldGroup,
+} from '@/components/ui/field';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
+
+type FormFieldValue = string | number | boolean | string[] | Date | undefined;
+
+// Helper functions for type-safe value extraction
+const toStringValue = (value: FormFieldValue): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  return '';
+};
+
+const toArrayValue = (value: FormFieldValue): string[] => {
+  if (Array.isArray(value)) return value;
+  return [];
+};
+
+const toNumberValue = (value: FormFieldValue, fallback: number): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+};
+
+const toBooleanValue = (value: FormFieldValue): boolean => {
+  return typeof value === 'boolean' ? value : false;
+};
+
+const toDateValue = (value: FormFieldValue): Date | undefined => {
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? undefined : date;
+  }
+  return undefined;
+};
+
+const buildInitialFormData = (spec: { sections: { fields: { name: string; defaultValue?: FormFieldValue }[] }[] }): Record<string, FormFieldValue> => {
+  const initial: Record<string, FormFieldValue> = {};
+  spec.sections.forEach((section) => {
+    section.fields.forEach((field) => {
+      if (field.defaultValue !== undefined) {
+        initial[field.name] = field.defaultValue;
+      }
+    });
+  });
+  return initial;
+};
 
 interface FormField {
   id: string;
   name: string;
   label: string;
-  type: 'input' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'slider' | 'date' | 'switch';
+  type: 'input' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'slider' | 'date' | 'switch' | 'table' | 'integer' | 'float';
   inputType?: string;
   placeholder?: string;
-  defaultValue?: any;
+  defaultValue?: FormFieldValue;
   required?: boolean;
   validation?: {
     min?: number;
@@ -47,6 +112,9 @@ interface FormField {
   max?: number;
   step?: number;
   unit?: string;
+  columns?: Array<{ key: string; label: string }>;
+  tableData?: Array<Record<string, string | number>>;
+  editable?: boolean;
   conditional?: {
     field: string;
     value: string;
@@ -75,7 +143,7 @@ interface DynamicFormSpec {
 
 interface DynamicFormRendererProps {
   formSpec: DynamicFormSpec;
-  onSubmit: (data: Record<string, any>) => void;
+  onSubmit: (data: Record<string, FormFieldValue>) => void;
   onCancel?: () => void;
 }
 
@@ -84,23 +152,10 @@ export default function DynamicFormRenderer({
   onSubmit,
   onCancel,
 }: DynamicFormRendererProps) {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => buildInitialFormData(formSpec));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Initialize form data with default values
-  useEffect(() => {
-    const initialData: Record<string, any> = {};
-    formSpec.sections.forEach((section) => {
-      section.fields.forEach((field) => {
-        if (field.defaultValue !== undefined) {
-          initialData[field.name] = field.defaultValue;
-        }
-      });
-    });
-    setFormData(initialData);
-  }, [formSpec]);
-
-  const handleFieldChange = (name: string, value: any) => {
+  const handleFieldChange = (name: string, value: FormFieldValue) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when field is modified
     if (errors[name]) {
@@ -112,9 +167,30 @@ export default function DynamicFormRenderer({
     }
   };
 
-  const validateField = (field: FormField, value: any): string | null => {
+  const validateField = (field: FormField, value: FormFieldValue): string | null => {
     if (field.required && (!value || value === '' || (Array.isArray(value) && value.length === 0))) {
       return `${field.label} is required`;
+    }
+
+    // Integer validation
+    if (field.type === 'integer' && value !== '' && value !== undefined) {
+      const numValue = Number(value);
+      if (!Number.isInteger(numValue)) {
+        return `${field.label} must be a whole number`;
+      }
+    }
+
+    // Float validation (2 decimal places)
+    if (field.type === 'float' && value !== '' && value !== undefined) {
+      const numValue = Number(value);
+      if (isNaN(numValue)) {
+        return `${field.label} must be a valid number`;
+      }
+      // Check if it has more than 2 decimal places
+      const decimalPart = value.toString().split('.')[1];
+      if (decimalPart && decimalPart.length > 2) {
+        return `${field.label} must have at most 2 decimal places`;
+      }
     }
 
     if (field.validation) {
@@ -197,62 +273,71 @@ export default function DynamicFormRenderer({
     switch (field.type) {
       case 'input':
         return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-foreground">
-              {field.label}
-              {field.required && <span className="text-destructive ml-1">*</span>}
-            </Label>
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
             <Input
               id={field.id}
               name={field.name}
               type={field.inputType || 'text'}
               placeholder={field.placeholder}
-              value={value || ''}
+              value={toStringValue(value)}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
-              className={`bg-background ${error ? 'border-destructive' : ''}`}
+              aria-invalid={!!error}
             />
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
         );
 
       case 'textarea':
         return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-foreground">
-              {field.label}
-              {field.required && <span className="text-destructive ml-1">*</span>}
-            </Label>
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
             <Textarea
               id={field.id}
               name={field.name}
               placeholder={field.placeholder}
-              value={value || ''}
+              value={toStringValue(value)}
               onChange={(e) => handleFieldChange(field.name, e.target.value)}
               rows={field.rows || 4}
-              className={`bg-background ${error ? 'border-destructive' : ''}`}
+              aria-invalid={!!error}
             />
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
         );
 
       case 'select':
         return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-foreground">
-              {field.label}
-              {field.required && <span className="text-destructive ml-1">*</span>}
-            </Label>
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
             <Select
-              value={value}
+              value={typeof value === 'string' ? value : undefined}
               onValueChange={(val) => handleFieldChange(field.name, val)}
             >
-              <SelectTrigger className={`bg-background ${error ? 'border-destructive' : ''}`}>
+              <SelectTrigger aria-invalid={!!error} id={field.id}>
                 <SelectValue placeholder={field.placeholder || 'Select an option'} />
               </SelectTrigger>
               <SelectContent>
@@ -263,155 +348,307 @@ export default function DynamicFormRenderer({
                 ))}
               </SelectContent>
             </Select>
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
         );
 
       case 'checkbox':
         return (
-          <div key={field.id} className="space-y-3">
-            <Label className="text-foreground">
-              {field.label}
-              {field.required && <span className="text-destructive ml-1">*</span>}
-            </Label>
-            <div className="space-y-2">
+          <FieldSet key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLegend variant="label">
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLegend>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
+            <FieldGroup data-slot="checkbox-group">
               {field.options?.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2">
+                <Field key={option.value} orientation="horizontal">
                   <Checkbox
                     id={`${field.id}-${option.value}`}
-                    checked={(value || []).includes(option.value)}
+                    name={`${field.name}-${option.value}`}
+                    checked={toArrayValue(value).includes(option.value)}
                     onCheckedChange={(checked) => {
-                      const currentValues = value || [];
+                      const currentValues = toArrayValue(value);
                       const newValues = checked
                         ? [...currentValues, option.value]
-                        : currentValues.filter((v: string) => v !== option.value);
+                        : currentValues.filter((v) => v !== option.value);
                       handleFieldChange(field.name, newValues);
                     }}
+                    aria-invalid={!!error}
+                    className="border-muted-foreground/40 data-[state=checked]:bg-zinc-700 data-[state=checked]:border-zinc-700 data-[state=checked]:text-white dark:data-[state=checked]:bg-zinc-400 dark:data-[state=checked]:border-zinc-400"
                   />
-                  <label
-                    htmlFor={`${field.id}-${option.value}`}
-                    className="text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
+                  <FieldLabel htmlFor={`${field.id}-${option.value}`} className="font-normal">
                     {option.label}
-                  </label>
-                </div>
+                  </FieldLabel>
+                </Field>
               ))}
-            </div>
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            </FieldGroup>
+            {error && <FieldError>{error}</FieldError>}
+          </FieldSet>
         );
 
       case 'radio':
         return (
-          <div key={field.id} className="space-y-3">
-            <Label className="text-foreground">
-              {field.label}
-              {field.required && <span className="text-destructive ml-1">*</span>}
-            </Label>
+          <FieldSet key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLegend variant="label">
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLegend>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
             <RadioGroup
-              value={value}
+              value={typeof value === 'string' ? value : undefined}
               onValueChange={(val) => handleFieldChange(field.name, val)}
+              aria-invalid={!!error}
             >
-              {field.options?.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option.value} id={`${field.id}-${option.value}`} />
-                  <Label htmlFor={`${field.id}-${option.value}`} className="font-normal text-foreground">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
+              <FieldGroup data-slot="radio-group">
+                {field.options?.map((option) => (
+                  <Field key={option.value} orientation="horizontal">
+                    <RadioGroupItem
+                      value={option.value}
+                      id={`${field.id}-${option.value}`}
+                      className="border-muted-foreground/40 text-zinc-700 data-[state=checked]:border-zinc-700 dark:text-zinc-400 dark:data-[state=checked]:border-zinc-400 [&_svg]:fill-zinc-700 dark:[&_svg]:fill-zinc-400"
+                    />
+                    <FieldLabel htmlFor={`${field.id}-${option.value}`} className="font-normal">
+                      {option.label}
+                    </FieldLabel>
+                  </Field>
+                ))}
+              </FieldGroup>
             </RadioGroup>
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </FieldSet>
         );
 
       case 'slider':
         return (
-          <div key={field.id} className="space-y-3">
-            <div className="flex justify-between">
-              <Label htmlFor={field.id} className="text-foreground">
-                {field.label}
-                {field.required && <span className="text-destructive ml-1">*</span>}
-              </Label>
-              <span className="text-sm font-medium text-foreground">
-                {value || field.defaultValue || field.min} {field.unit || ''}
-              </span>
-            </div>
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <div className="flex justify-between items-center">
+                <FieldLabel htmlFor={field.id}>
+                  {field.label}
+                  {field.required && <span className="text-destructive ml-1">*</span>}
+                </FieldLabel>
+                <span className="text-sm font-medium text-foreground">
+                  {toNumberValue(value, toNumberValue(field.defaultValue, field.min || 0))} {field.unit || ''}
+                </span>
+              </div>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
             <Slider
               id={field.id}
               min={field.min || 0}
               max={field.max || 100}
               step={field.step || 1}
-              value={[value || field.defaultValue || field.min || 0]}
+              value={[toNumberValue(value, toNumberValue(field.defaultValue, field.min || 0))]}
               onValueChange={(vals) => handleFieldChange(field.name, vals[0])}
-              className="w-full"
+              className="w-full *:first:bg-zinc-200 dark:*:first:bg-zinc-700 *:first:*:bg-zinc-500 dark:*:first:*:bg-zinc-400 *:last:border-zinc-400 dark:*:last:border-zinc-500"
+              aria-invalid={!!error}
             />
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
         );
 
       case 'date':
         return (
-          <div key={field.id} className="space-y-2">
-            <Label htmlFor={field.id} className="text-foreground">
-              {field.label}
-              {field.required && <span className="text-destructive ml-1">*</span>}
-            </Label>
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
+                  id={field.id}
                   variant="outline"
-                  className={`w-full justify-start text-left font-normal bg-background ${
+                  className={`w-full justify-start text-left font-normal ${
                     !value && 'text-muted-foreground'
-                  } ${error ? 'border-destructive' : ''}`}
+                  }`}
+                  aria-invalid={!!error}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {value ? format(new Date(value), 'PPP') : <span>Pick a date</span>}
+                  {toDateValue(value) ? format(toDateValue(value)!, 'PPP') : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={value ? new Date(value) : undefined}
+                  selected={toDateValue(value)}
+                  captionLayout="dropdown"
                   onSelect={(date) => handleFieldChange(field.name, date?.toISOString())}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
-            {field.helperText && (
-              <p className="text-sm text-muted-foreground">{field.helperText}</p>
-            )}
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
         );
 
       case 'switch':
         return (
-          <div key={field.id} className="flex items-center justify-between space-x-2 py-2">
-            <div className="space-y-0.5">
-              <Label htmlFor={field.id} className="text-foreground">{field.label}</Label>
+          <Field
+            key={field.id}
+            orientation="horizontal"
+            data-invalid={!!error}
+            className="py-2"
+          >
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>{field.label}</FieldLabel>
               {field.helperText && (
-                <p className="text-sm text-muted-foreground">{field.helperText}</p>
+                <FieldDescription>{field.helperText}</FieldDescription>
               )}
-            </div>
+            </FieldContent>
             <Switch
               id={field.id}
-              checked={value || false}
+              name={field.name}
+              checked={toBooleanValue(value)}
               onCheckedChange={(checked) => handleFieldChange(field.name, checked)}
+              aria-invalid={!!error}
+              className="data-[state=checked]:bg-zinc-700 dark:data-[state=checked]:bg-zinc-400"
             />
-          </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
+        );
+
+      case 'integer':
+        return (
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
+            <Input
+              id={field.id}
+              name={field.name}
+              type="number"
+              step="1"
+              placeholder={field.placeholder}
+              value={toStringValue(value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                // Only allow integers
+                if (val === '' || /^-?\d+$/.test(val)) {
+                  handleFieldChange(field.name, val === '' ? '' : parseInt(val, 10));
+                }
+              }}
+              aria-invalid={!!error}
+            />
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
+        );
+
+      case 'float':
+        return (
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel htmlFor={field.id}>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
+            <Input
+              id={field.id}
+              name={field.name}
+              type="number"
+              step="0.01"
+              placeholder={field.placeholder}
+              value={toStringValue(value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                // Allow decimals with up to 2 decimal places
+                if (val === '' || /^-?\d*\.?\d{0,2}$/.test(val)) {
+                  handleFieldChange(field.name, val === '' ? '' : parseFloat(val));
+                }
+              }}
+              aria-invalid={!!error}
+            />
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
+        );
+
+      case 'table':
+        return (
+          <Field key={field.id} data-invalid={!!error}>
+            <FieldContent>
+              <FieldLabel>
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </FieldLabel>
+              {field.helperText && (
+                <FieldDescription>{field.helperText}</FieldDescription>
+              )}
+            </FieldContent>
+            <div className="rounded-lg border border-border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {field.columns?.map((column) => (
+                      <TableHead key={column.key}>{column.label}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {field.tableData && field.tableData.length > 0 ? (
+                    field.tableData.map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {field.columns?.map((column) => (
+                          <TableCell key={`${rowIndex}-${column.key}`}>
+                            {field.editable ? (
+                              <Input
+                                value={String(row[column.key] || '')}
+                                onChange={(e) => {
+                                  const newTableData = [...(field.tableData || [])];
+                                  newTableData[rowIndex] = {
+                                    ...newTableData[rowIndex],
+                                    [column.key]: e.target.value,
+                                  };
+                                  handleFieldChange(field.name, newTableData);
+                                }}
+                                className="h-8 px-2"
+                              />
+                            ) : (
+                              row[column.key]
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={field.columns?.length || 1}
+                        className="text-center text-muted-foreground"
+                      >
+                        No data available
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {error && <FieldError>{error}</FieldError>}
+          </Field>
         );
 
       default:
@@ -420,39 +657,47 @@ export default function DynamicFormRenderer({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-card rounded-xl shadow-md p-6 space-y-6 border border-border">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">{formSpec.title}</h2>
-        {formSpec.description && (
-          <p className="text-muted-foreground mt-2">{formSpec.description}</p>
-        )}
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {formSpec.sections.map((section) => (
-          <div key={section.id} className="space-y-4 border-t border-border pt-6">
-            <div>
-              <h3 className="text-xl font-semibold text-foreground">{section.title}</h3>
-              {section.description && (
-                <p className="text-sm text-muted-foreground mt-1">{section.description}</p>
+    <div className="w-full max-w-3xl mx-auto px-4">
+      <form onSubmit={handleSubmit}>
+        <FieldGroup>
+          {/* Form Header */}
+          <FieldSet>
+            <FieldContent>
+              <FieldLegend className="text-2xl font-bold">{formSpec.title}</FieldLegend>
+              {formSpec.description && (
+                <FieldDescription className="text-base">{formSpec.description}</FieldDescription>
               )}
-            </div>
-            <div className="space-y-4">
-              {section.fields.map((field) => renderField(field))}
-            </div>
-          </div>
-        ))}
+            </FieldContent>
+          </FieldSet>
 
-        <div className="flex gap-3 pt-6 border-t border-border">
-          <Button type="submit" className="flex-1">
-            {formSpec.submitButton.text}
-          </Button>
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+          {/* Form Sections */}
+          {formSpec.sections.map((section) => (
+            <FieldSet key={section.id}>
+              <FieldContent>
+                <FieldLegend variant="label">{section.title}</FieldLegend>
+                {section.description && (
+                  <FieldDescription>{section.description}</FieldDescription>
+                )}
+              </FieldContent>
+
+              <FieldGroup>
+                {section.fields.map((field) => renderField(field))}
+              </FieldGroup>
+            </FieldSet>
+          ))}
+
+          {/* Form Actions */}
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" variant="secondary" className="flex-1">
+              {formSpec.submitButton.text}
             </Button>
-          )}
-        </div>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+          </div>
+        </FieldGroup>
       </form>
     </div>
   );

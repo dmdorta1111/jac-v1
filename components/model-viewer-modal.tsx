@@ -3,18 +3,29 @@
 import * as React from "react";
 import { Canvas } from "@react-three/fiber";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon, Maximize2, Minimize2 } from "lucide-react";
+import { XIcon, Maximize2, Minimize2, Moon, Sun, Camera } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Interface } from "@/components/3d-model-viewer/interface";
 import Experience from "@/components/3d-model-viewer/Experience";
-import { ConfiguratorProvider } from "@/components/3d-model-viewer/Configurator";
 import { useModelModal } from "@/components/providers/model-modal-provider";
+import { useTheme } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
 
 export function ModelViewerModal() {
   const { isOpen, close } = useModelModal();
+  const { setTheme, resolvedTheme } = useTheme();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const experienceRef = React.useRef<{ captureScreenshot: () => string } | null>(null);
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
+
+  const handleScreenshot = () => {
+    if (experienceRef.current) {
+      experienceRef.current.captureScreenshot();
+    }
+  };
 
   // Handle escape key
   React.useEffect(() => {
@@ -72,6 +83,32 @@ export function ModelViewerModal() {
             </DialogPrimitive.Title>
 
             <div className="flex items-center gap-2">
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={toggleTheme}
+                aria-label={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                className="group"
+              >
+                {resolvedTheme === "dark" ? (
+                  <Sun className="h-4 w-4 transition-transform duration-300 group-hover:rotate-45" />
+                ) : (
+                  <Moon className="h-4 w-4 transition-transform duration-300 group-hover:-rotate-12" />
+                )}
+              </Button>
+
+              {/* Screenshot Button */}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleScreenshot}
+                aria-label="Capture screenshot"
+                className="group"
+              >
+                <Camera className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+              </Button>
+
               {/* Fullscreen Toggle */}
               <Button
                 variant="ghost"
@@ -100,8 +137,8 @@ export function ModelViewerModal() {
             </div>
           </div>
 
-          {/* 3D Canvas Container */}
-          <ConfiguratorProvider>
+
+
             <div className="relative w-full h-full pt-14 overflow-hidden rounded-b-2xl">
               {/* Canvas takes full available space */}
               <Canvas
@@ -111,13 +148,9 @@ export function ModelViewerModal() {
                 className="bg-background"
                 style={{ background: 'var(--background)' }}
               >
-                <Experience />
+                <Experience ref={experienceRef} />
               </Canvas>
-
-              {/* Interface Panel - positioned absolutely over canvas */}
-              <Interface />
             </div>
-          </ConfiguratorProvider>
 
           {/* Hidden description for accessibility */}
           <DialogPrimitive.Description className="sr-only">

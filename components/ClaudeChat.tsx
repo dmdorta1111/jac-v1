@@ -6,7 +6,6 @@ import {
   Bot,
   User,
   AlertCircle,
-  Workflow,
   X,
 } from "lucide-react";
 import {

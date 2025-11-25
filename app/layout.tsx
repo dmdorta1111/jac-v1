@@ -9,6 +9,8 @@ import { WorkflowViewerModal } from "@/components/workflow-viewer-modal";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import "./globals.css";
+import { Toaster } from "sonner";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +44,7 @@ export default function RootLayout({
               <WorkflowModalProvider>
                 <div className="relative flex min-h-screen flex-col">
                   <Header />
-                  <main className="flex-1">{children}</main>
+                  <main className="flex-1 pb-20">{children}</main>
                   <Footer />
                 </div>
                 {/* Modals rendered at root level */}
@@ -52,7 +54,8 @@ export default function RootLayout({
             </ModelModalProvider>
           </SidebarProvider>
         </ThemeProvider>
-      </body>
+        <Toaster position="top-left" />
+      </body>     
     </html>
   );
 }

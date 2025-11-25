@@ -104,7 +104,7 @@ export function LeftSidebar({
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 backdrop-blur-sm lg:hidden"
           onClick={closeSidebar}
           aria-hidden="true"
         />
@@ -117,13 +117,13 @@ export function LeftSidebar({
         aria-label="Chat sessions"
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-50 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden p-4 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
       >
         {/* New Chat Button */}
         <div className="shrink-0 pb-3">
           <Button
             onClick={onNewChat}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex w-full items-center justify-center gap-2.5 border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <Plus className="size-5" />
             New Item
@@ -148,11 +148,11 @@ export function LeftSidebar({
         </div> */}
 
         {/* Chat Sessions List */}
-        <div className="flex-1 min-h-0 overflow-y-auto py-2">
+        <div className="flex-1 min-h-0 overflow-y-auto py-2 pb-2">
           <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recent Chats
           </p>
-          <div className="space-y-1.5" role="listbox" aria-label="Chat sessions">
+          <div className="space-y-1.5 pb-2" role="listbox" aria-label="Chat sessions">
             {chatSessions.length === 0 ? (
               <EmptyState />
             ) : (
@@ -169,7 +169,7 @@ export function LeftSidebar({
           </div>
         </div>
         {/* 3D Model Viewer Button */}
-        <div className="shrink-0 pt-3">
+        <div className="shrink-0 pt-3 sticky bottom-0 bg-background/95 backdrop-blur-sm pb-2 -mx-4 px-4 border-t border-border/50 mt-2">
           <Button
             onClick={() => {
               openModelModal();

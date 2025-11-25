@@ -23,6 +23,9 @@ The following components are available in the `@/components/ui` folder:
 - **Slider** - Numeric input with range
 - **DatePicker** - Date selection
 - **Switch** - Toggle on/off
+- **Integer** - Whole number input with validation
+- **Float** - Decimal number input (max 2 decimal places)
+- **Table** - Data table display (editable or read-only)
 - **Label** - Field labels
 - **Button** - Form submission and actions
 
@@ -118,7 +121,7 @@ Always output forms using this exact JSON structure wrapped in a code block with
           "id": "field-1",
           "name": "fieldName",
           "label": "Field Label",
-          "type": "input|textarea|select|checkbox|radio|slider|date|switch",
+          "type": "input|textarea|select|checkbox|radio|slider|date|switch|integer|float|table",
           "inputType": "text|number|email|tel|url",
           "placeholder": "Placeholder text",
           "defaultValue": "",
@@ -238,6 +241,55 @@ Always output forms using this exact JSON structure wrapped in a code block with
   "label": "Enable this feature",
   "defaultValue": false,
   "required": false
+}
+```
+
+**Integer (type: "integer")**
+```json
+{
+  "type": "integer",
+  "placeholder": "Enter a whole number",
+  "required": true,
+  "validation": {
+    "min": 1,
+    "max": 1000,
+    "message": "Must be between 1 and 1000"
+  },
+  "helperText": "Only whole numbers allowed"
+}
+```
+
+**Float (type: "float")**
+```json
+{
+  "type": "float",
+  "placeholder": "Enter a decimal number",
+  "required": true,
+  "validation": {
+    "min": 0.01,
+    "max": 999.99,
+    "message": "Must be between 0.01 and 999.99"
+  },
+  "helperText": "Up to 2 decimal places"
+}
+```
+
+**Table (type: "table")**
+```json
+{
+  "type": "table",
+  "columns": [
+    { "key": "item", "label": "Item" },
+    { "key": "quantity", "label": "Quantity" },
+    { "key": "price", "label": "Price" }
+  ],
+  "tableData": [
+    { "item": "Product A", "quantity": "5", "price": "$50.00" },
+    { "item": "Product B", "quantity": "3", "price": "$30.00" }
+  ],
+  "editable": false,
+  "required": false,
+  "helperText": "Review the items below"
 }
 ```
 
@@ -485,6 +537,202 @@ I'll help you get a quote for a custom cabinet. Please fill out the specificatio
 ```
 
 Once you complete the form, I'll generate a detailed quote with pricing and timeline.
+
+### Example 2: Manufacturing Order with Advanced Field Types
+
+**User:** "I need to order custom CNC-machined parts"
+
+**Claude Response:**
+
+I'll help you create an order for CNC-machined parts. Please provide the specifications:
+
+```json-form
+{
+  "formId": "cnc-parts-order-001",
+  "itemType": "manufacturing",
+  "title": "CNC Parts Manufacturing Order",
+  "description": "Specify your precision-machined parts requirements",
+  "sections": [
+    {
+      "id": "part-specs",
+      "title": "Part Specifications",
+      "description": "Provide exact dimensions and quantities",
+      "fields": [
+        {
+          "id": "partName",
+          "name": "partName",
+          "label": "Part Name/ID",
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "e.g., Bracket-A-001",
+          "required": true,
+          "helperText": "Internal part identifier"
+        },
+        {
+          "id": "quantity",
+          "name": "quantity",
+          "label": "Quantity Required",
+          "type": "integer",
+          "placeholder": "100",
+          "required": true,
+          "validation": {
+            "min": 1,
+            "max": 10000,
+            "message": "Quantity must be between 1 and 10,000"
+          },
+          "helperText": "Total number of parts needed"
+        },
+        {
+          "id": "unitPrice",
+          "name": "unitPrice",
+          "label": "Target Unit Price ($)",
+          "type": "float",
+          "placeholder": "12.50",
+          "required": false,
+          "validation": {
+            "min": 0.01,
+            "max": 9999.99,
+            "message": "Price must be between $0.01 and $9,999.99"
+          },
+          "helperText": "Optional budget per unit (2 decimal places max)"
+        }
+      ]
+    },
+    {
+      "id": "dimensions",
+      "title": "Dimensional Requirements",
+      "description": "All measurements in millimeters",
+      "fields": [
+        {
+          "id": "dimensionsTable",
+          "name": "dimensionsTable",
+          "label": "Critical Dimensions",
+          "type": "table",
+          "columns": [
+            { "key": "dimension", "label": "Dimension" },
+            { "key": "nominal", "label": "Nominal (mm)" },
+            { "key": "tolerance", "label": "Tolerance (±)" }
+          ],
+          "tableData": [
+            { "dimension": "Length", "nominal": "100.00", "tolerance": "0.05" },
+            { "dimension": "Width", "nominal": "50.00", "tolerance": "0.05" },
+            { "dimension": "Height", "nominal": "25.00", "tolerance": "0.02" },
+            { "dimension": "Hole Diameter", "nominal": "6.00", "tolerance": "0.01" }
+          ],
+          "editable": false,
+          "required": false,
+          "helperText": "Reference dimensions with tolerances"
+        }
+      ]
+    },
+    {
+      "id": "material-finish",
+      "title": "Material & Finish",
+      "fields": [
+        {
+          "id": "material",
+          "name": "material",
+          "label": "Material Type",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "value": "aluminum-6061", "label": "Aluminum 6061-T6" },
+            { "value": "aluminum-7075", "label": "Aluminum 7075-T6" },
+            { "value": "steel-1018", "label": "Steel 1018" },
+            { "value": "steel-4140", "label": "Steel 4140" },
+            { "value": "stainless-304", "label": "Stainless Steel 304" },
+            { "value": "stainless-316", "label": "Stainless Steel 316" },
+            { "value": "brass", "label": "Brass" },
+            { "value": "copper", "label": "Copper" }
+          ]
+        },
+        {
+          "id": "surfaceFinish",
+          "name": "surfaceFinish",
+          "label": "Surface Finish",
+          "type": "radio",
+          "required": true,
+          "options": [
+            { "value": "as-machined", "label": "As-Machined" },
+            { "value": "bead-blast", "label": "Bead Blasted" },
+            { "value": "anodized", "label": "Anodized (Type II)" },
+            { "value": "powder-coat", "label": "Powder Coated" },
+            { "value": "electropolish", "label": "Electropolished" }
+          ]
+        },
+        {
+          "id": "threadedHoles",
+          "name": "threadedHoles",
+          "label": "Number of Threaded Holes",
+          "type": "integer",
+          "placeholder": "4",
+          "defaultValue": 0,
+          "required": false,
+          "validation": {
+            "min": 0,
+            "max": 50
+          },
+          "helperText": "Total count of tapped holes"
+        }
+      ]
+    },
+    {
+      "id": "delivery",
+      "title": "Delivery Requirements",
+      "fields": [
+        {
+          "id": "rushOrder",
+          "name": "rushOrder",
+          "label": "Rush Order (Expedited Production)",
+          "type": "switch",
+          "defaultValue": false,
+          "required": false,
+          "helperText": "Additional charges may apply"
+        },
+        {
+          "id": "deliveryDate",
+          "name": "deliveryDate",
+          "label": "Required Delivery Date",
+          "type": "date",
+          "required": true,
+          "helperText": "When do you need these parts?"
+        },
+        {
+          "id": "inspectionLevel",
+          "name": "inspectionLevel",
+          "label": "Quality Inspection Level",
+          "type": "radio",
+          "required": true,
+          "options": [
+            { "value": "standard", "label": "Standard (Visual + Dimensional Spot Check)" },
+            { "value": "full", "label": "Full First Article Inspection (FAI)" },
+            { "value": "cmm", "label": "CMM Report Required" }
+          ],
+          "helperText": "Select inspection requirements"
+        },
+        {
+          "id": "specialInstructions",
+          "name": "specialInstructions",
+          "label": "Special Instructions",
+          "type": "textarea",
+          "placeholder": "Any special handling, packaging, or certification requirements...",
+          "rows": 3,
+          "required": false
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Submit Parts Order",
+    "action": "generate-quote"
+  }
+}
+```
+
+This form demonstrates the new field types:
+- **Integer field** for quantity and threaded holes (whole numbers only)
+- **Float field** for unit price (up to 2 decimal places)
+- **Table field** for displaying critical dimensions with tolerances
 
 ## Response Guidelines
 

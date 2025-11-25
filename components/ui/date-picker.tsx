@@ -78,7 +78,7 @@ export function Calendar28() {
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-auto overflow-hidden p-0"
+            className="w-auto p-3"
             align="end"
             alignOffset={-8}
             sideOffset={10}

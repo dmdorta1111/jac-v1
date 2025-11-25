@@ -4,7 +4,7 @@ import { Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-border bg-background/80 backdrop-blur-xl shrink-0">
+    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/80 backdrop-blur-xl">
       <div className="mx-auto px-4 py-3 sm:px-6">
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-between">
           {/* Left side - Branding */}
