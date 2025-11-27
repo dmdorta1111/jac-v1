@@ -1,5 +1,4 @@
 {
-  "disableAllHooks": true,
   "permissions": {
     "allow": [
       "mcp__playwright__browser_navigate",
@@ -34,9 +33,14 @@
       "Bash(findstr:*)",
       "Bash(test:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(where /r . *skill*.md 2)"
+      "Bash(where /r . *skill*.md 2)",
+      "Skill(planning)",
+      "Bash(Get-Date -UFormat \"%y%m%d-%H%M\")",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 30 npm run dev:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "disableAllHooks": true
 }

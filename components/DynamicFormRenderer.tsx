@@ -42,7 +42,7 @@ import {
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
-type FormFieldValue = string | number | boolean | string[] | Date | undefined;
+type FormFieldValue = string | number | boolean | string[] | Date | Record<string, string | number> | undefined;
 
 // Helper functions for type-safe value extraction
 const toStringValue = (value: FormFieldValue): string => {
@@ -154,6 +154,10 @@ export default function DynamicFormRenderer({
 }: DynamicFormRendererProps) {
   const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => buildInitialFormData(formSpec));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedTableRows, setSelectedTableRows] = useState<Record<string, number>>({});
+
+  // Helper to create form-scoped state keys (defensive against name collisions)
+  const getTableStateKey = (fieldName: string) => `${formSpec.formId}__${fieldName}`;
 
   const handleFieldChange = (name: string, value: FormFieldValue) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -269,6 +273,16 @@ export default function DynamicFormRenderer({
 
     const value = formData[field.name];
     const error = errors[field.name];
+
+    // Handler for table row selection
+    const handleTableRowSelect = (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => {
+      // Use prefixed state key for defensive collision prevention
+      const stateKey = getTableStateKey(fieldName);
+      setSelectedTableRows(prev => ({ ...prev, [stateKey]: rowIndex }));
+
+      // Store actual row data in form state (not prefixed, just fieldName)
+      handleFieldChange(fieldName, rowData);
+    };
 
     switch (field.type) {
       case 'input':
@@ -587,7 +601,11 @@ export default function DynamicFormRenderer({
           </Field>
         );
 
-      case 'table':
+      case 'table': {
+        // Use prefixed state key to get selected row index
+        const stateKey = getTableStateKey(field.name);
+        const selectedRowIndex = selectedTableRows[stateKey];
+
         return (
           <Field key={field.id} data-invalid={!!error}>
             <FieldContent>
@@ -599,10 +617,12 @@ export default function DynamicFormRenderer({
                 <FieldDescription>{field.helperText}</FieldDescription>
               )}
             </FieldContent>
+
             <div className="rounded-lg border border-border overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10"></TableHead> {/* Selection column */}
                     {field.columns?.map((column) => (
                       <TableHead key={column.key}>{column.label}</TableHead>
                     ))}
@@ -610,34 +630,56 @@ export default function DynamicFormRenderer({
                 </TableHeader>
                 <TableBody>
                   {field.tableData && field.tableData.length > 0 ? (
-                    field.tableData.map((row, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {field.columns?.map((column) => (
-                          <TableCell key={`${rowIndex}-${column.key}`}>
-                            {field.editable ? (
-                              <Input
-                                value={String(row[column.key] || '')}
-                                onChange={(e) => {
-                                  const newTableData = [...(field.tableData || [])];
-                                  newTableData[rowIndex] = {
-                                    ...newTableData[rowIndex],
-                                    [column.key]: e.target.value,
-                                  };
-                                  handleFieldChange(field.name, newTableData);
-                                }}
-                                className="h-8 px-2"
-                              />
-                            ) : (
-                              row[column.key]
-                            )}
+                    field.tableData.map((row, rowIndex) => {
+                      const isSelected = selectedRowIndex === rowIndex;
+
+                      return (
+                        <TableRow
+                          key={rowIndex}
+                          onClick={() => handleTableRowSelect(field.name, rowIndex, row)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleTableRowSelect(field.name, rowIndex, row);
+                            }
+                          }}
+                          tabIndex={0}
+                          role="radio"
+                          aria-checked={isSelected}
+                          className={`
+                            cursor-pointer transition-colors
+                            hover:bg-zinc-50 dark:hover:bg-zinc-900
+                            ${isSelected
+                              ? 'bg-zinc-100 dark:bg-zinc-800 border-l-4 border-l-zinc-700 dark:border-l-zinc-400'
+                              : ''
+                            }
+                          `}
+                        >
+                          <TableCell className="text-center">
+                            <div className={`
+                              w-4 h-4 rounded-full border-2 mx-auto
+                              ${isSelected
+                                ? 'border-zinc-700 dark:border-zinc-400 bg-zinc-700 dark:bg-zinc-400'
+                                : 'border-muted-foreground/40'
+                              }
+                            `}>
+                              {isSelected && (
+                                <div className="w-full h-full rounded-full bg-white dark:bg-zinc-900 scale-50" />
+                              )}
+                            </div>
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
+                          {field.columns?.map((column) => (
+                            <TableCell key={`${rowIndex}-${column.key}`}>
+                              {row[column.key]}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={field.columns?.length || 1}
+                        colSpan={(field.columns?.length || 0) + 1}
                         className="text-center text-muted-foreground"
                       >
                         No data available
@@ -650,6 +692,7 @@ export default function DynamicFormRenderer({
             {error && <FieldError>{error}</FieldError>}
           </Field>
         );
+      }
 
       default:
         return null;

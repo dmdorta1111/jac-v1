@@ -1,0 +1,66 @@
+```json-form
+{
+  "formId": "project-header",
+  "itemType": "Project Creation",
+  "title": "Project Header",
+  "description": "Project information to start a new job",
+  "sections": [
+    {
+      "fields": [
+        {
+          "id": "SO_NUM",
+          "name": "SO_NUM",
+          "label": "Sales Order Number",
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "required": true,
+          "validation": {           
+          },
+          "helperText": "Sales Order Number"
+        },
+        {
+          "id": "JOB_NAME",
+          "name": "JOB_NAME",
+          "label": "Job Name",
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "required": true,
+          "validation": {           
+          },
+          "helperText": "Job Name"
+        },
+        {
+          "id": "SUB_JOB_NAME",
+          "name": "SUB_JOB_NAME",
+          "label": "Sub Job Name",
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "required": false,
+          "validation": {           
+          },
+          "helperText": "Sub Job Name"
+        },
+        {
+          "id": "CUSTOMER_NAME",
+          "name": "CUSTOMER_NAME",
+          "label": "Customer Name",
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "required": true,
+          "validation": {           
+          },
+          "helperText": "Customer Name"
+        },
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Create Project",
+    "action": "create-project"
+  }
+}
+```
