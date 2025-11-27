@@ -1,0 +1,160 @@
+!  © 2008-2018 SIGMAXIM, Inc.  All Rights Reserved.
+
+!-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+BEGIN_ASM_DESCR ! Main Application Section
+
+! ---------------------------------------------
+! Declare all variables / references / arrays.
+! ---------------------------------------------
+DECLARE_ARRAY TEXT_FIELDS_FOR_0
+DECLARE_ARRAY TEXT_FIELDS_FOR_NOT_0
+DECLARE_ARRAY EXCEL_FILES 
+! ---------------------------------------------
+
+! Let the user choose the excel file from a Windows directory.
+! CHOOSE_FILE .\ "xls*" EXCEL_FILE_NAME
+
+! Parse out the file name for the BOM Excel file - we specifically want the path.
+! PARSE_FILE_NAME EXCEL_FILE_NAME EXCEL_FILE_PATH EXCEL_FILE_FILENAME EXCEL_FILE_EXTENSION
+
+SET_WORKING_DIRECTORY DXF_DIRECTORY 
+
+	EXCEL_LOAD_DOCUMENT BOM_DOCUMENT_NAME
+	EXCEL_ACTIVATE_DOCUMENT BOM_DOCUMENT_NAME
+	EXCEL_ACTIVATE_SHEET SHEET_BY_NAME "LISTING"
+
+
+! Launch Excel in invisible mode and load the user selected file.
+! EXCEL_CONNECT INVISIBLE
+! EXCEL_LOAD_DOCUMENT EXCEL_FILE_NAME
+
+! Activate the "listing" page to ensure it's properly loaded.
+! EXCEL_ACTIVATE_SHEET SHEET_BY_NAME "LISTING"
+
+! Extract the work order number from cell B2
+EXCEL_GET_STRING CELL_BY_NAME "B2" WORK_ORDER_NUMBER
+
+! Generate the WOL file in the directory that the BOM file came out of - name is based on the work order number.
+FILE_OPEN DXF_DIRECTORY+\+WORK_ORDER_NUMBER+".wol" "w" WOL_FILE
+
+! Grab the header text for the WOL file.
+EXCEL_GET_STRING CELL_BY_NAME "AC1" TEXT_FIELD_1
+EXCEL_GET_STRING CELL_BY_NAME "AC2" TEXT_FIELD_2
+EXCEL_GET_STRING CELL_BY_NAME "AC3" TEXT_FIELD_3
+EXCEL_GET_STRING CELL_BY_NAME "AC4" TEXT_FIELD_4
+
+! Write the header information into the WOL file.
+FILE_WRITE_LINE WOL_FILE TEXT_FIELD_1
+FILE_WRITE_LINE WOL_FILE TEXT_FIELD_2
+FILE_WRITE_LINE WOL_FILE TEXT_FIELD_3
+FILE_WRITE_LINE WOL_FILE TEXT_FIELD_4
+
+! Determine the min max range of cells in the spreadsheet.
+EXCEL_GET_ACTIVE_RANGE ROW_MIN ROW_MAX COL_MIN COL_MAX
+
+ROW_MIN = 7 ! Set the counter variable to start at row 7.
+
+! Loop through all of the rows in the spreadsheet.
+WHILE ROW_MIN <= ROW_MAX
+
+	! Extract the 0, 1 or 2 information from the AB column.
+	EXCEL_GET_STRING CELL_BY_NAME "AB"+itos(ROW_MIN) CURRENT_VALUE
+
+	! If there was no text in the cell, break out of the loop - assume we've reached the end of the data.
+	IF CURRENT_VALUE == ""
+		BREAK
+	END_IF
+
+	! If the cell contains a 0
+	IF stoi(CURRENT_VALUE) == 0
+
+		! Extract the text field from the AC column in the same row being processed.
+		EXCEL_GET_STRING CELL_BY_NAME "AC"+itos(ROW_MIN) TEXT_FIELD
+
+		! If the text doesn't contain the string "PART", ignore that field and go to the next row.
+		IF strfind(TEXT_FIELD, "PART") == -1
+			ROW_MIN++
+			CONTINUE
+		END_IF
+
+		! Valid text strings to be added to an array for later processing.
+		ADD_ARRAY_ELEM TEXT_FIELDS_FOR_0 TEXT_FIELD
+	END_IF
+
+	! This is the same process as above, but for cells that contain a 1 or 2 (not a 0).
+	IF stoi(CURRENT_VALUE) <> 0
+		EXCEL_GET_STRING CELL_BY_NAME "AC"+itos(ROW_MIN) TEXT_FIELD
+
+		IF strfind(TEXT_FIELD, "PART") == -1
+			ROW_MIN++
+			CONTINUE
+		END_IF
+
+		ADD_ARRAY_ELEM TEXT_FIELDS_FOR_NOT_0 TEXT_FIELD
+	END_IF
+
+	ROW_MIN++ ! Increment the row counter.
+
+END_WHILE
+
+! Test to see if there are any 0 fields in the array.
+GET_ARRAY_SIZE TEXT_FIELDS_FOR_0 NUMBER_OF_FIELDS
+
+! Write the data to the WOL file only if the array contains something.
+IF NUMBER_OF_FIELDS > 0
+	! Extract the 0 header field information.
+	EXCEL_GET_STRING CELL_BY_NAME "AE1" TEXT_FIELD_1
+	EXCEL_GET_STRING CELL_BY_NAME "AE2" TEXT_FIELD_2
+	EXCEL_GET_STRING CELL_BY_NAME "AE3" TEXT_FIELD_3
+
+	! Write the data into the WOL file.
+	FILE_WRITE_LINE WOL_FILE ""
+	FILE_WRITE_LINE WOL_FILE TEXT_FIELD_1
+	FILE_WRITE_LINE WOL_FILE TEXT_FIELD_2
+	FILE_WRITE_LINE WOL_FILE TEXT_FIELD_3
+	FILE_WRITE_LINE WOL_FILE ""
+
+	! Write the 0 text string data into the WOL file.
+	FOR eachELEMENT REF ARRAY TEXT_FIELDS_FOR_0
+		FILE_WRITE_LINE WOL_FILE eachELEMENT
+	END_FOR
+END_IF
+
+! Test to see if there are any 1 or 2 fields in the array.
+GET_ARRAY_SIZE TEXT_FIELDS_FOR_NOT_0 NUMBER_OF_FIELDS
+
+! Write the data to the WOL file only if the array contains something.
+IF NUMBER_OF_FIELDS > 0
+	! Extract and write the 1 header field information.
+	EXCEL_GET_STRING CELL_BY_NAME "AG1" TEXT_FIELD_1
+	EXCEL_GET_STRING CELL_BY_NAME "AG2" TEXT_FIELD_2
+	EXCEL_GET_STRING CELL_BY_NAME "AG3" TEXT_FIELD_3
+
+	FILE_WRITE_LINE WOL_FILE ""
+	FILE_WRITE_LINE WOL_FILE TEXT_FIELD_1
+	FILE_WRITE_LINE WOL_FILE TEXT_FIELD_2
+	FILE_WRITE_LINE WOL_FILE TEXT_FIELD_3
+	FILE_WRITE_LINE WOL_FILE ""
+
+	FOR eachELEMENT REF ARRAY TEXT_FIELDS_FOR_NOT_0
+		FILE_WRITE_LINE WOL_FILE eachELEMENT
+	END_FOR
+END_IF
+
+FILE_CLOSE WOL_FILE ! Close out the document - this also saves the document.
+
+! Close and disconnect the Excel spreadsheet.
+EXCEL_CLOSE_DOCUMENT
+EXCEL_DISCONNECT
+
+! Notify the user that the app is completed.
+PRINT "----------------------------------------------"
+PRINT "APP COMPLETED"
+PRINT "----------------------------------------------"
+
+! MESSAGE_BOX SCREEN_LOCATION CENTER_RIGHT "App is completed - WOL file\nshould be located in your\nworking directory."
+
+WINDOW_ACTIVATE ! Activate the window for the user.
+
+END_ASM_DESCR 
+!-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

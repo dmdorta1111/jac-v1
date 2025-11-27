@@ -116,9 +116,12 @@ interface FormField {
   tableData?: Array<Record<string, string | number>>;
   editable?: boolean;
   conditional?: {
-    field: string;
-    value: string;
-    operator: 'equals' | 'notEquals' | 'contains' | 'greaterThan' | 'lessThan';
+    conditions: Array<{
+      field: string;
+      value: string | number;
+      operator: 'equals' | 'notEquals' | 'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual';
+    }>;
+    logic: 'AND' | 'OR';
   };
 }
 
@@ -222,22 +225,40 @@ export default function DynamicFormRenderer({
   const checkConditional = (field: FormField): boolean => {
     if (!field.conditional) return true;
 
-    const { field: dependentField, value: requiredValue, operator } = field.conditional;
-    const currentValue = formData[dependentField];
+    const { conditions, logic } = field.conditional;
 
-    switch (operator) {
-      case 'equals':
-        return currentValue === requiredValue;
-      case 'notEquals':
-        return currentValue !== requiredValue;
-      case 'contains':
-        return String(currentValue).includes(requiredValue);
-      case 'greaterThan':
-        return Number(currentValue) > Number(requiredValue);
-      case 'lessThan':
-        return Number(currentValue) < Number(requiredValue);
-      default:
-        return true;
+    // Evaluate each condition
+    const results = conditions.map(({ field: dependentField, value: requiredValue, operator }) => {
+      const currentValue = formData[dependentField];
+
+      // Handle undefined/null values
+      if (currentValue === undefined || currentValue === null) {
+        return operator === 'notEquals';
+      }
+
+      switch (operator) {
+        case 'equals':
+          return currentValue == requiredValue; // Loose equality for type coercion
+        case 'notEquals':
+          return currentValue != requiredValue; // Loose inequality for type coercion
+        case 'greaterThan':
+          return Number(currentValue) > Number(requiredValue);
+        case 'greaterThanOrEqual':
+          return Number(currentValue) >= Number(requiredValue);
+        case 'lessThan':
+          return Number(currentValue) < Number(requiredValue);
+        case 'lessThanOrEqual':
+          return Number(currentValue) <= Number(requiredValue);
+        default:
+          return true;
+      }
+    });
+
+    // Apply AND/OR logic
+    if (logic === 'OR') {
+      return results.some(r => r); // True if ANY condition is true
+    } else {
+      return results.every(r => r); // True if ALL conditions are true (AND)
     }
   };
 
@@ -418,15 +439,19 @@ export default function DynamicFormRenderer({
               )}
             </FieldContent>
             <RadioGroup
-              value={typeof value === 'string' ? value : undefined}
-              onValueChange={(val) => handleFieldChange(field.name, val)}
+              value={value !== undefined ? String(value) : undefined}
+              onValueChange={(val) => {
+                // Convert back to number if option values are numbers
+                const numVal = Number(val);
+                handleFieldChange(field.name, isNaN(numVal) ? val : numVal);
+              }}
               aria-invalid={!!error}
             >
               <FieldGroup data-slot="radio-group">
                 {field.options?.map((option) => (
                   <Field key={option.value} orientation="horizontal">
                     <RadioGroupItem
-                      value={option.value}
+                      value={String(option.value)}
                       id={`${field.id}-${option.value}`}
                       className="border-muted-foreground/40 text-zinc-700 data-[state=checked]:border-zinc-700 dark:text-zinc-400 dark:data-[state=checked]:border-zinc-400 [&_svg]:fill-zinc-700 dark:[&_svg]:fill-zinc-400"
                     />
