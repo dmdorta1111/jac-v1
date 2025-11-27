@@ -5,7 +5,6 @@ import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import { ModelModalProvider } from "@/components/providers/model-modal-provider";
 import { WorkflowModalProvider } from "@/components/providers/workflow-modal-provider";
 import { ModelViewerModal } from "@/components/model-viewer-modal";
-import { WorkflowViewerModal } from "@/components/workflow-viewer-modal";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import "./globals.css";
@@ -49,7 +48,6 @@ export default function RootLayout({
                 </div>
                 {/* Modals rendered at root level */}
                 <ModelViewerModal />
-                <WorkflowViewerModal />
               </WorkflowModalProvider>
             </ModelModalProvider>
           </SidebarProvider>

@@ -10,7 +10,7 @@ const anthropic = new Anthropic({
 // Load the skill file
 async function loadFormBuilderSkill(): Promise<string> {
   try {
-    const skillPath = join(process.cwd(), 'skills', 'DYNAMIC_FORM_BUILDER_SKILL.md');
+    const skillPath = join(process.cwd(), 'skills', 'dynamic-form-builder.md');
     const skillContent = await readFile(skillPath, 'utf-8');
     return skillContent;
   } catch (error) {

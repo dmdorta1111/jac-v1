@@ -34,8 +34,7 @@
       "Bash(findstr:*)",
       "Bash(test:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(where /r . *skill*.md 2)",
-      "Skill(frontend-development:frontend-development)"
+      "Bash(where /r . *skill*.md 2)"
     ],
     "deny": [],
     "ask": []
