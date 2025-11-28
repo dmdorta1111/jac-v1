@@ -754,7 +754,9 @@ export default function DynamicFormRenderer({
               </FieldContent>
 
               <FieldGroup>
-                {section.fields.map((field) => renderField(field))}
+                {section.fields.map((field) => (
+                  <div key={field.id}>{renderField(field)}</div>
+                ))}
               </FieldGroup>
             </FieldSet>
           ))}

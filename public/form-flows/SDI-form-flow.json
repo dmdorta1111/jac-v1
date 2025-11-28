@@ -20,7 +20,35 @@
     "description": "Main execution flow from SDI_Project.tab",
     "steps": [
       {
+        "order": 0,
+        "lineNumber": 0,
+        "condition": null,
+        "description": "Project header information",
+        "purpose": "Collect project-level details (SO, Job Name, Customer)",
+        "formType": "data-collection",
+        "formTemplate": "project-header"
+      },
+      {
         "order": 1,
+        "lineNumber": 100,
+        "condition": null,
+        "description": "Item configuration details",
+        "purpose": "Collect item details (Item Num, Opening Type, Hand, Dimensions)",
+        "formType": "data-collection",
+        "formTemplate": "sdi-project",
+        "contextVariables": [
+          "ITEM_NUM",
+          "QTY",
+          "JOW",
+          "JOH",
+          "JD",
+          "OPENING_TYPE",
+          "HANDI_",
+          "FIRE_RATING"
+        ]
+      },
+      {
+        "order": 2,
         "lineNumber": 1117,
         "condition": null,
         "description": "Called unconditionally early in the process flow",
@@ -29,10 +57,10 @@
         "formTemplate": "drawing-history"
       },
       {
-        "order": 2,
+        "order": 3,
         "lineNumber": 2553,
         "condition": {
-          "expression": "(OPENING_TYPE == 1 OR OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4) AND (CHOICE == 1 OR CHOICE == 2) AND OPENING_TYPE <> 4",
+          "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 2 OR OPENING_TYPE == 3",
           "variables": {
             "OPENING_TYPE": {
               "1": "DOOR ONLY",

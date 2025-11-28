@@ -66,7 +66,7 @@ import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
 import { defineStepper } from "@/components/ui/stepper";
-import { loadFlow, filterSteps, buildStepDefinitions, getEntryForm, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
+import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
 
@@ -195,7 +195,7 @@ export function ClaudeChat() {
    * @param flow - Loaded form flow definition
    * @param isRevision - Whether this is a revision/edit of existing item
    */
-  const initializeStepper = async (flow: FormFlow, isRevision: boolean) => {
+  const initializeStepper = async (flow: FormFlow, isRevision: boolean): Promise<FlowStep[] | null> => {
     try {
       // Filter steps based on revision status
       const steps = filterSteps(flow, isRevision);
@@ -206,7 +206,7 @@ export function ClaudeChat() {
 
       if (stepDefs.length === 0) {
         console.error('No valid steps found in flow');
-        return false;
+        return null;
       }
 
       // Create dynamic stepper with steps from flow
@@ -225,10 +225,10 @@ export function ClaudeChat() {
       const executor = createFlowExecutor(flow, steps, {});
       setFlowExecutor(executor);
 
-      return true;
+      return steps; // Return filtered steps for immediate use
     } catch (error) {
       console.error('Failed to initialize stepper:', error);
-      return false;
+      return null;
     }
   };
 
@@ -249,10 +249,10 @@ export function ClaudeChat() {
         }
 
         // Initialize stepper with flow (isRevision = false for new items)
-        const stepperInitialized = await initializeStepper(flow, false);
+        const steps = await initializeStepper(flow, false);
 
-        if (!stepperInitialized) {
-          throw new Error('Failed to initialize stepper');
+        if (!steps || steps.length === 0) {
+          throw new Error('Failed to initialize stepper or no steps found');
         }
 
         // Update project metadata with isRevision flag
@@ -266,8 +266,8 @@ export function ClaudeChat() {
           isRevision: false,
         });
 
-        // Get entry form from flow
-        const entryFormId = getEntryForm(flow);
+        // Get first form from filtered steps (project-header is now step 0)
+        const entryFormId = steps[0].formTemplate;
         const formSpec = await loadFormTemplate(entryFormId);
 
         if (!formSpec) {
