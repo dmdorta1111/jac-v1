@@ -15,9 +15,8 @@
           "inputType": "text",
           "placeholder": "",
           "required": true,
-          "validation": {           
-          },
-          "helperText": "Sales Order Number"
+          "validation": {
+          }
         },
         {
           "id": "JOB_NAME",
@@ -27,9 +26,8 @@
           "inputType": "text",
           "placeholder": "",
           "required": true,
-          "validation": {           
-          },
-          "helperText": "Job Name"
+          "validation": {
+          }
         },
         {
           "id": "SUB_JOB_NAME",
@@ -39,9 +37,8 @@
           "inputType": "text",
           "placeholder": "",
           "required": false,
-          "validation": {           
-          },
-          "helperText": "Sub Job Name"
+          "validation": {
+          }
         },
         {
           "id": "CUSTOMER_NAME",
@@ -51,10 +48,8 @@
           "inputType": "text",
           "placeholder": "",
           "required": true,
-          "validation": {           
-          },
-          "helperText": "Customer Name"
-        },
+          "validation": {}
+        }
       ]
     }
   ],
