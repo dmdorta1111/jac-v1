@@ -1,0 +1,214 @@
+{
+  "formId": "Copy of Document",
+  "itemType": "custom",
+  "title": "Copy Of Document",
+  "description": "Configuration parameters for copy of document",
+  "sections": [
+    {
+      "id": "Copy of Document-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "Copy of Document-rev0-num",
+          "name": "REV0_NUM",
+          "label": "Rev0 Num",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev0-date",
+          "name": "REV0_DATE",
+          "label": "Rev0 Date",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev0-by",
+          "name": "REV0_BY",
+          "label": "Rev0 By",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev1-num",
+          "name": "REV1_NUM",
+          "label": "Rev1 Num",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev1-date",
+          "name": "REV1_DATE",
+          "label": "Rev1 Date",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev1-by",
+          "name": "REV1_BY",
+          "label": "Rev1 By",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev2-num",
+          "name": "REV2_NUM",
+          "label": "Rev2 Num",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev2-date",
+          "name": "REV2_DATE",
+          "label": "Rev2 Date",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev2-by",
+          "name": "REV2_BY",
+          "label": "Rev2 By",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev3-num",
+          "name": "REV3_NUM",
+          "label": "Rev3 Num",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev3-date",
+          "name": "REV3_DATE",
+          "label": "Rev3 Date",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev3-by",
+          "name": "REV3_BY",
+          "label": "Rev3 By",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev4-num",
+          "name": "REV4_NUM",
+          "label": "Rev4 Num",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev4-date",
+          "name": "REV4_DATE",
+          "label": "Rev4 Date",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev4-by",
+          "name": "REV4_BY",
+          "label": "Rev4 By",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev5-num",
+          "name": "REV5_NUM",
+          "label": "Rev5 Num",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev5-date",
+          "name": "REV5_DATE",
+          "label": "Rev5 Date",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-rev5-by",
+          "name": "REV5_BY",
+          "label": "Rev5 By",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "Copy of Document-add-revision",
+          "name": "ADD_REVISION",
+          "label": "Add Revision",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NO"
+            },
+            {
+              "value": 1,
+              "label": "YES"
+            }
+          ]
+        },
+        {
+          "id": "Copy of Document-as-built",
+          "name": "AS_BUILT",
+          "label": "As Built",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NO"
+            },
+            {
+              "value": 1,
+              "label": "YES"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}

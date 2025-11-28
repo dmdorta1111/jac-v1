@@ -6,6 +6,10 @@ interface ProjectMetadata {
   SO_NUM: string;
   JOB_NAME: string;
   CUSTOMER_NAME: string;
+  productType?: string;
+  salesOrderNumber?: string;
+  folderPath?: string;
+  isRevision?: boolean;
 }
 
 interface ProjectContextType {

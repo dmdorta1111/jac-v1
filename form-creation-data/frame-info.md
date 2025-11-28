@@ -1,0 +1,927 @@
+---
+formId: frame-info
+source: SDI/frame_info.tab
+---
+# Frame Info
+
+Form specification with 46 configuration fields.
+
+```json-form
+{
+  "formId": "frame-info",
+  "itemType": "custom",
+  "title": "Frame Info",
+  "description": "Configuration parameters for frame info",
+  "sections": [
+    {
+      "id": "frame-info-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "frame-info-frame-elevation",
+          "name": "FRAME_ELEVATION",
+          "label": "Frame Elevation",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-section",
+          "name": "SECTION",
+          "label": "Section",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "frame-info-jd",
+          "name": "JD",
+          "label": "Jd",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-info-frame-gauge",
+          "name": "FRAME_GAUGE",
+          "label": "Frame Gauge",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "frame-info-frame-grade",
+          "name": "FRAME_GRADE",
+          "label": "Frame Grade",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "frame-info-frame-finish",
+          "name": "FRAME_FINISH",
+          "label": "Frame Finish",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "frame-info-stopp",
+          "name": "STOPP",
+          "label": "Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 21
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-rabbet",
+          "name": "RABBET",
+          "label": "Rabbet",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 21
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-xrabbet",
+          "name": "XRABBET",
+          "label": "Xrabbet",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 21
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-return",
+          "name": "RETURN",
+          "label": "Return",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places"
+        },
+        {
+          "id": "frame-info-xreturn",
+          "name": "XRETURN",
+          "label": "Xreturn",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places"
+        },
+        {
+          "id": "frame-info-facee",
+          "name": "FACEE",
+          "label": "Facee",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places"
+        },
+        {
+          "id": "frame-info-xfacee",
+          "name": "XFACEE",
+          "label": "Xfacee",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places"
+        },
+        {
+          "id": "frame-info-head",
+          "name": "HEAD",
+          "label": "Head",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places"
+        },
+        {
+          "id": "frame-info-xhead",
+          "name": "XHEAD",
+          "label": "Xhead",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places"
+        },
+        {
+          "id": "frame-info-head-stopp",
+          "name": "HEAD_STOPP",
+          "label": "Head Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 21
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-hospital-stops-height",
+          "name": "HOSPITAL_STOPS_HEIGHT",
+          "label": "Hospital Stops Height",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HOSPITAL_STOPS",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-hospital-stops-angle",
+          "name": "HOSPITAL_STOPS_ANGLE",
+          "label": "Hospital Stops Angle",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HOSPITAL_STOPS",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-side-lite-qty",
+          "name": "SIDE_LITE_QTY",
+          "label": "Side Lite Qty",
+          "required": false,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-sill",
+          "name": "SILL",
+          "label": "Sill",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-xsill",
+          "name": "XSILL",
+          "label": "Xsill",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-sill-stopp",
+          "name": "SILL_STOPP",
+          "label": "Sill Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-side-lite-jow",
+          "name": "SIDE_LITE_JOW",
+          "label": "Side Lite Jow",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-side-lite-mullion",
+          "name": "SIDE_LITE_MULLION",
+          "label": "Side Lite Mullion",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-side-lite-glass-thickness",
+          "name": "SIDE_LITE_GLASS_THICKNESS",
+          "label": "Side Lite Glass Thickness",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-active-leaf",
+          "name": "ACTIVE_LEAF",
+          "label": "Active Leaf",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "notEquals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-glass-thickness",
+          "name": "GLASS_THICKNESS",
+          "label": "Glass Thickness",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-glass-stop-width",
+          "name": "GLASS_STOP_WIDTH",
+          "label": "Glass Stop Width",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-max-glazing-hole-space",
+          "name": "MAX_GLAZING_HOLE_SPACE",
+          "label": "Max Glazing Hole Space",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-glass-type",
+          "name": "GLASS_TYPE",
+          "label": "Glass Type",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "GLASS_SUPPLIER_",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "GLASS_TYPE_",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-help",
+          "name": "HELP",
+          "label": "Help",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "frame-info-silencers",
+          "name": "SILENCERS",
+          "label": "Silencers",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 21
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-hospital-stops",
+          "name": "HOSPITAL_STOPS",
+          "label": "Hospital Stops",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SECTION",
+                "operator": "equals",
+                "value": 21
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "frame-info-custom-anchors",
+          "name": "CUSTOM_ANCHORS",
+          "label": "Custom Anchors",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "frame-info-full-head-reinforcement",
+          "name": "FULL_HEAD_REINFORCEMENT",
+          "label": "Full Head Reinforcement",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "frame-info-continuous-hinge-reinforcement",
+          "name": "CONTINUOUS_HINGE_REINFORCEMENT",
+          "label": "Continuous Hinge Reinforcement",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-transom-panel",
+          "name": "TRANSOM_PANEL_",
+          "label": "Transom Panel",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "frame-info-closed-back",
+          "name": "CLOSED_BACK",
+          "label": "Closed Back",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "frame-info-glass-supplier",
+          "name": "GLASS_SUPPLIER_",
+          "label": "Glass Supplier",
+          "type": "switch",
+          "defaultValue": false,
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-glass-installer",
+          "name": "GLASS_INSTALLER_",
+          "label": "Glass Installer",
+          "type": "switch",
+          "defaultValue": false,
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-construction",
+          "name": "CONSTRUCTION_",
+          "label": "Construction",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "FACE WELD"
+            },
+            {
+              "value": 1,
+              "label": "FULLY WELDED"
+            },
+            {
+              "value": 2,
+              "label": "KNOCK DOWN"
+            }
+          ]
+        },
+        {
+          "id": "frame-info-head-grain",
+          "name": "HEAD_GRAIN_",
+          "label": "Head Grain",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "HORIZONTAL"
+            },
+            {
+              "value": 1,
+              "label": "VERTICAL"
+            }
+          ]
+        },
+        {
+          "id": "frame-info-side-lite-side",
+          "name": "SIDE_LITE_SIDE",
+          "label": "Side Lite Side",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "LEFT"
+            },
+            {
+              "value": 2,
+              "label": "RIGHT"
+            },
+            {
+              "value": 3,
+              "label": "BOTH"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-side-lite-stops",
+          "name": "SIDE_LITE_STOPS",
+          "label": "Side Lite Stops",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "INSIDE (UNSECURE - STD)"
+            },
+            {
+              "value": 1,
+              "label": "OUTSIDE (SECURE)"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "greaterThan",
+                "value": 30
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-glass-type-2",
+          "name": "GLASS_TYPE_",
+          "label": "Glass Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "CLEAR"
+            },
+            {
+              "value": 1,
+              "label": "WIRED"
+            },
+            {
+              "value": 2,
+              "label": "INSULATED"
+            },
+            {
+              "value": 3,
+              "label": "LEXAN"
+            },
+            {
+              "value": 4,
+              "label": "OTHER"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "GLASS_SUPPLIER_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "frame-info-borrowed-lite-trim-type",
+          "name": "BORROWED_LITE_TRIM_TYPE",
+          "label": "Borrowed Lite Trim Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "DOUBLE GLAZED"
+            },
+            {
+              "value": 1,
+              "label": "B"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

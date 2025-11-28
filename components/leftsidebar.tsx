@@ -231,7 +231,9 @@ function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemPro
       }`}
     >
       <MessageSquare className="size-4 shrink-0" aria-hidden="true" />
-      <span className="flex-1 truncate text-sm font-medium">Item #</span>
+      <span className="flex-1 truncate text-sm font-medium">
+        {session.title || 'New Item'}
+      </span>
       <Button
         type="button"
         variant="ghost"

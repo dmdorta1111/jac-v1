@@ -1,0 +1,622 @@
+---
+formId: anchors-sa
+source: SDI_New/anchorsSA.tab
+---
+# Anchors SA
+
+Form specification with 28 configuration fields for anchor settings with advanced conditional logic.
+
+```json-form
+{
+  "formId": "anchors-sa",
+  "itemType": "custom",
+  "title": "Anchors SA",
+  "description": "Advanced anchor configuration parameters from anchorsSA.tab",
+  "sections": [
+    {
+      "id": "anchors-sa-display",
+      "title": "Display Information",
+      "fields": [
+        {
+          "id": "anchors-sa-help",
+          "name": "HELP",
+          "label": "Show Help Image",
+          "type": "checkbox",
+          "description": "Display ANCHORS.GIF reference image"
+        },
+        {
+          "id": "anchors-sa-item-num",
+          "name": "ITEM_NUM",
+          "label": "Item Number",
+          "type": "display",
+          "inputType": "text",
+          "readOnly": true
+        },
+        {
+          "id": "anchors-sa-jd",
+          "name": "JD",
+          "label": "JD",
+          "type": "display",
+          "inputType": "number",
+          "readOnly": true
+        },
+        {
+          "id": "anchors-sa-jamb-ctr",
+          "name": "JAMB_CTR",
+          "label": "Jamb Center",
+          "type": "display",
+          "inputType": "number",
+          "readOnly": true
+        },
+        {
+          "id": "anchors-sa-std-anchor-ctr",
+          "name": "STD_ANCHOR_CTR",
+          "label": "Std Anchor Center",
+          "type": "display",
+          "inputType": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    {
+      "id": "anchors-sa-type",
+      "title": "Anchor Type Selection",
+      "fields": [
+        {
+          "id": "anchors-sa-anchor-type",
+          "name": "ANCHOR_TYPE",
+          "label": "Anchor Type",
+          "type": "radioGroup",
+          "required": true,
+          "options": [
+            {
+              "value": 0,
+              "label": "None"
+            },
+            {
+              "value": 1,
+              "label": "Galvanized Wire"
+            },
+            {
+              "value": 2,
+              "label": "Stainless Wire"
+            },
+            {
+              "value": 3,
+              "label": "Loose T"
+            },
+            {
+              "value": 4,
+              "label": "Loose Stud"
+            },
+            {
+              "value": 5,
+              "label": "Welded Stud Strap"
+            },
+            {
+              "value": 6,
+              "label": "HD Welded Stud"
+            },
+            {
+              "value": 7,
+              "label": "Welded Stud"
+            },
+            {
+              "value": 8,
+              "label": "P&D EWA"
+            },
+            {
+              "value": 9,
+              "label": "Concealed EWA"
+            },
+            {
+              "value": 10,
+              "label": "Adjustable Masonary"
+            },
+            {
+              "value": 11,
+              "label": "Compression"
+            }
+          ]
+        },
+        {
+          "id": "anchors-sa-anchor-ctr",
+          "name": "ANCHOR_CTR",
+          "label": "Anchor Center",
+          "type": "float",
+          "required": true,
+          "placeholder": "0.0000",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 11
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-anchor-desc",
+          "name": "ANCHOR_DESC",
+          "label": "Anchor Description",
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "Custom anchor description",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "CUSTOM_ANCHORS",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    },
+    {
+      "id": "anchors-sa-clips",
+      "title": "Clips Configuration",
+      "fields": [
+        {
+          "id": "anchors-sa-floor-clips",
+          "name": "FLOOR_CLIPS_",
+          "label": "Floor Clips",
+          "type": "radioGroup",
+          "options": [
+            {
+              "value": 0,
+              "label": "None"
+            },
+            {
+              "value": 1,
+              "label": "Fixed"
+            },
+            {
+              "value": 2,
+              "label": "Adjustable"
+            },
+            {
+              "value": 3,
+              "label": "Hvy Duty"
+            },
+            {
+              "value": 4,
+              "label": "Custom"
+            },
+            {
+              "value": 5,
+              "label": "Inverted"
+            }
+          ]
+        },
+        {
+          "id": "anchors-sa-base-clips",
+          "name": "BASE_CLIPS",
+          "label": "Base Clips",
+          "type": "radioGroup",
+          "options": [
+            {
+              "value": 0,
+              "label": "None"
+            },
+            {
+              "value": 1,
+              "label": "Base Clips"
+            },
+            {
+              "value": 2,
+              "label": "CEWA"
+            },
+            {
+              "value": 3,
+              "label": "P&D EWA"
+            },
+            {
+              "value": 4,
+              "label": "Face Holes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "anchors-sa-options",
+      "title": "Anchor Options",
+      "fields": [
+        {
+          "id": "anchors-sa-anchor-bolts",
+          "name": "ANCHOR_BOLTS",
+          "label": "Anchor Bolts",
+          "type": "checkbox",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 99
+              },
+              {
+                "field": "BASE_CLIPS",
+                "operator": "equals",
+                "value": 2
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-dust-boxes",
+          "name": "DUST_BOXES",
+          "label": "Dust Boxes",
+          "type": "checkbox",
+          "description": "Enable dust boxes"
+        },
+        {
+          "id": "anchors-sa-grout-holes",
+          "name": "GROUT_HOLES",
+          "label": "Grout Holes",
+          "type": "checkbox",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-grout-hole-dia",
+          "name": "GROUT_HOLE_DIA",
+          "label": "Grout Hole Diameter",
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "GROUT_HOLES",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "anchors-sa-bottom-only",
+          "name": "BOTTOM_ONLY",
+          "label": "Bottom Only",
+          "type": "checkbox"
+        },
+        {
+          "id": "anchors-sa-head-anchors",
+          "name": "HEAD_ANCHORS",
+          "label": "Head Anchors",
+          "type": "checkbox",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 11
+              }
+            ],
+            "logic": "OR"
+          }
+        }
+      ]
+    },
+    {
+      "id": "anchors-sa-dimensions",
+      "title": "Anchor Dimensions",
+      "fields": [
+        {
+          "id": "anchors-sa-transom-anchor-center",
+          "name": "TRANSOM_ANCHOR_CENTER",
+          "label": "Transom Anchor Center",
+          "type": "float",
+          "required": true,
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 5
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "anchors-sa-anchor-recess",
+          "name": "ANCHOR_RECESS",
+          "label": "Anchor Recess",
+          "type": "float",
+          "required": true,
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-sa-drywall-allowance",
+          "name": "DRYWALL_ALLOWANCE",
+          "label": "Drywall Allowance",
+          "type": "float",
+          "required": true,
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 5
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 6
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 7
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-anchor-jt-dist",
+          "name": "ANCHOR_JT_DIST",
+          "label": "Anchor JT Distance",
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-sa-anchor-jb-dist",
+          "name": "ANCHOR_JB_DIST",
+          "label": "Anchor JB Distance",
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-sa-anchor-hdj-dist",
+          "name": "ANCHOR_HDJ_DIST",
+          "label": "Anchor HDJ Distance",
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-sa-anchor-hmax",
+          "name": "ANCHOR_HMAX",
+          "label": "Anchor H Max",
+          "type": "float",
+          "placeholder": "0.00"
+        }
+      ]
+    },
+    {
+      "id": "anchors-sa-quantities",
+      "title": "Anchor Quantities",
+      "fields": [
+        {
+          "id": "anchors-sa-anchor-qty",
+          "name": "ANCHOR_QTY",
+          "label": "Anchor Quantity",
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_JMAX",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-anchor-jmax",
+          "name": "ANCHOR_JMAX",
+          "label": "Anchor J Max",
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_QTY",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-head-anchor-qty",
+          "name": "HEAD_ANCHOR_QTY",
+          "label": "Head Anchor Quantity",
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "in",
+                "value": [
+                  8,
+                  9,
+                  11
+                ]
+              },
+              {
+                "field": "HEAD_ANCHORS",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "ANCHOR_HMAX",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    },
+    {
+      "id": "anchors-sa-ewa-options",
+      "title": "EWA Options",
+      "description": "Options specific to P&D EWA and Concealed EWA anchor types",
+      "fields": [
+        {
+          "id": "anchors-sa-anchor-surf",
+          "name": "ANCHOR_SURF",
+          "label": "Anchor Surface",
+          "type": "radioGroup",
+          "options": [
+            {
+              "value": 0,
+              "label": "Soffit"
+            },
+            {
+              "value": 1,
+              "label": "Rabbet"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-anchor-bolt-type",
+          "name": "ANCHOR_BOLT_TYPE",
+          "label": "Anchor Bolt Type",
+          "type": "radioGroup",
+          "options": [
+            {
+              "value": 0,
+              "label": "Expansion"
+            },
+            {
+              "value": 1,
+              "label": "Lag"
+            },
+            {
+              "value": 2,
+              "label": "Machine"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-sa-anchor-strap-type",
+          "name": "ANCHOR_STRAP_TYPE",
+          "label": "Anchor Strap Type",
+          "type": "radioGroup",
+          "options": [
+            {
+              "value": 0,
+              "label": "Flat"
+            },
+            {
+              "value": 1,
+              "label": "Channel"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

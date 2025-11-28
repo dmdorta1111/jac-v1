@@ -1,0 +1,240 @@
+{
+  "formId": "holder-stop",
+  "itemType": "custom",
+  "title": "Holder Stop",
+  "description": "Configuration parameters for holder stop",
+  "sections": [
+    {
+      "id": "holder-stop-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "holder-stop-hs-model",
+          "name": "HS_MODEL",
+          "label": "Hs Model",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HS_TYPE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "holder-stop-hs-length",
+          "name": "HS_LENGTH",
+          "label": "Hs Length",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HS_TYPE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "holder-stop-hs-offset",
+          "name": "HS_OFFSET",
+          "label": "Hs Offset",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "holder-stop-hs-degree",
+          "name": "HS_DEGREE",
+          "label": "Hs Degree",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "holder-stop-hs-a",
+          "name": "HS_A",
+          "label": "Hs A",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "holder-stop-hs-b",
+          "name": "HS_B",
+          "label": "Hs B",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "holder-stop-hs-c",
+          "name": "HS_C",
+          "label": "Hs C",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "holder-stop-hs-d",
+          "name": "HS_D",
+          "label": "Hs D",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "holder-stop-select-device",
+          "name": "SELECT_DEVICE",
+          "label": "Select Device",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "holder-stop-equal-holders",
+          "name": "EQUAL_HOLDERS",
+          "label": "Equal Holders",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "holder-stop-hs-type",
+          "name": "HS_TYPE",
+          "label": "Hs Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "SURFACE"
+            },
+            {
+              "value": 2,
+              "label": "CONCEALED"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}

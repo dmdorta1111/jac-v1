@@ -1,0 +1,82 @@
+---
+formId: build-asm-bu1
+source: SDI/build_asm_bu1.tab
+---
+# Build Asm Bu1
+
+Form specification with 4 configuration fields.
+
+```json-form
+{
+  "formId": "build-asm-bu1",
+  "itemType": "custom",
+  "title": "Build Asm Bu1",
+  "description": "Configuration parameters for build asm bu1",
+  "sections": [
+    {
+      "id": "build-asm-bu1-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "build-asm-bu1-frame-wo",
+          "name": "FRAME_WO",
+          "label": "Frame Wo",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAMES_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "build-asm-bu1-door-wo",
+          "name": "DOOR_WO",
+          "label": "Door Wo",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOORS_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "build-asm-bu1-frames",
+          "name": "FRAMES_",
+          "label": "Frames",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "build-asm-bu1-doors",
+          "name": "DOORS_",
+          "label": "Doors",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

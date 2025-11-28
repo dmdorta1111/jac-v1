@@ -1,0 +1,104 @@
+{
+  "formId": "auto-bottom",
+  "itemType": "custom",
+  "title": "Auto Bottom",
+  "description": "Configuration parameters for auto bottom",
+  "sections": [
+    {
+      "id": "auto-bottom-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "auto-bottom-auto-bott-manufacturer",
+          "name": "AUTO_BOTT_MANUFACTURER",
+          "label": "Auto Bott Manufacturer",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "auto-bottom-auto-bott-model",
+          "name": "AUTO_BOTT_MODEL",
+          "label": "Auto Bott Model",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "auto-bottom-auto-bott-width",
+          "name": "AUTO_BOTT_WIDTH",
+          "label": "Auto Bott Width",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "auto-bottom-auto-bott-depth",
+          "name": "AUTO_BOTT_DEPTH",
+          "label": "Auto Bott Depth",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "auto-bottom-bottom-channel-thickness",
+          "name": "BOTTOM_CHANNEL_THICKNESS",
+          "label": "Bottom Channel Thickness",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "auto-bottom-plunger-hole-dia",
+          "name": "PLUNGER_HOLE_DIA",
+          "label": "Plunger Hole Dia",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PLUNGER_HOLE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "auto-bottom-plunger-hole-loc",
+          "name": "PLUNGER_HOLE_LOC",
+          "label": "Plunger Hole Loc",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PLUNGER_HOLE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "auto-bottom-plunger-hole",
+          "name": "PLUNGER_HOLE",
+          "label": "Plunger Hole",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}

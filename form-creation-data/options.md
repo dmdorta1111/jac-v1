@@ -1,0 +1,871 @@
+---
+formId: options
+source: SDI/options.tab
+---
+# Options
+
+Form specification with 38 configuration fields.
+
+```json-form
+{
+  "formId": "options",
+  "itemType": "custom",
+  "title": "Options",
+  "description": "Configuration parameters for options",
+  "sections": [
+    {
+      "id": "options-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "options-flush-bolt-center-top",
+          "name": "FLUSH_BOLT_CENTER_TOP",
+          "label": "Flush Bolt Center Top",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-flush-bolt-center-bottom",
+          "name": "FLUSH_BOLT_CENTER_BOTTOM",
+          "label": "Flush Bolt Center Bottom",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-flush-bolt-model",
+          "name": "FLUSH_BOLT_MODEL",
+          "label": "Flush Bolt Model",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "greaterThan",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-silencer-hole-dia",
+          "name": "SILENCER_HOLE_DIA",
+          "label": "Silencer Hole Dia",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SILENCERS",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-hasp-center",
+          "name": "HASP_CENTER",
+          "label": "Hasp Center",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HASP",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-tuflock-center",
+          "name": "TUFLOCK_CENTER",
+          "label": "Tuflock Center",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "TUFLOCK",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-peep-cl",
+          "name": "PEEP_CL",
+          "label": "Peep Cl",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PEEP",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-peep-dia",
+          "name": "PEEP_DIA",
+          "label": "Peep Dia",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PEEP",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-hinges",
+          "name": "HINGES",
+          "label": "Hinges",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_PROCESSED",
+                "operator": "notEquals",
+                "value": "PROCESSED"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-closer",
+          "name": "CLOSER",
+          "label": "Closer",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_PROCESSED",
+                "operator": "notEquals",
+                "value": "PROCESSED"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-welded-preps",
+          "name": "WELDED_PREPS",
+          "label": "Welded Preps",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "options-primary-lock",
+          "name": "PRIMARY_LOCK",
+          "label": "Primary Lock",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-secondary-lock",
+          "name": "SECONDARY_LOCK",
+          "label": "Secondary Lock",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-dummy-trim",
+          "name": "DUMMY_TRIM",
+          "label": "Dummy Trim",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-primary-strike",
+          "name": "PRIMARY_STRIKE",
+          "label": "Primary Strike",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "S"
+              },
+              {
+                "field": "FRAME_PROCESSED",
+                "operator": "notEquals",
+                "value": "PROCESSED"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-secondary-strike",
+          "name": "SECONDARY_STRIKE",
+          "label": "Secondary Strike",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "S"
+              },
+              {
+                "field": "FRAME_PROCESSED",
+                "operator": "notEquals",
+                "value": "PROCESSED"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-push-pull",
+          "name": "PUSH_PULL",
+          "label": "Push Pull",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "options-holder-stop",
+          "name": "HOLDER_STOP",
+          "label": "Holder Stop",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "options-auto-operator",
+          "name": "AUTO_OPERATOR",
+          "label": "Auto Operator",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "CLOSER",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-coordinator",
+          "name": "COORDINATOR",
+          "label": "Coordinator",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "options-mag-lock",
+          "name": "MAG_LOCK",
+          "label": "Mag Lock",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "S"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-ept",
+          "name": "EPT",
+          "label": "Ept",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "S"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-dps",
+          "name": "DPS",
+          "label": "Dps",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "S"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-astragal",
+          "name": "ASTRAGAL",
+          "label": "Astragal",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-astragal-installed",
+          "name": "ASTRAGAL_INSTALLED",
+          "label": "Astragal Installed",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-head-strike",
+          "name": "HEAD_STRIKE",
+          "label": "Head Strike",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-silencers",
+          "name": "SILENCERS",
+          "label": "Silencers",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-door-edge-reinforcement",
+          "name": "DOOR_EDGE_REINFORCEMENT",
+          "label": "Door Edge Reinforcement",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-kick-plate",
+          "name": "KICK_PLATE",
+          "label": "Kick Plate",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-ept-2",
+          "name": "EPT",
+          "label": "Ept",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "LEFT - PAIR OR YES - SINGLE"
+            },
+            {
+              "value": 2,
+              "label": "RIGHT - FOR PAIRS ONLY"
+            },
+            {
+              "value": 3,
+              "label": "BOTH - FOR PAIRS ONLY"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-dps-2",
+          "name": "DPS",
+          "label": "Dps",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "LEFT - PAIR OR YES - SINGLE"
+            },
+            {
+              "value": 2,
+              "label": "RIGHT - FOR PAIRS ONLY"
+            },
+            {
+              "value": 3,
+              "label": "BOTH - FOR PAIRS ONLY"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-mag-lock-2",
+          "name": "MAG_LOCK",
+          "label": "Mag Lock",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "LEFT - PAIR OR YES - SINGLE"
+            },
+            {
+              "value": 2,
+              "label": "RIGHT - FOR PAIRS ONLY"
+            },
+            {
+              "value": 3,
+              "label": "BOTH - FOR PAIRS ONLY"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-flush-bolts",
+          "name": "FLUSH_BOLTS",
+          "label": "Flush Bolts",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NO"
+            },
+            {
+              "value": 1,
+              "label": "TOP"
+            },
+            {
+              "value": 2,
+              "label": "BOTTOM"
+            },
+            {
+              "value": 3,
+              "label": "TOP AND BOTTOM"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-top-bolt-type",
+          "name": "TOP_BOLT_TYPE",
+          "label": "Top Bolt Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "STD"
+            },
+            {
+              "value": 1,
+              "label": "AUTOMATIC"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-bottom-bolt-type",
+          "name": "BOTTOM_BOLT_TYPE",
+          "label": "Bottom Bolt Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "STD"
+            },
+            {
+              "value": 1,
+              "label": "AUTOMATIC"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 2
+              },
+              {
+                "field": "FLUSH_BOLTS",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-surface-bolts",
+          "name": "SURFACE_BOLTS",
+          "label": "Surface Bolts",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NO"
+            },
+            {
+              "value": 1,
+              "label": "TOP"
+            },
+            {
+              "value": 2,
+              "label": "BOTTOM"
+            },
+            {
+              "value": 3,
+              "label": "TOP AND BOTTOM"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "options-auto-bottom",
+          "name": "AUTO_BOTTOM",
+          "label": "Auto Bottom",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "SURFACE"
+            },
+            {
+              "value": 2,
+              "label": "MORTISE"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "OPENING_TYPE",
+                "operator": "equals",
+                "value": 3
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "options-lead-lined",
+          "name": "LEAD_LINED",
+          "label": "Lead Lined",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "1/16"
+            },
+            {
+              "value": 2,
+              "label": "1/8"
+            },
+            {
+              "value": 3,
+              "label": "1/4"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

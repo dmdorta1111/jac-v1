@@ -1,0 +1,54 @@
+---
+formId: mortise-lock
+source: SDI/mortise_lock.tab
+---
+# Mortise Lock
+
+Form specification with 2 configuration fields.
+
+```json-form
+{
+  "formId": "mortise-lock",
+  "itemType": "custom",
+  "title": "Mortise Lock",
+  "description": "Configuration parameters for mortise lock",
+  "sections": [
+    {
+      "id": "mortise-lock-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "mortise-lock-mortise-box-depth",
+          "name": "MORTISE_BOX_DEPTH",
+          "label": "Mortise Box Depth",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SPECIAL_BOX_DEPTH",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "mortise-lock-special-box-depth",
+          "name": "SPECIAL_BOX_DEPTH",
+          "label": "Special Box Depth",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

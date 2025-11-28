@@ -1,0 +1,222 @@
+---
+formId: push-pull
+source: SDI/push_pull.tab
+---
+# Push Pull
+
+Form specification with 13 configuration fields.
+
+```json-form
+{
+  "formId": "push-pull",
+  "itemType": "custom",
+  "title": "Push Pull",
+  "description": "Configuration parameters for push pull",
+  "sections": [
+    {
+      "id": "push-pull-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "push-pull-push-plate-center",
+          "name": "PUSH_PLATE_CENTER",
+          "label": "Push Plate Center",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PUSH_PLATE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-pull-plate-center",
+          "name": "PULL_PLATE_CENTER",
+          "label": "Pull Plate Center",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PULL_PLATE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-pull-plate-height",
+          "name": "PULL_PLATE_HEIGHT",
+          "label": "Pull Plate Height",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PULL_PLATE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-push-pull-width",
+          "name": "PUSH_PULL_WIDTH",
+          "label": "Push Pull Width",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PULL_PLATE",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-push-bar-center",
+          "name": "PUSH_BAR_CENTER",
+          "label": "Push Bar Center",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PUSH_BAR",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-pull-bar-hole-centers",
+          "name": "PULL_BAR_HOLE_CENTERS",
+          "label": "Pull Bar Hole Centers",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PRE_PUNCH_PULL_BAR",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-pull-bar-backset",
+          "name": "PULL_BAR_BACKSET",
+          "label": "Pull Bar Backset",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PRE_PUNCH_PULL_BAR",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-pull-bar-screw-size",
+          "name": "PULL_BAR_SCREW_SIZE",
+          "label": "Pull Bar Screw Size",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PRE_PUNCH_PULL_BAR",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-push-plate",
+          "name": "PUSH_PLATE",
+          "label": "Push Plate",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "push-pull-pull-plate",
+          "name": "PULL_PLATE",
+          "label": "Pull Plate",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "push-pull-push-bar",
+          "name": "PUSH_BAR",
+          "label": "Push Bar",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "push-pull-pre-punch-pull-bar",
+          "name": "PRE_PUNCH_PULL_BAR",
+          "label": "Pre Punch Pull Bar",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "PUSH_BAR",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "push-pull-flush-pull",
+          "name": "FLUSH_PULL",
+          "label": "Flush Pull",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

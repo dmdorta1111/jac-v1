@@ -1,0 +1,86 @@
+{
+  "formId": "BOM-Lines",
+  "itemType": "custom",
+  "title": "Bom Lines",
+  "description": "Configuration parameters for bom lines",
+  "sections": [
+    {
+      "id": "BOM-Lines-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "BOM-Lines-so-num",
+          "name": "SO_NUM",
+          "label": "So Num",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "BOM-Lines-door-wo",
+          "name": "DOOR_WO",
+          "label": "Door Wo",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOOR_WO",
+                "operator": "equals",
+                "value": ""
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "BOM-Lines-frame-wo",
+          "name": "FRAME_WO",
+          "label": "Frame Wo",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_WO",
+                "operator": "equals",
+                "value": ""
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "BOM-Lines-process-type",
+          "name": "PROCESS_TYPE_",
+          "label": "Process Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "DOORS"
+            },
+            {
+              "value": 1,
+              "label": "FRAMES"
+            },
+            {
+              "value": 2,
+              "label": "LITES"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}

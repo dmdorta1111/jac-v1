@@ -1,0 +1,525 @@
+{
+  "formId": "door-info",
+  "itemType": "custom",
+  "title": "Door Info",
+  "description": "Configuration parameters for door info",
+  "sections": [
+    {
+      "id": "door-info-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "door-info-door-elevation",
+          "name": "DOOR_ELEVATION",
+          "label": "Door Elevation",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "S"
+              },
+              {
+                "field": "EQUAL_ELEVATIONS",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "door-info-undercut",
+          "name": "UNDERCUT",
+          "label": "Undercut",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-door-gauge",
+          "name": "DOOR_GAUGE",
+          "label": "Door Gauge",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "door-info-door-grade",
+          "name": "DOOR_GRADE",
+          "label": "Door Grade",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "door-info-body-side-finish",
+          "name": "BODY_SIDE_FINISH",
+          "label": "Body Side Finish",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "door-info-cover-side-finish",
+          "name": "COVER_SIDE_FINISH",
+          "label": "Cover Side Finish",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "door-info-door-thickness",
+          "name": "DOOR_THICKNESS",
+          "label": "Door Thickness",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-top-channel-depth",
+          "name": "TOP_CHANNEL_DEPTH",
+          "label": "Top Channel Depth",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-bottom-channel-depth",
+          "name": "BOTTOM_CHANNEL_DEPTH",
+          "label": "Bottom Channel Depth",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-strike-gap",
+          "name": "STRIKE_GAP",
+          "label": "Strike Gap",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-hinge-gap",
+          "name": "HINGE_GAP",
+          "label": "Hinge Gap",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-door-width-adjustment",
+          "name": "DOOR_WIDTH_ADJUSTMENT",
+          "label": "Door Width Adjustment",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-info-closure-channel-clearance",
+          "name": "CLOSURE_CHANNEL_CLEARANCE",
+          "label": "Closure Channel Clearance",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "BOTTOM_EDGE_",
+                "operator": "equals",
+                "value": 0
+              },
+              {
+                "field": "TOP_EDGE_",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "door-info-active-leaf",
+          "name": "ACTIVE_LEAF",
+          "label": "Active Leaf",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-weep-holes",
+          "name": "WEEP_HOLES",
+          "label": "Weep Holes",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOOR_CONSTRUCTION_",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "BOTTOM_EDGE_",
+                "operator": "equals",
+                "value": 2
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-weep-holes-2",
+          "name": "WEEP_HOLES",
+          "label": "Weep Holes",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "door-info-equal-elevations",
+          "name": "EQUAL_ELEVATIONS",
+          "label": "Equal Elevations",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-astragal",
+          "name": "ASTRAGAL",
+          "label": "Astragal",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-astragal-installed",
+          "name": "ASTRAGAL_INSTALLED",
+          "label": "Astragal Installed",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ASTRAGAL",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-add-bottom-channel",
+          "name": "ADD_BOTTOM_CHANNEL",
+          "label": "Add Bottom Channel",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOOR_CONSTRUCTION_",
+                "operator": "equals",
+                "value": 1
+              },
+              {
+                "field": "BOTTOM_EDGE_",
+                "operator": "notEquals",
+                "value": 0
+              },
+              {
+                "field": "BOTTOM_EDGE_",
+                "operator": "notEquals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-door-construction",
+          "name": "DOOR_CONSTRUCTION_",
+          "label": "Door Construction",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "LOCKSEAM"
+            },
+            {
+              "value": 1,
+              "label": "SEAMLESS"
+            }
+          ]
+        },
+        {
+          "id": "door-info-core",
+          "name": "CORE",
+          "label": "Core",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "STYRENE"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FIRE_RATING",
+                "operator": "lessThanOrEqual",
+                "value": 90
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-info-hinge-edge",
+          "name": "HINGE_EDGE_",
+          "label": "Hinge Edge",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "BEVEL"
+            },
+            {
+              "value": 1,
+              "label": "SQUARE"
+            },
+            {
+              "value": 2,
+              "label": "BULLNOSE"
+            }
+          ]
+        },
+        {
+          "id": "door-info-strike-edge",
+          "name": "STRIKE_EDGE_",
+          "label": "Strike Edge",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "BEVEL"
+            },
+            {
+              "value": 1,
+              "label": "SQUARE"
+            },
+            {
+              "value": 2,
+              "label": "BULLNOSE"
+            }
+          ]
+        },
+        {
+          "id": "door-info-top-edge",
+          "name": "TOP_EDGE_",
+          "label": "Top Edge",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "INVERTED"
+            },
+            {
+              "value": 1,
+              "label": "FLUSH"
+            },
+            {
+              "value": 2,
+              "label": "TACKED"
+            },
+            {
+              "value": 3,
+              "label": "SEALED"
+            },
+            {
+              "value": 4,
+              "label": "SEAMLESS"
+            },
+            {
+              "value": 5,
+              "label": "POLISHED"
+            }
+          ]
+        },
+        {
+          "id": "door-info-bottom-edge",
+          "name": "BOTTOM_EDGE_",
+          "label": "Bottom Edge",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "INVERTED"
+            },
+            {
+              "value": 1,
+              "label": "FLUSH"
+            },
+            {
+              "value": 2,
+              "label": "TACKED"
+            },
+            {
+              "value": 3,
+              "label": "SEALED"
+            },
+            {
+              "value": 4,
+              "label": "SEAMLESS"
+            },
+            {
+              "value": 5,
+              "label": "POLISHED"
+            }
+          ]
+        },
+        {
+          "id": "door-info-top-edge-2",
+          "name": "TOP_EDGE_",
+          "label": "Top Edge",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "INVERTED"
+            },
+            {
+              "value": 1,
+              "label": "FLUSH"
+            },
+            {
+              "value": 2,
+              "label": "SEAMLESS"
+            },
+            {
+              "value": 3,
+              "label": "WELDED"
+            },
+            {
+              "value": 4,
+              "label": "TACKED"
+            }
+          ]
+        },
+        {
+          "id": "door-info-bottom-edge-2",
+          "name": "BOTTOM_EDGE_",
+          "label": "Bottom Edge",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "INVERTED"
+            },
+            {
+              "value": 1,
+              "label": "FLUSH"
+            },
+            {
+              "value": 2,
+              "label": "SEAMLESS"
+            },
+            {
+              "value": 3,
+              "label": "WELDED"
+            },
+            {
+              "value": 4,
+              "label": "TACKED"
+            }
+          ]
+        },
+        {
+          "id": "door-info-astragal-door",
+          "name": "ASTRAGAL_DOOR_",
+          "label": "Astragal Door",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "ACTIVE"
+            },
+            {
+              "value": 1,
+              "label": "INACTIVE"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              },
+              {
+                "field": "ASTRAGAL",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}

@@ -66,6 +66,63 @@ import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
 import { defineStepper } from "@/components/ui/stepper";
+import { loadFlow, filterSteps, buildStepDefinitions, getEntryForm, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
+import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
+import { validateFormData } from "@/lib/validation/zod-schema-builder";
+
+// Import CircleStepIndicator component from stepper (exported in namespace)
+const CircleStepIndicator = ({ currentStep, totalSteps, size = 80, strokeWidth = 6 }: {
+  currentStep: number;
+  totalSteps: number;
+  size?: number;
+  strokeWidth?: number;
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const fillPercentage = (currentStep / totalSteps) * 100;
+  const dashOffset = circumference - (circumference * fillPercentage) / 100;
+
+  return (
+    <div
+      role="progressbar"
+      aria-valuenow={currentStep}
+      aria-valuemin={1}
+      aria-valuemax={totalSteps}
+      tabIndex={-1}
+      className="relative inline-flex items-center justify-center"
+    >
+      <svg width={size} height={size}>
+        <title>Step Indicator</title>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-muted-foreground"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          className="text-primary transition-all duration-300 ease-in-out"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-sm font-medium" aria-live="polite">
+          {currentStep} of {totalSteps}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 // Define stepper for project creation workflow
 const { Stepper, useStepper, steps } = defineStepper(
@@ -116,12 +173,64 @@ export function ClaudeChat() {
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
   const [showStepper, setShowStepper] = useState(false);
 
+  // Flow engine state for dynamic stepper
+  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
+  const [flowState, setFlowState] = useState<Record<string, Record<string, any>>>({});
+  const [currentStepOrder, setCurrentStepOrder] = useState<number>(0);
+  const [stepperDef, setStepperDef] = useState<any>(null);
+  const [totalSteps, setTotalSteps] = useState<number>(0);
+  const [filteredSteps, setFilteredSteps] = useState<FlowStep[]>([]);
+  const [flowExecutor, setFlowExecutor] = useState<FlowExecutor | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
   // Access global project metadata context for header display
   const { setMetadata: setProjectMetadata } = useProject();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const generateId = () => Math.random().toString(36).substring(2, 9);
+
+  /**
+   * Initialize stepper with dynamic steps from flow
+   * @param flow - Loaded form flow definition
+   * @param isRevision - Whether this is a revision/edit of existing item
+   */
+  const initializeStepper = async (flow: FormFlow, isRevision: boolean) => {
+    try {
+      // Filter steps based on revision status
+      const steps = filterSteps(flow, isRevision);
+      setFilteredSteps(steps);
+
+      // Build step definitions for defineStepper
+      const stepDefs = buildStepDefinitions(steps);
+
+      if (stepDefs.length === 0) {
+        console.error('No valid steps found in flow');
+        return false;
+      }
+
+      // Create dynamic stepper with steps from flow
+      const dynamicStepper = defineStepper(...stepDefs.map(def => ({
+        id: def.id,
+        title: def.title,
+        description: def.description,
+      })));
+
+      setStepperDef(dynamicStepper);
+      setTotalSteps(stepDefs.length);
+      setCurrentStepOrder(0);
+      setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
+
+      // Initialize FlowExecutor for conditional navigation
+      const executor = createFlowExecutor(flow, steps, {});
+      setFlowExecutor(executor);
+
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize stepper:', error);
+      return false;
+    }
+  };
 
   // Load static form template and display in chat
   const loadAndDisplayProjectHeaderForm = async (
@@ -130,6 +239,70 @@ export function ClaudeChat() {
     folderPath: string
   ) => {
     try {
+      // For SDI product type, load flow and initialize stepper
+      if (productType.toUpperCase() === 'SDI') {
+        // Load SDI form flow
+        const flow = await loadFlow('SDI-form-flow');
+
+        if (!flow) {
+          throw new Error('SDI form flow not found');
+        }
+
+        // Initialize stepper with flow (isRevision = false for new items)
+        const stepperInitialized = await initializeStepper(flow, false);
+
+        if (!stepperInitialized) {
+          throw new Error('Failed to initialize stepper');
+        }
+
+        // Update project metadata with isRevision flag
+        setProjectMetadata({
+          SO_NUM: salesOrderNumber,
+          JOB_NAME: '',
+          CUSTOMER_NAME: '',
+          productType,
+          salesOrderNumber,
+          folderPath,
+          isRevision: false,
+        });
+
+        // Get entry form from flow
+        const entryFormId = getEntryForm(flow);
+        const formSpec = await loadFormTemplate(entryFormId);
+
+        if (!formSpec) {
+          throw new Error(`Entry form template not found: ${entryFormId}`);
+        }
+
+        // Pre-fill SO_NUM field with sales order number
+        const prefilledSpec = {
+          ...formSpec,
+          sections: formSpec.sections.map(section => ({
+            ...section,
+            fields: section.fields.map(field => {
+              if (field.name === 'SO_NUM') {
+                return { ...field, defaultValue: salesOrderNumber };
+              }
+              return field;
+            }),
+          })),
+        };
+
+        // Create bot message with form and stepper info
+        const botMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: `Project folder created at:\n\`${folderPath}\`\n\n**SDI Form Flow** (Step 1 of ${totalSteps})\n\nPlease fill out the project header information:`,
+          timestamp: new Date(),
+          formSpec: prefilledSpec,
+        };
+
+        setMessages((prev) => [...prev, botMessage]);
+        setShowStepper(true);
+        return;
+      }
+
+      // Fallback: Load standard project-header for non-SDI products
       const formSpec = await loadFormTemplate('project-header');
 
       if (!formSpec) {
@@ -195,9 +368,187 @@ export function ClaudeChat() {
     }
 
     setIsLoading(true);
+    setValidationErrors({});
 
     try {
-      // Send form data to generate project header document
+      // If using dynamic stepper (SDI flow), handle step progression with validation
+      if (stepperDef && filteredSteps.length > 0 && flowExecutor) {
+        const currentStep = filteredSteps[currentStepOrder];
+        const currentStepId = currentStep?.formTemplate;
+
+        // 1. Load current form template for validation
+        const formSpec = await loadFormTemplate(currentStepId);
+        if (!formSpec) {
+          throw new Error(`Form template not found: ${currentStepId}`);
+        }
+
+        // 2. Validate form data with Zod schema
+        const validationResult = validateFormData(formSpec, formData);
+
+        if (!validationResult.success) {
+          // Show validation errors
+          setValidationErrors(validationResult.errors);
+          setIsLoading(false);
+
+          // Add error message
+          const errorMessage: Message = {
+            id: generateId(),
+            sender: 'bot',
+            text: 'Please fix the validation errors before continuing.',
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+          return;
+        }
+
+        // 3. Save validated form data to MongoDB
+        try {
+          const submissionResponse = await fetch('/api/form-submission', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId: currentSessionId || generateId(),
+              stepId: currentStepId,
+              formId: currentStepId,
+              formData: validationResult.data,
+              metadata: {
+                salesOrderNumber: projectContext.salesOrderNumber,
+                itemNumber: validationResult.data.ITEM_NUM || '',
+                productType: projectContext.productType,
+                formVersion: '1.0.0',
+                userId: undefined, // TODO: Add user authentication
+                isRevision: false,
+              },
+            }),
+          });
+
+          const submissionData = await submissionResponse.json();
+
+          if (!submissionData.success) {
+            throw new Error(submissionData.error || 'Failed to save form data');
+          }
+
+          console.log('Form data saved to MongoDB:', submissionData.submissionId);
+        } catch (dbError) {
+          console.error('MongoDB submission error:', dbError);
+          // Continue with flow even if DB save fails (graceful degradation)
+        }
+
+        // 4. Update FlowExecutor state with validated data
+        flowExecutor.updateState(currentStepId, validationResult.data);
+        flowExecutor.setCurrentStepIndex(currentStepOrder);
+
+        // 5. Store form data for current step (already in executor state)
+        setFlowState(prev => ({
+          ...prev,
+          [currentStepId]: validationResult.data,
+        }));
+
+        // Update project metadata with first form data (project-header)
+        if (currentStepOrder === 0) {
+          setProjectMetadata({
+            SO_NUM: validationResult.data.SO_NUM || projectContext.salesOrderNumber,
+            JOB_NAME: validationResult.data.JOB_NAME || '',
+            CUSTOMER_NAME: validationResult.data.CUSTOMER_NAME || '',
+            productType: projectContext.productType,
+            salesOrderNumber: projectContext.salesOrderNumber,
+            folderPath: projectContext.folderPath,
+            isRevision: false,
+          });
+        }
+
+        // Remove form from current message
+        setMessages((prev) => prev.map(msg =>
+          msg.formSpec ? { ...msg, formSpec: undefined } : msg
+        ));
+
+        // 5. Find next step using conditional navigation
+        const nextStep = flowExecutor.findNextStep();
+
+        if (nextStep) {
+          // Load next form
+          const nextFormSpec = await loadFormTemplate(nextStep.formTemplate);
+
+          if (!nextFormSpec) {
+            throw new Error(`Form template not found: ${nextStep.formTemplate}`);
+          }
+
+          // Pre-fill form with context values if available
+          const contextValues = flowExecutor.getContextValues(
+            nextFormSpec.sections.flatMap(s => s.fields.map(f => f.name))
+          );
+
+          // Merge context values into form defaults
+          const prefilledSpec = {
+            ...nextFormSpec,
+            sections: nextFormSpec.sections.map(section => ({
+              ...section,
+              fields: section.fields.map(field => ({
+                ...field,
+                defaultValue: contextValues[field.name] ?? field.defaultValue,
+              })),
+            })),
+          };
+
+          // Update current step index to next step
+          const nextStepIndex = filteredSteps.findIndex(s => s.formTemplate === nextStep.formTemplate);
+          if (nextStepIndex !== -1) {
+            setCurrentStepOrder(nextStepIndex);
+          }
+
+          // Create bot message with next form
+          const botMessage: Message = {
+            id: generateId(),
+            sender: 'bot',
+            text: `**Step ${nextStepIndex + 1} of ${totalSteps}**\n\n${nextStep.description}\n\nPlease fill out the form below:`,
+            timestamp: new Date(),
+            formSpec: prefilledSpec,
+          };
+
+          setMessages((prev) => [...prev, botMessage]);
+        } else {
+          // Flow complete - no more steps satisfy conditions
+          // Export all form data to SmartAssembly JSON
+          try {
+            const exportResponse = await fetch('/api/export-variables', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sessionId: currentSessionId || generateId(),
+                salesOrderNumber: projectContext.salesOrderNumber,
+              }),
+            });
+
+            const exportData = await exportResponse.json();
+
+            if (exportData.success) {
+              const completionMessage: Message = {
+                id: generateId(),
+                sender: 'bot',
+                text: `✓ Form flow completed!\n\nAll required forms have been filled based on your selections.\n\n**Export Summary:**\n- Variables exported: ${exportData.variableCount}\n- Export path: \`${exportData.exportPath}\`\n- Session ID: ${exportData.sessionId}\n\nYour SDI project data has been exported for SmartAssembly. How can I help with this job?`,
+                timestamp: new Date(),
+              };
+              setMessages((prev) => [...prev, completionMessage]);
+            } else {
+              throw new Error(exportData.error || 'Export failed');
+            }
+          } catch (exportError) {
+            console.error('Export error:', exportError);
+            const errorMessage: Message = {
+              id: generateId(),
+              sender: 'bot',
+              text: `✓ Form flow completed!\n\nAll forms filled, but I encountered an issue exporting to SmartAssembly:\n${exportError instanceof Error ? exportError.message : 'Unknown error'}\n\nYour data is saved in the database. You can retry export later.`,
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+          }
+        }
+
+        setIsLoading(false);
+        return;
+      }
+
+      // Fallback: Standard single-form submission (non-SDI)
       const response = await fetch('/api/generate-project-doc', {
         method: 'POST',
         headers: {
@@ -457,6 +808,22 @@ export function ClaudeChat() {
 
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col items-center w-full">
+        {/* CircleStepIndicator - Show when SDI flow is active */}
+        {stepperDef && totalSteps > 0 && (
+          <div className="w-full border-b border-border bg-background/50 backdrop-blur-sm px-6 py-4 flex items-center justify-center">
+            <CircleStepIndicator
+              currentStep={currentStepOrder + 1}
+              totalSteps={totalSteps}
+              size={60}
+              strokeWidth={5}
+            />
+            <div className="ml-4 text-sm text-muted-foreground">
+              <p className="font-semibold">SDI Form Flow</p>
+              <p className="text-xs">Step {currentStepOrder + 1} of {totalSteps}</p>
+            </div>
+          </div>
+        )}
+
         {/* Messages Area */}
         <div className="w-full flex-1 overflow-y-auto px-6 py-4 sm:px-8">
           {messages.length === 0 ? (
@@ -468,7 +835,7 @@ export function ClaudeChat() {
           ) : (
             <div className="mx-auto flex max-w-4xl flex-col gap-6">
               {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} onFormSubmit={handleFormSubmit} />
+                <MessageBubble key={msg.id} message={msg} onFormSubmit={handleFormSubmit} validationErrors={validationErrors} />
               ))}
               {isLoading && <TypingIndicator />}
               <div ref={messagesEndRef} />
@@ -700,7 +1067,7 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
   );
 }
 
-function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubmit?: (data: Record<string, any>) => void }) {
+function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { message: Message; onFormSubmit?: (data: Record<string, any>) => void; validationErrors?: Record<string, string> }) {
   const isUser = message.sender === "user";
   const role = isUser ? "user" : "assistant";
   const hasReasoning = !isUser && message.reasoning && message.reasoning.length > 0;
@@ -847,6 +1214,7 @@ function MessageBubble({ message, onFormSubmit }: { message: Message; onFormSubm
               <DynamicFormRenderer
                 formSpec={message.formSpec}
                 onSubmit={onFormSubmit}
+                validationErrors={validationErrors}
               />
             </div>
           )}

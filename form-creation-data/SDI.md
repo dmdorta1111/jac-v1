@@ -8966,42 +8966,15 @@ Form specification with 22 configuration fields.
 
 ```json-form
 {
-  "formId": "SDI-Project",
-  "itemType": "custom",
-  "title": "Sdi Project",
-  "description": "Configuration parameters for sdi project",
+  "formId": "Create New Item",
+  "itemType": "Door/Frame Item",
+  "title": "New Item",
+  "description": "Configuration parameters for New Item",
   "sections": [
     {
-      "id": "SDI-Project-configuration",
-      "title": "Configuration",
-      "fields": [
-        {
-          "id": "SDI-Project-customer-name",
-          "name": "CUSTOMER_NAME",
-          "label": "Customer Name",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
-        {
-          "id": "SDI-Project-job-name",
-          "name": "JOB_NAME",
-          "label": "Job Name",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
-        {
-          "id": "SDI-Project-sub-job-name",
-          "name": "SUB_JOB_NAME",
-          "label": "Sub Job Name",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
+      "id": "Item-Header",
+      "title": "Item Details",
+      "fields":[     
         {
           "id": "SDI-Project-item-num",
           "name": "ITEM_NUM",
@@ -9055,42 +9028,6 @@ Form specification with 22 configuration fields.
           "id": "SDI-Project-comments",
           "name": "COMMENTS",
           "label": "Comments",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
-        {
-          "id": "SDI-Project-comments-2",
-          "name": "COMMENTS_2",
-          "label": "Comments 2",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
-        {
-          "id": "SDI-Project-comments-3",
-          "name": "COMMENTS_3",
-          "label": "Comments 3",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
-        {
-          "id": "SDI-Project-comments-4",
-          "name": "COMMENTS_4",
-          "label": "Comments 4",
-          "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": ""
-        },
-        {
-          "id": "SDI-Project-comments-5",
-          "name": "COMMENTS_5",
-          "label": "Comments 5",
           "required": false,
           "type": "input",
           "inputType": "text",

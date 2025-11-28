@@ -1,0 +1,523 @@
+---
+formId: anchors
+source: SDI/anchors.tab
+---
+# Anchors
+
+Form specification with 23 configuration fields.
+
+```json-form
+{
+  "formId": "anchors",
+  "itemType": "custom",
+  "title": "Anchors",
+  "description": "Configuration parameters for anchors",
+  "sections": [
+    {
+      "id": "anchors-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "anchors-anchor-ctr",
+          "name": "ANCHOR_CTR",
+          "label": "Anchor Ctr",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "validation": {
+            "decimalPlaces": 4
+          },
+          "helperText": "Precision: 4 decimal places",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 11
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-anchor-desc",
+          "name": "ANCHOR_DESC",
+          "label": "Anchor Desc",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "CUSTOM_ANCHORS",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "anchors-grout-hole-dia",
+          "name": "GROUT_HOLE_DIA",
+          "label": "Grout Hole Dia",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "GROUT_HOLES",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "anchors-transom-anchor-center",
+          "name": "TRANSOM_ANCHOR_CENTER",
+          "label": "Transom Anchor Center",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "FRAME_ELEVATION",
+                "operator": "equals",
+                "value": 5
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "anchors-anchor-recess",
+          "name": "ANCHOR_RECESS",
+          "label": "Anchor Recess",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-drywall-allowance",
+          "name": "DRYWALL_ALLOWANCE",
+          "label": "Drywall Allowance",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 4
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 5
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 6
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 7
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-anchor-jt-dist",
+          "name": "ANCHOR_JT_DIST",
+          "label": "Anchor Jt Dist",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-anchor-jb-dist",
+          "name": "ANCHOR_JB_DIST",
+          "label": "Anchor Jb Dist",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-anchor-hdj-dist",
+          "name": "ANCHOR_HDJ_DIST",
+          "label": "Anchor Hdj Dist",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-anchor-hmax",
+          "name": "ANCHOR_HMAX",
+          "label": "Anchor Hmax",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "anchors-anchor-qty",
+          "name": "ANCHOR_QTY",
+          "label": "Anchor Qty",
+          "required": false,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_JMAX",
+                "operator": "equals",
+                "value": 0
+              },
+              {
+                "field": "ANCHOR_JMAX",
+                "operator": "greaterThan",
+                "value": 0
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-anchor-jmax",
+          "name": "ANCHOR_JMAX",
+          "label": "Anchor Jmax",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_QTY",
+                "operator": "equals",
+                "value": 0
+              },
+              {
+                "field": "ANCHOR_JMAX",
+                "operator": "greaterThan",
+                "value": 0
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-head-anchor-qty",
+          "name": "HEAD_ANCHOR_QTY",
+          "label": "Head Anchor Qty",
+          "required": false,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_HMAX",
+                "operator": "equals",
+                "value": 0
+              },
+              {
+                "field": "ANCHOR_HMAX",
+                "operator": "greaterThan",
+                "value": 0
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-help",
+          "name": "HELP",
+          "label": "Help",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "anchors-dust-boxes",
+          "name": "DUST_BOXES",
+          "label": "Dust Boxes",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "anchors-grout-holes",
+          "name": "GROUT_HOLES",
+          "label": "Grout Holes",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-bottom-only",
+          "name": "BOTTOM_ONLY",
+          "label": "Bottom Only",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "anchors-anchor-type",
+          "name": "ANCHOR_TYPE",
+          "label": "Anchor Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "GALVANIZED WIRE"
+            },
+            {
+              "value": 2,
+              "label": "STAINLESS WIRE"
+            },
+            {
+              "value": 3,
+              "label": "LOOSE T"
+            },
+            {
+              "value": 4,
+              "label": "LOOSE STUD"
+            },
+            {
+              "value": 5,
+              "label": "WELDED STUD STRAP"
+            },
+            {
+              "value": 6,
+              "label": "HD WELDED STUD"
+            },
+            {
+              "value": 7,
+              "label": "WELDED STUD"
+            },
+            {
+              "value": 8,
+              "label": "P&D EWA"
+            },
+            {
+              "value": 9,
+              "label": "CONCEALED EWA"
+            },
+            {
+              "value": 10,
+              "label": "ADJUSTABLE MASONARY"
+            },
+            {
+              "value": 11,
+              "label": "COMPRESSION"
+            }
+          ]
+        },
+        {
+          "id": "anchors-floor-clips",
+          "name": "FLOOR_CLIPS_",
+          "label": "Floor Clips",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "FIXED"
+            },
+            {
+              "value": 2,
+              "label": "ADJUSTABLE"
+            },
+            {
+              "value": 3,
+              "label": "HVY DUTY"
+            },
+            {
+              "value": 4,
+              "label": "CUSTOM"
+            },
+            {
+              "value": 5,
+              "label": "INVERTED"
+            }
+          ]
+        },
+        {
+          "id": "anchors-base-clips",
+          "name": "BASE_CLIPS",
+          "label": "Base Clips",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "BASE CLIPS"
+            },
+            {
+              "value": 2,
+              "label": "CEWA"
+            },
+            {
+              "value": 3,
+              "label": "P&D EWA"
+            },
+            {
+              "value": 4,
+              "label": "FACE HOLES"
+            }
+          ]
+        },
+        {
+          "id": "anchors-anchor-surf",
+          "name": "ANCHOR_SURF",
+          "label": "Anchor Surf",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "SOFFIT"
+            },
+            {
+              "value": 1,
+              "label": "RABBET"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HEAD_ANCHOR_QTY",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "anchors-anchor-bolt-type",
+          "name": "ANCHOR_BOLT_TYPE",
+          "label": "Anchor Bolt Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "EXPANSION"
+            },
+            {
+              "value": 1,
+              "label": "LAG"
+            },
+            {
+              "value": 2,
+              "label": "MACHINE"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 11
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "anchors-anchor-strap-type",
+          "name": "ANCHOR_STRAP_TYPE",
+          "label": "Anchor Strap Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "FLAT"
+            },
+            {
+              "value": 1,
+              "label": "CHANNEL"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 8
+              },
+              {
+                "field": "ANCHOR_TYPE",
+                "operator": "equals",
+                "value": 9
+              }
+            ],
+            "logic": "OR"
+          }
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

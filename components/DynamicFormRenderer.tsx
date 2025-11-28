@@ -148,15 +148,20 @@ interface DynamicFormRendererProps {
   formSpec: DynamicFormSpec;
   onSubmit: (data: Record<string, FormFieldValue>) => void;
   onCancel?: () => void;
+  validationErrors?: Record<string, string>;
 }
 
 export default function DynamicFormRenderer({
   formSpec,
   onSubmit,
   onCancel,
+  validationErrors = {},
 }: DynamicFormRendererProps) {
   const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => buildInitialFormData(formSpec));
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Merge external validation errors with internal errors
+  const allErrors = { ...errors, ...validationErrors };
   const [selectedTableRows, setSelectedTableRows] = useState<Record<string, number>>({});
 
   // Helper to create form-scoped state keys (defensive against name collisions)
@@ -165,7 +170,7 @@ export default function DynamicFormRenderer({
   const handleFieldChange = (name: string, value: FormFieldValue) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when field is modified
-    if (errors[name]) {
+    if (allErrors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
@@ -293,7 +298,7 @@ export default function DynamicFormRenderer({
     }
 
     const value = formData[field.name];
-    const error = errors[field.name];
+    const error = allErrors[field.name];
 
     // Handler for table row selection
     const handleTableRowSelect = (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => {

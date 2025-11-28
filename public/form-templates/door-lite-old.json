@@ -1,0 +1,344 @@
+{
+  "formId": "door-lite-old",
+  "itemType": "custom",
+  "title": "Door Lite Old",
+  "description": "Configuration parameters for door lite old",
+  "sections": [
+    {
+      "id": "door-lite-old-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "door-lite-old-vision-width",
+          "name": "VISION_WIDTH",
+          "label": "Vision Width",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-height",
+          "name": "VISION_HEIGHT",
+          "label": "Vision Height",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-top-rail",
+          "name": "VISION_TOP_RAIL",
+          "label": "Vision Top Rail",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-bottom-rail",
+          "name": "VISION_BOTTOM_RAIL",
+          "label": "Vision Bottom Rail",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-diameter",
+          "name": "VISION_DIAMETER",
+          "label": "Vision Diameter",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-center-top",
+          "name": "VISION_CENTER_TOP",
+          "label": "Vision Center Top",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-center-bottom",
+          "name": "VISION_CENTER_BOTTOM",
+          "label": "Vision Center Bottom",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "VISION_SHAPE_",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-hinge-stile",
+          "name": "VISION_HINGE_STILE",
+          "label": "Vision Hinge Stile",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOOR_ELEVATION",
+                "operator": "equals",
+                "value": "N"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-strike-stile",
+          "name": "VISION_STRIKE_STILE",
+          "label": "Vision Strike Stile",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOOR_ELEVATION",
+                "operator": "equals",
+                "value": "N"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-glass-thickness",
+          "name": "GLASS_THICKNESS",
+          "label": "Glass Thickness",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-lite-old-glass-type",
+          "name": "GLASS_TYPE",
+          "label": "Glass Type",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "door-lite-old-door-lite",
+          "name": "DOOR_LITE",
+          "label": "Door Lite",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "ACTIVE"
+            },
+            {
+              "value": 1,
+              "label": "INACTIVE"
+            },
+            {
+              "value": 2,
+              "label": "BOTH"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-lite-old-door-lite-trim-type",
+          "name": "DOOR_LITE_TRIM_TYPE_",
+          "label": "Door Lite Trim Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "A (SQUARE)"
+            },
+            {
+              "value": 1,
+              "label": "B (SLOPED)"
+            },
+            {
+              "value": 2,
+              "label": "C (STOPS)"
+            },
+            {
+              "value": 3,
+              "label": "BSL3"
+            },
+            {
+              "value": 4,
+              "label": "BSL4"
+            }
+          ]
+        },
+        {
+          "id": "door-lite-old-rem-stop-side",
+          "name": "REM_STOP_SIDE",
+          "label": "Rem Stop Side",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "INSIDE (UNSECURE)"
+            },
+            {
+              "value": 2,
+              "label": "OUTSIDE (SECURE)"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "DOOR_LITE_TRIM_TYPE_",
+                "operator": "equals",
+                "value": 3
+              },
+              {
+                "field": "DOOR_LITE_TRIM_TYPE_",
+                "operator": "equals",
+                "value": 4
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "door-lite-old-vision-shape",
+          "name": "VISION_SHAPE_",
+          "label": "Vision Shape",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "ROUND"
+            },
+            {
+              "value": 1,
+              "label": "SQUARE"
+            }
+          ]
+        },
+        {
+          "id": "door-lite-old-glass-supplier",
+          "name": "GLASS_SUPPLIER_",
+          "label": "Glass Supplier",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "OTHERS"
+            },
+            {
+              "value": 1,
+              "label": "SDI"
+            }
+          ]
+        },
+        {
+          "id": "door-lite-old-glass-installer",
+          "name": "GLASS_INSTALLER_",
+          "label": "Glass Installer",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "OTHERS"
+            },
+            {
+              "value": 1,
+              "label": "SDI"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}

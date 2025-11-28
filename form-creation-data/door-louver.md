@@ -1,0 +1,96 @@
+---
+formId: door-louver
+source: SDI/door_louver.tab
+---
+# Door Louver
+
+Form specification with 5 configuration fields.
+
+```json-form
+{
+  "formId": "door-louver",
+  "itemType": "custom",
+  "title": "Door Louver",
+  "description": "Configuration parameters for door louver",
+  "sections": [
+    {
+      "id": "door-louver-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "door-louver-louver-width",
+          "name": "LOUVER_WIDTH",
+          "label": "Louver Width",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-louver-louver-height",
+          "name": "LOUVER_HEIGHT",
+          "label": "Louver Height",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-louver-louver-bottom-rail",
+          "name": "LOUVER_BOTTOM_RAIL",
+          "label": "Louver Bottom Rail",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "door-louver-door-louver",
+          "name": "DOOR_LOUVER",
+          "label": "Door Louver",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "ACTIVE"
+            },
+            {
+              "value": 1,
+              "label": "INACTIVE"
+            },
+            {
+              "value": 2,
+              "label": "BOTH"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "door-louver-louver-dimension-method",
+          "name": "LOUVER_DIMENSION_METHOD",
+          "label": "Louver Dimension Method",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": " 0 - NOT SELECTED"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

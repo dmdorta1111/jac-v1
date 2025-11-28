@@ -1,0 +1,52 @@
+---
+formId: rixon
+source: SDI/rixon.tab
+---
+# Rixon
+
+Form specification with 3 configuration fields.
+
+```json-form
+{
+  "formId": "rixon",
+  "itemType": "custom",
+  "title": "Rixon",
+  "description": "Configuration parameters for rixon",
+  "sections": [
+    {
+      "id": "rixon-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "rixon-hs-offset",
+          "name": "HS_OFFSET",
+          "label": "Hs Offset",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "rixon-hs-degree",
+          "name": "HS_DEGREE",
+          "label": "Hs Degree",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "rixon-select-device",
+          "name": "SELECT_DEVICE",
+          "label": "Select Device",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

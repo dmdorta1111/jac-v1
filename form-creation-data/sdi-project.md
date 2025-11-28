@@ -1,0 +1,236 @@
+---
+formId: Create New Item
+source: SDI/SDI_Project.tab
+---
+# Sdi Project
+
+Form specification with 22 configuration fields.
+
+```json-form
+{
+  "formId": "Create New Item",
+  "itemType": "Door/Frame Item",
+  "title": "New Item",
+  "description": "Configuration parameters for New Item",
+  "sections": [
+    {
+      "id": "Item-Header",
+      "title": "Item Details",
+      "fields": [
+        {
+          "id": "SDI-Project-item-num",
+          "name": "ITEM_NUM",
+          "label": "Item Num",
+          "required": true,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "SDI-Project-qty",
+          "name": "QTY",
+          "label": "Qty",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "SDI-Project-jow",
+          "name": "JOW",
+          "label": "Jow",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "SDI-Project-joh",
+          "name": "JOH",
+          "label": "Joh",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "SDI-Project-jd",
+          "name": "JD",
+          "label": "Jd",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "SDI-Project-fire-rating",
+          "name": "FIRE_RATING",
+          "label": "Fire Rating",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "SDI-Project-comments",
+          "name": "COMMENTS",
+          "label": "Comments",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "SDI-Project-door-qty",
+          "name": "DOOR_QTY",
+          "label": "Door Qty",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HANDI_",
+                "operator": "equals",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "SDI-Project-submittal",
+          "name": "SUBMITTAL",
+          "label": "Submittal",
+          "type": "switch",
+          "defaultValue": false
+        },
+        {
+          "id": "SDI-Project-approval",
+          "name": "APPROVAL",
+          "label": "Approval",
+          "type": "switch",
+          "defaultValue": false
+        },
+        {
+          "id": "SDI-Project-door-label-construction",
+          "name": "DOOR_LABEL_CONSTRUCTION",
+          "label": "Door Label Construction",
+          "type": "switch",
+          "defaultValue": false
+        },
+        {
+          "id": "SDI-Project-multiple-tags",
+          "name": "MULTIPLE_TAGS",
+          "label": "Multiple Tags",
+          "type": "switch",
+          "defaultValue": false
+        },
+        {
+          "id": "SDI-Project-sdi-location",
+          "name": "SDI_LOCATION",
+          "label": "Sdi Location",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "SDI-Project-opening-type",
+          "name": "OPENING_TYPE",
+          "label": "Opening Type",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NON SELECTED"
+            },
+            {
+              "value": 1,
+              "label": "DOOR ONLY"
+            },
+            {
+              "value": 2,
+              "label": "FRAME ONLY"
+            },
+            {
+              "value": 3,
+              "label": "BOTH"
+            },
+            {
+              "value": 4,
+              "label": "BORROWED LITE"
+            }
+          ]
+        },
+        {
+          "id": "SDI-Project-handi",
+          "name": "HANDI_",
+          "label": "Handi",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": " LH"
+            },
+            {
+              "value": 1,
+              "label": "RH"
+            },
+            {
+              "value": 2,
+              "label": "LHA"
+            },
+            {
+              "value": 3,
+              "label": "RHA"
+            },
+            {
+              "value": 4,
+              "label": "LH/RH"
+            },
+            {
+              "value": 5,
+              "label": " LHR"
+            },
+            {
+              "value": 6,
+              "label": "RHR"
+            },
+            {
+              "value": 7,
+              "label": "LHRA"
+            },
+            {
+              "value": 8,
+              "label": "RHRA"
+            },
+            {
+              "value": 9,
+              "label": "LHR/RHR"
+            },
+            {
+              "value": 10,
+              "label": "NO HANDING"
+            },
+            {
+              "value": 11,
+              "label": "SELECT HAND"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "OPENING_TYPE",
+                "operator": "notEquals",
+                "value": 4
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

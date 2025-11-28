@@ -1,0 +1,370 @@
+---
+formId: hinge-info
+source: SDI/hinge_info.tab
+---
+# Hinge Info
+
+Form specification with 17 configuration fields.
+
+```json-form
+{
+  "formId": "hinge-info",
+  "itemType": "custom",
+  "title": "Hinge Info",
+  "description": "Configuration parameters for hinge info",
+  "sections": [
+    {
+      "id": "hinge-info-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "hinge-info-top-gap",
+          "name": "TOP_GAP",
+          "label": "Top Gap",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "hinge-info-hinge-manufacturer",
+          "name": "HINGE_MANUFACTURER",
+          "label": "Hinge Manufacturer",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "hinge-info-hinge-model",
+          "name": "HINGE_MODEL",
+          "label": "Hinge Model",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              },
+              {
+                "field": "MANUFACTURERS_LOCATIONS",
+                "operator": "equals",
+                "value": "N/A"
+              },
+              {
+                "field": "HINGE_MANUFACTURER",
+                "operator": "equals",
+                "value": "GENERIC"
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "hinge-info-template-hinge-gap",
+          "name": "TEMPLATE_HINGE_GAP",
+          "label": "Template Hinge Gap",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              },
+              {
+                "field": "MANUFACTURERS_LOCATIONS",
+                "operator": "equals",
+                "value": "N/A"
+              },
+              {
+                "field": "HINGE_MANUFACTURER",
+                "operator": "equals",
+                "value": "GENERIC"
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "hinge-info-hinge-gap-add",
+          "name": "HINGE_GAP_ADD",
+          "label": "Hinge Gap Add",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              },
+              {
+                "field": "MANUFACTURERS_LOCATIONS",
+                "operator": "equals",
+                "value": "N/A"
+              },
+              {
+                "field": "HINGE_MANUFACTURER",
+                "operator": "equals",
+                "value": "GENERIC"
+              }
+            ],
+            "logic": "OR"
+          }
+        },
+        {
+          "id": "hinge-info-alt-strike-center",
+          "name": "ALT_STRIKE_CENTER",
+          "label": "Alt Strike Center",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ALT_STRIKE_CENTER_",
+                "operator": "equals",
+                "value": 1
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-custom-hinge-qty",
+          "name": "CUSTOM_HINGE_QTY",
+          "label": "Custom Hinge Qty",
+          "required": false,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "BUTT"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-electric-hinge-position",
+          "name": "ELECTRIC_HINGE_POSITION",
+          "label": "Electric Hinge Position",
+          "required": false,
+          "type": "integer",
+          "placeholder": "0",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ELECTRIC_HINGE_POSITION",
+                "operator": "equals",
+                "value": 6
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-elec-hinge-model",
+          "name": "ELEC_HINGE_MODEL",
+          "label": "Elec Hinge Model",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "ELECTRIC_HINGE_POSITION",
+                "operator": "greaterThan",
+                "value": 0
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-elec-hinge-model-right",
+          "name": "ELEC_HINGE_MODEL_RIGHT",
+          "label": "Elec Hinge Model Right",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": "",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-alt-strike-center-2",
+          "name": "ALT_STRIKE_CENTER_",
+          "label": "Alt Strike Center",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "hinge-info-welded-boxes",
+          "name": "WELDED_BOXES",
+          "label": "Welded Boxes",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
+        },
+        {
+          "id": "hinge-info-thru-bolt",
+          "name": "THRU_BOLT",
+          "label": "Thru Bolt",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-continuous-hinge-reinforcement",
+          "name": "CONTINUOUS_HINGE_REINFORCEMENT",
+          "label": "Continuous Hinge Reinforcement",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-instal-hinge",
+          "name": "INSTAL_HINGE",
+          "label": "Instal Hinge",
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "CONTINUOUS"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-electric-hinge-position-2",
+          "name": "ELECTRIC_HINGE_POSITION",
+          "label": "Electric Hinge Position",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "TOP HINGE"
+            },
+            {
+              "value": 2,
+              "label": "SECOND HINGE"
+            },
+            {
+              "value": 3,
+              "label": "THIRD HINGE"
+            },
+            {
+              "value": 4,
+              "label": "SECOND FROM BOTTOM"
+            },
+            {
+              "value": 5,
+              "label": "BOTTOM HINGE"
+            },
+            {
+              "value": 6,
+              "label": "ENTER"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "HINGE_TYPE",
+                "operator": "equals",
+                "value": "BUTT"
+              }
+            ],
+            "logic": "AND"
+          }
+        },
+        {
+          "id": "hinge-info-elec-hinge-door",
+          "name": "ELEC_HINGE_DOOR",
+          "label": "Elec Hinge Door",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "LEFT"
+            },
+            {
+              "value": 1,
+              "label": "RIGHT"
+            },
+            {
+              "value": 2,
+              "label": "BOTH"
+            }
+          ],
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SUB_TYPE",
+                "operator": "equals",
+                "value": "P"
+              }
+            ],
+            "logic": "AND"
+          }
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

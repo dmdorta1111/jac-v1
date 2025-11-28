@@ -1,0 +1,204 @@
+---
+formId: frame-5-20
+source: SDI/frame_5_20.tab
+---
+# Frame 5 20
+
+Form specification with 20 configuration fields.
+
+```json-form
+{
+  "formId": "frame-5-20",
+  "itemType": "custom",
+  "title": "Frame 5 20",
+  "description": "Configuration parameters for frame 5 20",
+  "sections": [
+    {
+      "id": "frame-5-20-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "frame-5-20-transom-head",
+          "name": "TRANSOM_HEAD",
+          "label": "Transom Head",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-transom-heightmm",
+          "name": "TRANSOM_HEIGHTMM",
+          "label": "Transom Heightmm",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-transom-section",
+          "name": "TRANSOM_SECTION",
+          "label": "Transom Section",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "frame-5-20-frame-gauge",
+          "name": "FRAME_GAUGE",
+          "label": "Frame Gauge",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "frame-5-20-frame-grade",
+          "name": "FRAME_GRADE",
+          "label": "Frame Grade",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "frame-5-20-frame-finish",
+          "name": "FRAME_FINISH",
+          "label": "Frame Finish",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "frame-5-20-stopp",
+          "name": "STOPP",
+          "label": "Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-rabbet",
+          "name": "RABBET",
+          "label": "Rabbet",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-xrabbet",
+          "name": "XRABBET",
+          "label": "Xrabbet",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-return",
+          "name": "RETURN",
+          "label": "Return",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-xreturn",
+          "name": "XRETURN",
+          "label": "Xreturn",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-xfacee",
+          "name": "XFACEE",
+          "label": "Xfacee",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-xhead",
+          "name": "XHEAD",
+          "label": "Xhead",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-head-stopp",
+          "name": "HEAD_STOPP",
+          "label": "Head Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-head-grain",
+          "name": "HEAD_GRAIN",
+          "label": "Head Grain",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "frame-5-20-active-leaf",
+          "name": "ACTIVE_LEAF",
+          "label": "Active Leaf",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-transom-panel-height",
+          "name": "TRANSOM_PANEL_HEIGHT",
+          "label": "Transom Panel Height",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-transom-stopp",
+          "name": "TRANSOM_STOPP",
+          "label": "Transom Stopp",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-transom-anchor-center",
+          "name": "TRANSOM_ANCHOR_CENTER",
+          "label": "Transom Anchor Center",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "frame-5-20-construction",
+          "name": "CONSTRUCTION",
+          "label": "Construction",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "FACE WELD"
+            },
+            {
+              "value": 1,
+              "label": "FULLY WELDED"
+            },
+            {
+              "value": 2,
+              "label": "KNOCK DOWN"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
+```

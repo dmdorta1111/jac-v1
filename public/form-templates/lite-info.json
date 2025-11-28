@@ -1,0 +1,210 @@
+{
+  "formId": "lite-info",
+  "itemType": "custom",
+  "title": "Lite Info",
+  "description": "Configuration parameters for lite info",
+  "sections": [
+    {
+      "id": "lite-info-configuration",
+      "title": "Configuration",
+      "fields": [
+        {
+          "id": "lite-info-frame-elevation",
+          "name": "FRAME_ELEVATION",
+          "label": "Frame Elevation",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "lite-info-section",
+          "name": "SECTION",
+          "label": "Section",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "lite-info-jd",
+          "name": "JD",
+          "label": "Jd",
+          "required": true,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-frame-gauge",
+          "name": "FRAME_GAUGE",
+          "label": "Frame Gauge",
+          "required": true,
+          "type": "integer",
+          "placeholder": "0"
+        },
+        {
+          "id": "lite-info-frame-grade",
+          "name": "FRAME_GRADE",
+          "label": "Frame Grade",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "lite-info-frame-finish",
+          "name": "FRAME_FINISH",
+          "label": "Frame Finish",
+          "required": false,
+          "type": "input",
+          "inputType": "text",
+          "placeholder": ""
+        },
+        {
+          "id": "lite-info-stopp",
+          "name": "STOPP",
+          "label": "Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-rabbet",
+          "name": "RABBET",
+          "label": "Rabbet",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-xrabbet",
+          "name": "XRABBET",
+          "label": "Xrabbet",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-return",
+          "name": "RETURN",
+          "label": "Return",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-xreturn",
+          "name": "XRETURN",
+          "label": "Xreturn",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-facee",
+          "name": "FACEE",
+          "label": "Facee",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-xfacee",
+          "name": "XFACEE",
+          "label": "Xfacee",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-head",
+          "name": "HEAD",
+          "label": "Head",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-xhead",
+          "name": "XHEAD",
+          "label": "Xhead",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-head-stopp",
+          "name": "HEAD_STOPP",
+          "label": "Head Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-sill",
+          "name": "SILL",
+          "label": "Sill",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-xsill",
+          "name": "XSILL",
+          "label": "Xsill",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-sill-stopp",
+          "name": "SILL_STOPP",
+          "label": "Sill Stopp",
+          "required": false,
+          "type": "float",
+          "placeholder": "0.00"
+        },
+        {
+          "id": "lite-info-construction",
+          "name": "CONSTRUCTION_",
+          "label": "Construction",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "FACE WELD"
+            },
+            {
+              "value": 1,
+              "label": "FULLY WELDED"
+            },
+            {
+              "value": 2,
+              "label": "KNOCK DOWN"
+            }
+          ]
+        },
+        {
+          "id": "lite-info-head-grain",
+          "name": "HEAD_GRAIN_",
+          "label": "Head Grain",
+          "type": "radio",
+          "required": false,
+          "options": [
+            {
+              "value": 0,
+              "label": "HORIZONTAL"
+            },
+            {
+              "value": 1,
+              "label": "VERTICAL"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Save Configuration",
+    "action": "save-config"
+  }
+}
