@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import {
   Bot,
   User,
   AlertCircle,
   X,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   PromptInput,
   PromptInputTextarea,
@@ -21,7 +30,6 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { PaperclipIcon } from "lucide-react";
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import {
   Message as MessageComponent,
   MessageContent,
@@ -55,6 +63,22 @@ import {
   type UploadedFile,
 } from "@/components/leftsidebar";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
+import { loadFormTemplate } from "@/lib/form-templates";
+import { useProject } from "@/components/providers/project-context";
+import { defineStepper } from "@/components/ui/stepper";
+
+// Define stepper for project creation workflow
+const { Stepper, useStepper, steps } = defineStepper(
+  { id: "project-header", title: "Project Header", description: "Basic project info" },
+  { id: "item-data", title: "Item Data", description: "Item specifications" }
+);
+
+// Project context for tracking active project
+interface ProjectContext {
+  productType: string;
+  salesOrderNumber: string;
+  folderPath: string;
+}
 
 const suggestions = [
   "SDI",
@@ -89,8 +113,64 @@ export function ClaudeChat() {
   const [error, setError] = useState<string | null>(null);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
+  const [showStepper, setShowStepper] = useState(false);
+
+  // Access global project metadata context for header display
+  const { setMetadata: setProjectMetadata } = useProject();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const generateId = () => Math.random().toString(36).substring(2, 9);
+
+  // Load static form template and display in chat
+  const loadAndDisplayProjectHeaderForm = async (
+    productType: string,
+    salesOrderNumber: string,
+    folderPath: string
+  ) => {
+    try {
+      const formSpec = await loadFormTemplate('project-header');
+
+      if (!formSpec) {
+        throw new Error('Project header template not found');
+      }
+
+      // Pre-fill SO_NUM field with sales order number
+      const prefilledSpec = {
+        ...formSpec,
+        sections: formSpec.sections.map(section => ({
+          ...section,
+          fields: section.fields.map(field => {
+            if (field.name === 'SO_NUM') {
+              return { ...field, defaultValue: salesOrderNumber };
+            }
+            return field;
+          }),
+        })),
+      };
+
+      // Create bot message with form
+      const botMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Project folder created at:\n\`${folderPath}\`\n\nPlease fill out the project header information:`,
+        timestamp: new Date(),
+        formSpec: prefilledSpec,
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Failed to load project header form:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: 'Project folder created, but I couldn\'t load the header form. Please try refreshing the page.',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    }
+  };
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -102,10 +182,22 @@ export function ClaudeChat() {
 
   // Handle form submission from DynamicFormRenderer
   const handleFormSubmit = async (formData: Record<string, any>) => {
+    // Check if we have project context (from folder creation)
+    if (!projectContext) {
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: 'Error: Project folder information missing. Please create a new project first.',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Send form data to generate quote/documentation
+      // Send form data to generate project header document
       const response = await fetch('/api/generate-project-doc', {
         method: 'POST',
         headers: {
@@ -113,44 +205,48 @@ export function ClaudeChat() {
         },
         body: JSON.stringify({
           projectData: {
-            projectId: `PRJ-${Date.now()}`,
             ...formData,
+            productType: projectContext.productType,
+            salesOrderNumber: projectContext.salesOrderNumber,
           },
-          action: 'initial_quote',
+          action: 'project_header',
+          targetFolder: projectContext.folderPath,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Add success message with link to document
+        // Update header with project metadata
+        setProjectMetadata({
+          SO_NUM: formData.SO_NUM || projectContext.salesOrderNumber,
+          JOB_NAME: formData.JOB_NAME || '',
+          CUSTOMER_NAME: formData.CUSTOMER_NAME || '',
+        });
+
+        // Show stepper and remove form from messages
+        setShowStepper(true);
+        setMessages((prev) => prev.map(msg =>
+          msg.formSpec ? { ...msg, formSpec: undefined } : msg
+        ));
+
+        // Add success message
         const successMessage: Message = {
           id: generateId(),
           sender: 'bot',
-          text: `Great! I've generated your quote document. Here's a summary:\n\n${data.content}\n\nFull documentation saved as: ${data.filename}`,
+          text: `Project header saved to:\n\`${data.path}\`\n\nYour project is ready. How can I help with this job?`,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, successMessage]);
-
-        // Ask if they need anything else
-        setTimeout(() => {
-          const followUpMessage: Message = {
-            id: generateId(),
-            sender: 'bot',
-            text: "Is there anything else you'd like to add or modify? Or would you like to start a new quote?",
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, followUpMessage]);
-        }, 500);
       } else {
-        throw new Error(data.error || 'Failed to generate document');
+        throw new Error(data.error || 'Failed to save project header');
       }
     } catch (error) {
-      console.error('Error generating document:', error);
+      console.error('Error saving project header:', error);
       const errorMessage: Message = {
         id: generateId(),
         sender: 'bot',
-        text: 'Sorry, I had trouble generating your quote. Please try again or let me know if you need to modify any information.',
+        text: 'Sorry, I had trouble saving your project header. Please try again.',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -176,8 +272,6 @@ export function ClaudeChat() {
       );
     }
   }, [messages, currentSessionId]);
-
-  const generateId = () => Math.random().toString(36).substring(2, 9);
 
   const generateSessionTitle = (msgs: Message[]): string => {
     const firstUserMsg = msgs.find((m) => m.sender === "user");
@@ -343,13 +437,34 @@ export function ClaudeChat() {
         onSelectSession={selectSession}
         onDeleteSession={deleteSession}
       />
-    
+
+      {/* Vertical Stepper - Desktop Only */}
+      {showStepper && (
+        <div className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border bg-background/50 backdrop-blur-sm p-6 animate-in slide-in-from-left duration-300 ease-out">
+          <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Project Steps</h3>
+          <Stepper.Provider variant="vertical" className="flex-1">
+            <Stepper.Navigation className="flex flex-col gap-4">
+              {steps.map((step, index) => (
+                <Stepper.Step key={step.id} of={step.id}>
+                  <Stepper.Title className="text-foreground">{step.title}</Stepper.Title>
+                  <Stepper.Description className="text-muted-foreground text-xs">{step.description}</Stepper.Description>
+                </Stepper.Step>
+              ))}
+            </Stepper.Navigation>
+          </Stepper.Provider>
+        </div>
+      )}
+
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col items-center w-full">
         {/* Messages Area */}
         <div className="w-full flex-1 overflow-y-auto px-6 py-4 sm:px-8">
           {messages.length === 0 ? (
-            <WelcomeScreen onSuggestionClick={(text) => handleSubmit({ text, files: [] })} />
+            <WelcomeScreen
+              onSuggestionClick={(text) => handleSubmit({ text, files: [] })}
+              onProjectCreated={loadAndDisplayProjectHeaderForm}
+              setProjectContext={setProjectContext}
+            />
           ) : (
             <div className="mx-auto flex max-w-4xl flex-col gap-6">
               {messages.map((msg) => (
@@ -431,7 +546,83 @@ export function ClaudeChat() {
   );
 }
 
-function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick?: (text: string) => void }) {
+interface WelcomeScreenProps {
+  onSuggestionClick?: (text: string) => void;
+  onProjectCreated?: (productType: string, salesOrderNumber: string, folderPath: string) => void;
+  setProjectContext?: (context: ProjectContext) => void;
+}
+
+function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext }: WelcomeScreenProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [salesOrder, setSalesOrder] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleButtonClick = (product: string) => {
+    setSelectedProduct(product);
+    setSalesOrder("");
+    setFeedback(null);
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!salesOrder.trim() || !selectedProduct) return;
+
+    setIsSubmitting(true);
+    setFeedback(null);
+
+    try {
+      const response = await fetch('/api/create-project-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productType: selectedProduct,
+          salesOrderNumber: salesOrder.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFeedback({ type: 'success', message: `Project folder created: ${data.path}` });
+
+        // Store project context for form submission
+        if (setProjectContext) {
+          setProjectContext({
+            productType: selectedProduct,
+            salesOrderNumber: salesOrder.trim(),
+            folderPath: data.path,
+          });
+        }
+
+        // Close dialog and trigger form display
+        setTimeout(() => {
+          setDialogOpen(false);
+          setFeedback(null);
+          setSalesOrder("");
+
+          // Load and display the project header form
+          if (onProjectCreated) {
+            onProjectCreated(selectedProduct, salesOrder.trim(), data.path);
+          }
+        }, 1500);
+      } else {
+        setFeedback({ type: 'error', message: data.error || 'Failed to create folder' });
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isSubmitting && salesOrder.trim()) {
+      handleSubmit();
+    }
+  };
+
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
       <h2 className="mb-3 text-3xl font-bold text-foreground">
@@ -442,18 +633,69 @@ function WelcomeScreen({ onSuggestionClick }: { onSuggestionClick?: (text: strin
         Ask about kitchen equipment, specifications, or engineering details.
       </p>
 
-      <div className="grid w-full max-w-3xl gap-4 justify-center">
-        <Suggestions>
-          {suggestions.map((suggestion) => (
-            <Suggestion
-              key={suggestion}
-              onClick={() => onSuggestionClick?.(suggestion)}
-              suggestion={suggestion}
-              className="group cursor-pointer border-border bg-card px-4 py-2.5 shadow-sm transition-all duration-300 hover:border-zinc-400 hover:bg-accent hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:hover:border-zinc-500"
-            />
-          ))}
-        </Suggestions>
+      <div className="flex flex-wrap gap-4 justify-center">
+        {suggestions.map((suggestion) => (
+          <Button
+            key={suggestion}
+            variant="outline"
+            size="lg"
+            onClick={() => handleButtonClick(suggestion)}
+            className="min-w-[120px] transition-all duration-200 hover:border-zinc-400 hover:bg-accent hover:shadow-md"
+          >
+            {suggestion}
+          </Button>
+        ))}
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create {selectedProduct} Project</DialogTitle>
+            <DialogDescription>
+              Enter the sales order number to create a new project folder.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Input
+              placeholder="Enter sales order number"
+              value={salesOrder}
+              onChange={(e) => setSalesOrder(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSubmitting}
+              autoFocus
+            />
+
+            {feedback && (
+              <div
+                className={`rounded-lg px-4 py-3 text-sm ${
+                  feedback.type === 'success'
+                    ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                    : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                }`}
+              >
+                {feedback.message}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting || !salesOrder.trim()}
+            >
+              {isSubmitting ? 'Creating...' : 'Create Project'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
