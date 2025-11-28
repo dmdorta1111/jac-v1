@@ -1,0 +1,787 @@
+{
+  "metadata": {
+    "source": "SDI_Project.tab",
+    "description": "SDI (Steel Door Institute) Project Form Flow - Complete execution flow of .tab file calls",
+    "entryPoint": "SDI_Project.tab",
+    "location": "SmartAssembly/Library_New/SA_PROD_L/component_engine/SDI_New/",
+    "extractedDate": "2025-11-28"
+  },
+  "mainFlow": {
+    "description": "Main execution flow from SDI_Project.tab",
+    "steps": [
+      {
+        "order": 1,
+        "lineNumber": 1117,
+        "command": "CALL",
+        "file": "Drawing_History.tab",
+        "condition": null,
+        "description": "Called unconditionally early in the process flow",
+        "purpose": "Load/manage drawing history"
+      },
+      {
+        "order": 2,
+        "lineNumber": 2553,
+        "command": "CALL_EX",
+        "file": "options.tab",
+        "condition": {
+          "expression": "(OPENING_TYPE == 1 OR OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4) AND (CHOICE == 1 OR CHOICE == 2) AND OPENING_TYPE <> 4",
+          "variables": {
+            "OPENING_TYPE": {
+              "1": "DOOR ONLY",
+              "2": "FRAME ONLY",
+              "3": "BOTH",
+              "4": "BORROWED LITE"
+            },
+            "CHOICE": {
+              "1": "New item",
+              "2": "Edit existing"
+            }
+          }
+        },
+        "description": "Options configuration for opening",
+        "purpose": "Configure primary/secondary locks, hardware options",
+        "passedVariables": [
+          "ITEM_NUM", "SUB_TYPE", "OPENING_TYPE", "DOOR_ITEM_DESC", "FRAME_ITEM_DESC",
+          "HAND", "FRAME_PROCESSED", "PRIMARY_LOCK", "PRIMARY_STRIKE", "DUMMY_TRIM",
+          "SECONDARY_LOCK", "SECONDARY_STRIKE", "FLUSH_BOLTS", "AUTO_BOTTOM", "CLOSER",
+          "PUSH_PULL", "HOLDER_STOP", "EPT", "DPS", "MAG_LOCK", "CUSTOM_ANCHORS",
+          "HASP", "TUFLOCK", "HEAD_STRIKE", "SURFACE_BOLTS", "KICK_PLATE", "HINGES", "LEAD_LINED", "PEEP"
+        ]
+      },
+      {
+        "order": 3,
+        "lineNumber": 2609,
+        "command": "CALL_EX",
+        "file": "hinge_info.tab",
+        "condition": {
+          "expression": "HINGES == 1 AND FRAME_PROCESSED <> 'PROCESSED'",
+          "parent": "OPENING_TYPE <> 4"
+        },
+        "description": "Hinge information input",
+        "purpose": "Configure hinge type, locations, spacing, electric hinges",
+        "passedVariables": [
+          "MANUFACTURERS_LOCATIONS", "MAXIMUM_HINGE_SPACING", "HINGE_SPACING", "JOH",
+          "JAMB_HINGE_SETBACK", "DOOR_HINGE_SETBACK", "DOOR_FACE_SETBACK", "DOOR_GAP",
+          "ELEC_HINGE_DOOR", "HINGE_QTY", "HINGE_TYPE", "HINGE_HEIGHT", "HINGE_THICKNESS",
+          "WELDED_BOXES", "ELECTRIC_HINGE_POSITION", "HINGE_EDGE_SHAPE", "HINGE_GAP",
+          "TOP_GAP", "TOP_HINGE", "BOTTOM_HINGE", "PRIMARY_STRIKE_CENTER", "ELECTRIC_HINGE_QTY",
+          "HINGE_DESC", "BUTT_HINGE_HEIGHT_ALLOWANCE", "BUTT_HINGE_WIDTH_ALLOWANCE",
+          "HINGE_LOCATION_1-9", "HINGE_MANUFACTURER", "HINGE_MODEL", "TEMPLATE_HINGE_GAP",
+          "ELEC_HINGE_MODEL", "SUB_TYPE", "HINGE_UDF", "THRU_BOLT", "CONTINUOUS_HINGE_REINFORCEMENT",
+          "CUSTOM_HINGE_QTY", "INSTAL_HINGE", "EQUAL_SPACING", "HINGE_DIMENSION_METHOD"
+        ]
+      },
+      {
+        "order": 4,
+        "lineNumber": 2668,
+        "command": "CALL_EX",
+        "file": "frame_info.tab",
+        "condition": {
+          "expression": "FRAME_PROCESSED <> 'PROCESSED' AND (OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4)",
+          "variables": {
+            "OPENING_TYPE": {
+              "2": "FRAME ONLY",
+              "3": "BOTH",
+              "4": "BORROWED LITE"
+            }
+          }
+        },
+        "description": "Frame information input",
+        "purpose": "Configure frame elevation, sections, dimensions, construction",
+        "passedVariables": [
+          "HINGE_TYPE", "OPENING_TYPE", "HAND", "FRAME_ELEVATION", "FACEE", "HEAD",
+          "MINIMUM_SOFFIT", "SECTION", "STOPP", "RABBET", "XRABBET", "RETURN", "XRETURN",
+          "DW_RTRN", "XDW_RTRN", "XFACEE", "XHEAD", "HEAD_STOPP", "HEAD_GRAIN", "JD",
+          "THROAT", "SOFFIT", "HOSPITAL_STOPS", "FRAME_GAUGE", "FRAME_GRADE", "FRAME_FINISH",
+          "FULL_HEAD_REINFORCEMENT", "SILENCERS", "FRAME_CONSTRUCTION", "SUB_TYPE",
+          "HOSPITAL_STOPS_ANGLE", "HOSPITAL_STOPS_HEIGHT", "CUSTOM_ANCHORS", "SILL", "XSILL",
+          "SILL_STOPP", "ACTIVE_LEAF", "CLOSED_BACK", "GLASS_THICKNESS", "GLASS_SUPPLIER",
+          "GLASS_INSTALLER", "GLASS_TYPE", "GLASS_STOP_WIDTH", "BORROWED_LITE_TRIM_TYPE",
+          "SIDE_LITE_JOW", "SIDE_LITE_GLASS_THICKNESS", "SIDE_LITE_MULLION", "SIDE_LITE_QTY", "SIDE_LITE_SIDE"
+        ]
+      },
+      {
+        "order": 5,
+        "lineNumber": 2744,
+        "command": "CALL_EX",
+        "file": "frame_5_20.tab",
+        "condition": {
+          "expression": "FRAME_ELEVATION == 5",
+          "parent": "FRAME_PROCESSED <> 'PROCESSED' AND (OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4)"
+        },
+        "description": "Frame elevation 5 (Transom) specific information",
+        "purpose": "Configure transom frame specific dimensions and properties"
+      },
+      {
+        "order": 6,
+        "lineNumber": 2781,
+        "command": "CALL_EX",
+        "file": "anchors.tab",
+        "condition": {
+          "expression": "FRAME_PROCESSED <> 'PROCESSED' AND (OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4)",
+          "note": "Called after frame_info.tab"
+        },
+        "description": "Anchor configuration",
+        "purpose": "Configure anchor type, spacing, quantities, floor clips, grout holes",
+        "passedVariables": [
+          "OPERATION", "ITEM_NUM", "JOH", "JOW", "SUB_TYPE", "SECTION", "RABBET", "XRABBET",
+          "JD", "SOFFIT", "MINIMUM_SOFFIT", "CUSTOM_ANCHORS", "SIDE_LITE_JOW", "SIDE_LITE_MULLION",
+          "SIDE_LITE_QTY", "FRAME_ELEVATION", "ANCHOR_TYPE", "ANCHOR_CTR", "ANCHOR_DESC",
+          "ANCHOR_MDL", "BASE_CLIPS", "ANCHOR_JT_DIST", "ANCHOR_JB_DIST", "ANCHOR_SPACING",
+          "ANCHOR_QTY", "FLOOR_CLIPS", "FLOOR_CLIP_GAUGE", "DUST_BOXES", "ANCHOR_BOLTS",
+          "ANCHOR_RECESS", "ANCHOR_SURF", "ANCHOR_BOLT_TYPE", "ANCHOR_STRAP_TYPE", "ANCHOR_JMAX",
+          "GROUT_HOLES", "GROUT_HOLE_DIA", "BOTTOM_ONLY", "HEAD_ANCHORS", "HEAD_ANCHOR_QTY",
+          "FLUSH_BOLTS", "DRYWALL_ALLOWANCE", "BOTTOM_ANCHOR", "ANCHOR_HDJ_DIST", "ANCHOR_HMAX"
+        ]
+      },
+      {
+        "order": 7,
+        "lineNumber": 2888,
+        "command": "CALL_EX",
+        "file": "door_info.tab",
+        "condition": {
+          "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
+          "variables": {
+            "OPENING_TYPE": {
+              "1": "DOOR ONLY",
+              "3": "BOTH"
+            }
+          }
+        },
+        "description": "Door information input",
+        "purpose": "Configure door grade, elevation, gauge, construction, edges",
+        "passedVariables": [
+          "ITEM_NUM", "SUB_TYPE", "JOW", "JOH", "HAND", "FIRE_RATING", "AUTO_BOTTOM",
+          "EXCEL_COLUMN", "HINGE_GAP", "DOOR_GRADE", "DOOR_ELEVATION", "DOOR_GAUGE",
+          "BODY_SIDE_FINISH", "COVER_SIDE_FINISH", "DOOR_CONSTRUCTION", "HINGE_EDGE_SHAPE",
+          "STRIKE_EDGE_SHAPE", "TOP_EDGE", "BOTTOM_EDGE", "DOOR_THICKNESS", "STRIKE_GAP",
+          "UNDERCUT", "ACTIVE_LEAF", "CORE", "CORE_DESC", "TOP_CHANNEL_DEPTH",
+          "BOTTOM_CHANNEL_DEPTH", "ASTRAGAL", "ASTRAGAL_INSTALLED", "ASTRAGAL_DOOR",
+          "EQUAL_ELEVATIONS", "WEEP_HOLES", "CLOSURE_CHANNEL_CLEARANCE", "DOOR_WIDTH_ADJUSTMENT"
+        ]
+      },
+      {
+        "order": 8,
+        "lineNumber": 2933,
+        "command": "CALL_EX",
+        "file": "door_elevation_info.tab",
+        "condition": {
+          "expression": "SUB_TYPE == 'P' AND EQUAL_ELEVATIONS == 0",
+          "parent": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
+          "context": "LEFT - DOOR ON THE LEFT"
+        },
+        "description": "Door elevation info for left door (pair)",
+        "purpose": "Configure elevation for left door in pair configuration"
+      },
+      {
+        "order": 9,
+        "lineNumber": 2954,
+        "command": "CALL_EX",
+        "file": "door_lite.tab",
+        "condition": {
+          "expression": "DOOR_ELEVATION == '*N*' OR DOOR_ELEVATION == '*G*' OR DOOR_ELEVATION == '*V*' OR DOOR_ELEVATION == '*C*'",
+          "parent": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
+          "elevationCodes": {
+            "*N*": "Narrow lite",
+            "*G*": "Glass/glazed",
+            "*V*": "Vision",
+            "*C*": "Circular"
+          }
+        },
+        "description": "Door lite (glass) information",
+        "purpose": "Configure vision/lite dimensions, glass type, trim type",
+        "passedVariables": [
+          "PROCESS_MESSAGE", "ITEM_NUM", "SUB_JOB_NAME", "JOW", "JOH", "SUB_TYPE", "HAND",
+          "DOOR_ELEVATION", "ACTIVE_LEAF", "UNDERCUT", "TOP_GAP", "STRIKE_GAP", "HINGE_GAP",
+          "FIRE_RATING", "DOOR_LITE", "DOOR_LITE_TRIM_TYPE", "VISION_SHAPE", "VISION_WIDTH",
+          "VISION_HEIGHT", "VISION_TOP_RAIL", "VISION_BOTTOM_RAIL", "VISION_STRIKE_STILE",
+          "VISION_HINGE_STILE", "GLASS_THICKNESS", "GLASS_SUPPLIER", "GLASS_INSTALLER",
+          "GLASS_TYPE", "VISION_CONSTRUCTION_A", "VISION_CONSTRUCTION_B", "VISION_CENTER_TOP",
+          "VISION_CENTER_BOTTOM", "GLASS_POSITION_OFFSET", "REMOVABLE_SIDE", "MAX_GLAZING_HOLE_SPACE",
+          "VISION_DIMENSION_METHOD", "DOOR_LITE_TRIM_GAUGE", "VISION_HEIGHT2", "VISION_FLOOR_TO_BOTTOM"
+        ]
+      },
+      {
+        "order": 10,
+        "lineNumber": 3021,
+        "command": "CALL_EX",
+        "file": "door_elevation_info.tab",
+        "condition": {
+          "expression": "SUB_TYPE == 'P' AND EQUAL_ELEVATIONS == 0",
+          "context": "RIGHT - DOOR ON THE RIGHT"
+        },
+        "description": "Door elevation info for right door (pair)",
+        "purpose": "Configure elevation for right door in pair configuration"
+      },
+      {
+        "order": 11,
+        "lineNumber": 3039,
+        "command": "CALL_EX",
+        "file": "door_lite.tab",
+        "condition": {
+          "expression": "DOOR_ELEVATION_2 == '*N*' OR DOOR_ELEVATION_2 == '*G*' OR DOOR_ELEVATION_2 == '*V*' OR DOOR_ELEVATION_2 == '*C*'",
+          "parent": "SUB_TYPE == 'P' AND EQUAL_ELEVATIONS == 0"
+        },
+        "description": "Door lite for right door (pair)",
+        "purpose": "Configure vision/lite for right door when unequal elevations"
+      },
+      {
+        "order": 12,
+        "lineNumber": 3112,
+        "command": "CALL_EX",
+        "file": "door_louver.tab",
+        "condition": {
+          "expression": "DOOR_ELEVATION == '*L*'",
+          "parent": "OPENING_TYPE == 1 OR OPENING_TYPE == 3"
+        },
+        "description": "Door louver information",
+        "purpose": "Configure louver dimensions, position"
+      },
+      {
+        "order": 13,
+        "lineNumber": 3147,
+        "command": "CALL_EX",
+        "file": "steel_stiff_info.tab",
+        "condition": {
+          "expression": "CORE == 2 OR CORE == 7 OR CORE == 9",
+          "parent": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
+          "coreTypes": {
+            "2": "Steel stiffened honeycomb",
+            "7": "Insulated steel stiffened",
+            "9": "Custom steel stiffened"
+          }
+        },
+        "description": "Steel stiffener information",
+        "purpose": "Configure steel stiffener material, gauge, width"
+      },
+      {
+        "order": 14,
+        "lineNumber": 3224,
+        "command": "CALL_EX",
+        "file": "lock_options.tab",
+        "condition": {
+          "expression": "PRIMARY_LOCK == 1",
+          "context": "LOCK_INDEX = 1"
+        },
+        "description": "Primary lock options",
+        "purpose": "Configure primary lock type, strike center, electrified options"
+      },
+      {
+        "order": 15,
+        "lineNumber": 3284,
+        "command": "CALL_EX",
+        "file": "lock_options.tab",
+        "condition": {
+          "expression": "SECONDARY_LOCK == 1",
+          "context": "LOCK_INDEX = 2"
+        },
+        "description": "Secondary lock options",
+        "purpose": "Configure secondary lock type, strike center"
+      },
+      {
+        "order": 16,
+        "lineNumber": 3326,
+        "command": "CALL_EX",
+        "file": "dummy_trim.tab",
+        "condition": {
+          "expression": "DUMMY_TRIM == 1 AND SUB_TYPE == 'P'"
+        },
+        "description": "Dummy trim configuration",
+        "purpose": "Configure dummy trim for pair doors"
+      },
+      {
+        "order": 17,
+        "lineNumber": 3346,
+        "command": "CALL_EX",
+        "file": "strikes.tab",
+        "condition": {
+          "expression": "(PRIMARY_STRIKE == 1 AND OPENING_TYPE == 2 AND SUB_TYPE == 'S') OR (OPENING_TYPE == 3 AND PRIMARY_LOCK == 1) OR (OPENING_TYPE == 1 AND SUB_TYPE == 'P' AND PRIMARY_LOCK == 1) OR (OPENING_TYPE == 1 AND PRIMARY_LOCK_TYPE == 3)",
+          "additional": "(FRAME_PROCESSED <> 'PROCESSED' AND SUB_TYPE == 'S') OR SUB_TYPE == 'P'"
+        },
+        "description": "Primary strike configuration",
+        "purpose": "Configure primary strike dimensions, type, reinforcement"
+      },
+      {
+        "order": 18,
+        "lineNumber": 3379,
+        "command": "CALL_EX",
+        "file": "strikes.tab",
+        "condition": {
+          "expression": "(SECONDARY_STRIKE == 1 AND OPENING_TYPE == 2) OR (OPENING_TYPE == 3 AND SECONDARY_LOCK == 1) OR (OPENING_TYPE == 1 AND SUB_TYPE == 'P' AND SECONDARY_LOCK == 1)"
+        },
+        "description": "Secondary strike configuration",
+        "purpose": "Configure secondary strike dimensions, type, reinforcement"
+      },
+      {
+        "order": 19,
+        "lineNumber": 3413,
+        "command": "CALL_EX",
+        "file": "push_pull.tab",
+        "condition": {
+          "expression": "PUSH_PULL == 1",
+          "context": "LEFT door if SUB_TYPE == 'P', else single door"
+        },
+        "description": "Push/pull hardware configuration",
+        "purpose": "Configure flush pulls, pull plates, push bars"
+      },
+      {
+        "order": 20,
+        "lineNumber": 3468,
+        "command": "CALL_EX",
+        "file": "push_pull.tab",
+        "condition": {
+          "expression": "SUB_TYPE == 'P' AND EQUAL_PUSH_PULLS == 0",
+          "parent": "PUSH_PULL == 1",
+          "context": "RIGHT - DOOR ON THE RIGHT"
+        },
+        "description": "Push/pull for right door (pair)",
+        "purpose": "Configure push/pull for right door when unequal"
+      },
+      {
+        "order": 21,
+        "lineNumber": 3506,
+        "command": "CALL_EX",
+        "file": "holder_stop.tab",
+        "condition": {
+          "expression": "HOLDER_STOP == 1",
+          "context": "LEFT door if SUB_TYPE == 'P', else single door"
+        },
+        "description": "Door holder/stop configuration",
+        "purpose": "Configure overhead holder/stop type, offset, degree"
+      },
+      {
+        "order": 22,
+        "lineNumber": 3535,
+        "command": "CALL_EX",
+        "file": "holder_stop.tab",
+        "condition": {
+          "expression": "SUB_TYPE == 'P' AND EQUAL_HOLDERS == 0",
+          "parent": "HOLDER_STOP == 1",
+          "context": "RIGHT - DOOR ON THE RIGHT"
+        },
+        "description": "Holder/stop for right door (pair)",
+        "purpose": "Configure holder/stop for right door when unequal"
+      },
+      {
+        "order": 23,
+        "lineNumber": 3611,
+        "command": "CALL_EX",
+        "file": "closers.tab",
+        "condition": {
+          "expression": "FRAME_PROCESSED <> 'PROCESSED' AND CLOSER == 1",
+          "context": "LEFT door if SUB_TYPE == 'P', else single door"
+        },
+        "description": "Door closer configuration",
+        "purpose": "Configure closer model, type, side, concealed options"
+      },
+      {
+        "order": 24,
+        "lineNumber": 3643,
+        "command": "CALL_EX",
+        "file": "closers.tab",
+        "condition": {
+          "expression": "SUB_TYPE == 'P' AND EQUAL_CLOSERS == 0",
+          "parent": "FRAME_PROCESSED <> 'PROCESSED' AND CLOSER == 1",
+          "context": "RIGHT - DOOR ON THE RIGHT"
+        },
+        "description": "Closer for right door (pair)",
+        "purpose": "Configure closer for right door when unequal"
+      },
+      {
+        "order": 25,
+        "lineNumber": 3704,
+        "command": "CALL_EX",
+        "file": "dps.tab",
+        "condition": {
+          "expression": "FRAME_PROCESSED <> 'PROCESSED' AND DPS > 0"
+        },
+        "description": "Door Position Switch configuration",
+        "purpose": "Configure DPS position, blank, center"
+      },
+      {
+        "order": 26,
+        "lineNumber": 3731,
+        "command": "CALL_EX",
+        "file": "ept.tab",
+        "condition": {
+          "expression": "EPT > 0"
+        },
+        "description": "Electric Power Transfer configuration",
+        "purpose": "Configure EPT position, length, blank"
+      },
+      {
+        "order": 27,
+        "lineNumber": 3763,
+        "command": "CALL_EX",
+        "file": "auto_bottom.tab",
+        "condition": {
+          "expression": "AUTO_BOTTOM == 2",
+          "note": "AUTO_BOTTOM == 1 is surface applied (no call needed), 2 is mortised"
+        },
+        "description": "Automatic door bottom configuration",
+        "purpose": "Configure mortised auto bottom dimensions, manufacturer"
+      },
+      {
+        "order": 28,
+        "lineNumber": 3787,
+        "command": "CALL_EX",
+        "file": "strikes.tab",
+        "condition": {
+          "expression": "HEAD_STRIKE == 1"
+        },
+        "description": "Head strike configuration",
+        "purpose": "Configure head strike type, UDF, reinforcement"
+      },
+      {
+        "order": 29,
+        "lineNumber": 3814,
+        "command": "CALL_EX",
+        "file": "kick_plate.tab",
+        "condition": {
+          "expression": "KICK_PLATE == 1"
+        },
+        "description": "Kick plate configuration",
+        "purpose": "Configure kick plate gauge, height, width, side"
+      },
+      {
+        "order": 30,
+        "lineNumber": 4453,
+        "command": "CALL",
+        "file": "door.tab",
+        "condition": {
+          "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
+          "context": "Model building phase"
+        },
+        "description": "Build door model",
+        "purpose": "Execute door assembly/model creation"
+      },
+      {
+        "order": 31,
+        "lineNumber": 4466,
+        "command": "CALL",
+        "file": "frame_3.tab",
+        "condition": {
+          "expression": "OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4",
+          "context": "Model building phase"
+        },
+        "description": "Build frame model",
+        "purpose": "Execute frame assembly/model creation"
+      },
+      {
+        "order": 32,
+        "lineNumber": 4478,
+        "command": "CALL",
+        "file": "drawing.tab",
+        "condition": null,
+        "context": "Model building phase",
+        "description": "Generate drawing",
+        "purpose": "Create/update Creo drawing"
+      },
+      {
+        "order": 33,
+        "lineNumber": 5203,
+        "command": "CALL",
+        "file": "door.tab",
+        "condition": {
+          "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
+          "context": "Work Order processing loop (CHOICE == 5)"
+        },
+        "description": "Build door model (WO processing)",
+        "purpose": "Door assembly in work order processing"
+      },
+      {
+        "order": 34,
+        "lineNumber": 5207,
+        "command": "CALL",
+        "file": "frame_3.tab",
+        "condition": {
+          "expression": "OPENING_TYPE == 2 OR OPENING_TYPE == 3",
+          "context": "Work Order processing loop (CHOICE == 5)"
+        },
+        "description": "Build frame model (WO processing)",
+        "purpose": "Frame assembly in work order processing"
+      },
+      {
+        "order": 35,
+        "lineNumber": 5214,
+        "command": "CALL",
+        "file": "PARTS_LIST.TAB",
+        "condition": {
+          "expression": "CHOICE == 5 AND WO_CHOICE == 1",
+          "context": "Work Order processing with BOM"
+        },
+        "description": "Generate parts list",
+        "purpose": "Create BOM parts list in Excel"
+      },
+      {
+        "order": 36,
+        "lineNumber": 5217,
+        "command": "CALL",
+        "file": "drawing.tab",
+        "condition": {
+          "expression": "CHOICE == 5",
+          "context": "Work Order processing loop"
+        },
+        "description": "Generate drawing (WO processing)",
+        "purpose": "Create drawing in work order processing"
+      },
+      {
+        "order": 37,
+        "lineNumber": 5228,
+        "command": "CALL",
+        "file": "drawing.tab",
+        "condition": {
+          "expression": "CHOICE == 8",
+          "context": "Drawing only mode"
+        },
+        "description": "Generate drawing (drawing only)",
+        "purpose": "Create drawing without full processing"
+      },
+      {
+        "order": 38,
+        "lineNumber": 5247,
+        "command": "CALL",
+        "file": "EXPORT_SA.TAB",
+        "condition": {
+          "expression": "CHOICE == 5 AND WO_CHOICE == 1",
+          "context": "After WO processing loop"
+        },
+        "description": "Export SmartAssembly data",
+        "purpose": "Export assembly data for manufacturing"
+      },
+      {
+        "order": 39,
+        "lineNumber": 5439,
+        "command": "CALL",
+        "file": "PARTS_LIST.TAB",
+        "condition": {
+          "expression": "CHOICE == 5 AND WO_CHOICE == 3",
+          "context": "WO_CHOICE 3 processing loop"
+        },
+        "description": "Generate parts list (WO_CHOICE 3)",
+        "purpose": "Create BOM parts list"
+      },
+      {
+        "order": 40,
+        "lineNumber": 5444,
+        "command": "CALL",
+        "file": "EXPORT_SA.TAB",
+        "condition": {
+          "expression": "CHOICE == 5 AND WO_CHOICE == 3",
+          "context": "After WO_CHOICE 3 loop"
+        },
+        "description": "Export SmartAssembly data (WO_CHOICE 3)",
+        "purpose": "Export assembly data"
+      }
+    ]
+  },
+  "conditionalGroups": {
+    "openingTypeFlow": {
+      "description": "Files called based on OPENING_TYPE",
+      "DOOR_ONLY_1": ["options.tab", "door_info.tab", "door_lite.tab", "door_louver.tab", "steel_stiff_info.tab", "lock_options.tab", "strikes.tab", "door.tab"],
+      "FRAME_ONLY_2": ["options.tab", "frame_info.tab", "frame_5_20.tab", "anchors.tab", "strikes.tab", "frame_3.tab"],
+      "BOTH_3": ["options.tab", "hinge_info.tab", "frame_info.tab", "frame_5_20.tab", "anchors.tab", "door_info.tab", "door_lite.tab", "door_louver.tab", "steel_stiff_info.tab", "lock_options.tab", "strikes.tab", "door.tab", "frame_3.tab"],
+      "BORROWED_LITE_4": ["frame_info.tab", "frame_5_20.tab", "anchors.tab", "frame_3.tab"]
+    },
+    "hardwareFlow": {
+      "description": "Hardware-related forms based on options selection",
+      "files": {
+        "PRIMARY_LOCK == 1": "lock_options.tab",
+        "SECONDARY_LOCK == 1": "lock_options.tab",
+        "PRIMARY_STRIKE == 1": "strikes.tab",
+        "SECONDARY_STRIKE == 1": "strikes.tab",
+        "PUSH_PULL == 1": "push_pull.tab",
+        "HOLDER_STOP == 1": "holder_stop.tab",
+        "CLOSER == 1": "closers.tab",
+        "DPS > 0": "dps.tab",
+        "EPT > 0": "ept.tab",
+        "AUTO_BOTTOM == 2": "auto_bottom.tab",
+        "HEAD_STRIKE == 1": "head_strike.tab",
+        "KICK_PLATE == 1": "kick_plate.tab",
+        "DUMMY_TRIM == 1 AND SUB_TYPE == 'P'": "dummy_trim.tab"
+      }
+    },
+    "pairDoorFlow": {
+      "description": "Additional calls for pair doors (SUB_TYPE == 'P')",
+      "equalOptions": {
+        "EQUAL_ELEVATIONS == 0": ["door_elevation_info.tab (LEFT)", "door_lite.tab (LEFT)", "door_elevation_info.tab (RIGHT)", "door_lite.tab (RIGHT)"],
+        "EQUAL_PUSH_PULLS == 0": "push_pull.tab (RIGHT)",
+        "EQUAL_HOLDERS == 0": "holder_stop.tab (RIGHT)",
+        "EQUAL_CLOSERS == 0": "closers.tab (RIGHT)"
+      }
+    }
+  },
+  "fileRegistry": {
+    "description": "All .tab files referenced in SDI_Project.tab",
+    "dataInputForms": [
+      {
+        "file": "options.tab",
+        "purpose": "Hardware options selection",
+        "category": "Configuration"
+      },
+      {
+        "file": "hinge_info.tab",
+        "purpose": "Hinge configuration",
+        "category": "Hardware"
+      },
+      {
+        "file": "frame_info.tab",
+        "purpose": "Frame dimensions and properties",
+        "category": "Frame"
+      },
+      {
+        "file": "frame_5_20.tab",
+        "purpose": "Transom frame configuration",
+        "category": "Frame"
+      },
+      {
+        "file": "anchors.tab",
+        "purpose": "Anchor configuration",
+        "category": "Frame"
+      },
+      {
+        "file": "door_info.tab",
+        "purpose": "Door dimensions and properties",
+        "category": "Door"
+      },
+      {
+        "file": "door_elevation_info.tab",
+        "purpose": "Door elevation details",
+        "category": "Door"
+      },
+      {
+        "file": "door_lite.tab",
+        "purpose": "Vision/glass configuration",
+        "category": "Door"
+      },
+      {
+        "file": "door_louver.tab",
+        "purpose": "Louver configuration",
+        "category": "Door"
+      },
+      {
+        "file": "steel_stiff_info.tab",
+        "purpose": "Steel stiffener configuration",
+        "category": "Door"
+      },
+      {
+        "file": "lock_options.tab",
+        "purpose": "Lock selection and configuration",
+        "category": "Hardware"
+      },
+      {
+        "file": "strikes.tab",
+        "purpose": "Strike configuration",
+        "category": "Hardware"
+      },
+      {
+        "file": "dummy_trim.tab",
+        "purpose": "Dummy trim for pair doors",
+        "category": "Hardware"
+      },
+      {
+        "file": "push_pull.tab",
+        "purpose": "Push/pull hardware",
+        "category": "Hardware"
+      },
+      {
+        "file": "holder_stop.tab",
+        "purpose": "Door holder/stop",
+        "category": "Hardware"
+      },
+      {
+        "file": "closers.tab",
+        "purpose": "Door closer configuration",
+        "category": "Hardware"
+      },
+      {
+        "file": "dps.tab",
+        "purpose": "Door position switch",
+        "category": "Hardware"
+      },
+      {
+        "file": "ept.tab",
+        "purpose": "Electric power transfer",
+        "category": "Hardware"
+      },
+      {
+        "file": "auto_bottom.tab",
+        "purpose": "Automatic door bottom",
+        "category": "Hardware"
+      },
+      {
+        "file": "kick_plate.tab",
+        "purpose": "Kick plate configuration",
+        "category": "Hardware"
+      }
+    ],
+    "modelBuildingScripts": [
+      {
+        "file": "door.tab",
+        "purpose": "Build door assembly/model",
+        "category": "Model"
+      },
+      {
+        "file": "frame_3.tab",
+        "purpose": "Build frame assembly/model",
+        "category": "Model"
+      },
+      {
+        "file": "drawing.tab",
+        "purpose": "Generate Creo drawing",
+        "category": "Drawing"
+      },
+      {
+        "file": "Drawing_History.tab",
+        "purpose": "Manage drawing history/revisions",
+        "category": "Drawing"
+      }
+    ],
+    "exportScripts": [
+      {
+        "file": "EXPORT_SA.TAB",
+        "purpose": "Export SmartAssembly data",
+        "category": "Export"
+      },
+      {
+        "file": "PARTS_LIST.TAB",
+        "purpose": "Generate parts list/BOM",
+        "category": "Export"
+      }
+    ]
+  },
+  "executionPhases": {
+    "description": "High-level execution phases",
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Initialization",
+        "description": "Load project, Excel connection, drawing history"
+      },
+      {
+        "phase": 2,
+        "name": "Data Collection",
+        "description": "CALL_EX forms collect user input for configuration",
+        "files": ["options.tab", "hinge_info.tab", "frame_info.tab", "door_info.tab", "lock_options.tab", "strikes.tab", "etc."]
+      },
+      {
+        "phase": 3,
+        "name": "Model Building",
+        "description": "CALL scripts build Creo models",
+        "files": ["door.tab", "frame_3.tab"]
+      },
+      {
+        "phase": 4,
+        "name": "Drawing Generation",
+        "description": "Generate Creo drawings",
+        "files": ["drawing.tab"]
+      },
+      {
+        "phase": 5,
+        "name": "Export & Processing",
+        "description": "Export data and generate output files",
+        "files": ["PARTS_LIST.TAB", "EXPORT_SA.TAB"]
+      }
+    ]
+  }
+}

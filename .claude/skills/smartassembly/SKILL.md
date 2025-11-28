@@ -7,6 +7,7 @@ description: >
   BEGIN_CATCH_ERROR error handling, feature/reference manipulation,
   Excel integration (EXCEL_* commands), drawing automation (CREATE_DRW_*),
   PDF export (EXPORT_DRW_PDF), XML manipulation (READ/MODIFY_FEATURE_XML),
+  JSON commands (JSON_LOAD_DOCUMENT, JSON_GET_VALUE, JSON_SET_VALUE for REST API/data exchange),
   PowerShell-Creo COM API integration, manufacturing workflows (Model→Drawing→Export→PDF),
   path system (SA_Paths.txt, lib: prefix), product patterns (Counters, WorkTables, Tops,
   DishTables, Wall_Panels, Curbs, Channels), vector geometry analysis, map operations,
@@ -30,6 +31,7 @@ SmartAssembly is SIGMAXIM's proprietary scripting language for Creo Parametric a
 - Creating UDFs → **commands-udf.md** + **UDF Creation Patterns** below
 - Building GUIs → **commands-gui.md** + **gui-patterns.md**
 - Excel integration → **excel-integration.md**
+- JSON/REST API → **json-commands.md**
 - Drawing/export → **manufacturing-workflows.md**
 - Product modules → **product-patterns.md**
 - PowerShell orchestration → **powershell-integration.md**
@@ -746,6 +748,7 @@ PRINT "Total Processing Time: %" time
 
 ### Integration & Workflows
 - **Excel integration (EXCEL_* commands)** → excel-integration.md
+- **JSON commands (JSON_* for REST API/data)** → json-commands.md
 - **PowerShell-Creo COM API** → powershell-integration.md
 - **Manufacturing pipeline (Model→Drawing→Export→PDF)** → manufacturing-workflows.md
 - **Path system (SA_Paths.txt, lib: prefix)** → path-system.md
@@ -935,6 +938,7 @@ END_WHILE
 
 **Integration & Workflows:**
 - **excel-integration.md** - Excel integration (40+ EXCEL_* commands, 5 workflows, cell mapping)
+- **json-commands.md** - JSON commands (16 commands for REST API/data exchange)
 - **powershell-integration.md** - PowerShell-Creo COM API, SQL Server, PDF merge
 - **manufacturing-workflows.md** - 4-stage manufacturing pipeline (Model→Drawing→Export→PDF)
 - **path-system.md** - SA_Paths.txt configuration, lib: prefix resolution
