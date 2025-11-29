@@ -845,40 +845,82 @@ export default function DynamicFormRenderer({
 
           {/* Form Sections */}
           {formSpec.sections.map((section) => (
-            <FieldSet key={`${formSpec.formId}-${section.id}`} name={section.id}>
-              <FieldContent>
-                <FieldLegend variant="label">{section.title}</FieldLegend>
+            <FieldSet
+              key={`${formSpec.formId}-${section.id}`}
+              name={section.id}
+              className="relative rounded-xl border-2 border-border bg-zinc-900/50 mb-8 shadow-sm overflow-hidden"
+            >
+              {/* Section Header with prominent title */}
+              <FieldContent className="border-b-2 border-amber-500/30" style={{ padding: '1.5rem', paddingBottom: '1rem' }}>
+                <FieldLegend
+                  variant="label"
+                  className="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight"
+                >
+                  {section.title}
+                </FieldLegend>
                 {section.description && (
-                  <FieldDescription>{section.description}</FieldDescription>
+                  <FieldDescription className="mt-1.5 text-xs text-muted-foreground">
+                    {section.description}
+                  </FieldDescription>
                 )}
               </FieldContent>
 
-              {/* Grid layout: responsive 1→2→4→5 columns based on breakpoint */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
-                {section.fields.map((field) => {
-                  const colSpan = getFieldColSpan(field);
-                  const renderedField = renderField(field);
-                  if (!renderedField) return null;
+              {/* Inner container for field spacing from border - generous padding on all sides */}
+              <div className="p-6" style={{ padding: '1.5rem' }}>
+                {/* Grid layout: responsive 1→2→4→5 columns - 20% smaller fields */}
+                <div className="compact-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4
+                  [&_[data-slot=field]]:gap-1
+                  [&_[data-slot=field-label]]:text-xs
+                  [&_[data-slot=field-description]]:text-[10px]
+                  [&_[data-slot=field-error]]:text-[10px]
+                  [&_[data-slot=field-content]]:gap-0
+                  [&_[data-slot=input]]:h-7
+                  [&_[data-slot=input]]:text-xs
+                  [&_[data-slot=input]]:px-2
+                  [&_[data-slot=input]]:py-1
+                  [&_[data-slot=input]]:rounded-md
+                  [&_button[role=combobox]]:h-7
+                  [&_button[role=combobox]]:text-xs
+                  [&_button[role=combobox]]:px-2
+                  [&_button[role=combobox]]:py-1
+                  [&_[data-slot=field-set]]:gap-2
+                  [&_[data-slot=field-group]]:gap-1.5
+                  [&_[data-slot=checkbox-group]]:gap-1
+                  [&_[data-slot=radio-group]]:gap-1
+                  [&_[role=checkbox]]:h-3.5
+                  [&_[role=checkbox]]:w-3.5
+                  [&_[role=radio]]:h-3.5
+                  [&_[role=radio]]:w-3.5
+                  [&_[role=switch]]:h-4
+                  [&_[role=switch]]:w-7
+                  [&_textarea]:text-xs
+                  [&_textarea]:min-h-[60px]
+                  [&_.text-sm]:text-xs">
+                  {section.fields.map((field) => {
+                    const colSpan = getFieldColSpan(field);
+                    const renderedField = renderField(field);
+                    if (!renderedField) return null;
 
-                  // Build responsive col-span classes for 5-column grid
-                  let spanClass = "col-span-1"; // Default single column
-                  if (colSpan === 5) {
-                    // Full width across all breakpoints
-                    spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
-                  } else if (colSpan === 2) {
-                    // Medium width fields (select, date, slider)
-                    spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
-                  }
+                    // Build responsive col-span classes for 5-column grid
+                    let spanClass = "col-span-1"; // Default single column
+                    if (colSpan === 5) {
+                      // Full width across all breakpoints
+                      spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
+                    } else if (colSpan === 2) {
+                      // Medium width fields (select, date, slider)
+                      spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
+                    }
 
-                  return (
-                    <div
-                      key={`${formSpec.formId}-${field.id}`}
-                      className={spanClass}
-                    >
-                      {renderedField}
-                    </div>
-                  );
-                })}
+                    return (
+                      <div
+                        key={`${formSpec.formId}-${field.id}`}
+                        className={spanClass}
+                      >
+                        {renderedField}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </FieldSet>
           ))}

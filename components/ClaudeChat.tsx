@@ -49,7 +49,7 @@ import {
   type ChatSession,
   type Message,
   type UploadedFile,
-} from "@/components/leftsidebar";
+} from "@/components/LeftSidebar";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";

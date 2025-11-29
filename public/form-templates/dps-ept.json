@@ -1,0 +1,529 @@
+{
+  "sheetName": "DPS-EPT",
+  "description": "Door Position Switches and Electric Power Transfers",
+  "sourceFile": "SO_TEMPLATE.xls",
+  "extractedAt": "2025-11-29T16:01:15.266Z",
+  "totalEntries": 20,
+  "entries": [
+    {
+      "id": 2,
+      "type": "DPS",
+      "manufacturer": "SCHLAGE",
+      "modelNumber": "7764",
+      "template": "77640",
+      "tabs": "7764_TAB.PRT",
+      "box": "7764_BOX.PRT",
+      "blank": "DPS_BLANK_7764.PRT",
+      "framePrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 4.9375,
+        "width": 1.3125,
+        "radius": 0,
+        "thickness": 0.0781
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 3,
+      "type": "DPS",
+      "manufacturer": "GRI",
+      "modelNumber": "140T-12",
+      "template": "BA-59 REV P",
+      "tabs": "NO-VALUE",
+      "box": "DUST_BOX_DPS_RND.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 1,
+        "dia": 0.75,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 4,
+      "type": "DPS",
+      "manufacturer": "SENTROL",
+      "modelNumber": "1076",
+      "template": "SEN1078",
+      "tabs": "NO-VALUE",
+      "box": "DUST_BOX_DPS_RND.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 1,
+        "dia": 1,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      },
+      "doorPrep": {
+        "shape": 1,
+        "dia": 1,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      }
+    },
+    {
+      "id": 5,
+      "type": "DPS",
+      "manufacturer": "SENTROL",
+      "modelNumber": "1078",
+      "template": "SEN1078",
+      "tabs": "NO-VALUE",
+      "box": "DUST_BOX_DPS_RND.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 1,
+        "dia": 1,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      },
+      "doorPrep": {
+        "shape": 1,
+        "dia": 1,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      }
+    },
+    {
+      "id": 6,
+      "type": "DPS",
+      "manufacturer": "SECURITRON",
+      "modelNumber": "DP25",
+      "template": "NA",
+      "tabs": "NO-VALUE",
+      "box": "DUST_BOX_DPS_RND.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 1,
+        "dia": 0.75,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      },
+      "doorPrep": {
+        "shape": 1,
+        "dia": 0.75,
+        "length": 0,
+        "width": 0,
+        "radius": 0,
+        "thickness": 0
+      }
+    },
+    {
+      "id": 7,
+      "type": "DPS",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 8,
+      "type": "DPS",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 9,
+      "type": "DPS",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 10,
+      "type": "DPS",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 11,
+      "type": "DPS",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 22,
+      "type": "EPT",
+      "manufacturer": "SCHLAGE",
+      "modelNumber": "PT1000",
+      "template": "1000 (REV 02-13-13)",
+      "tabs": "EPT_TAB.PRT",
+      "box": "DUST_BOX_EPT.PRT",
+      "blank": "EPT_BLANK_250.PRT",
+      "framePrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 9.0625,
+        "width": 1.25,
+        "radius": 0,
+        "thickness": 0.25
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 23,
+      "type": "EPT",
+      "manufacturer": "SECURITRON",
+      "modelNumber": "SC",
+      "template": "NA",
+      "tabs": "EPT_TAB.PRT",
+      "box": "DUST_BOX_EPT.PRT",
+      "blank": "EPT_BLANK_250.PRT",
+      "framePrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 10.8125,
+        "width": 1.25,
+        "radius": 0,
+        "thickness": 0.25
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 24,
+      "type": "EPT",
+      "manufacturer": "STANLEY",
+      "modelNumber": "EPT-5",
+      "template": "STA EPT-5",
+      "tabs": "NO-VALUE",
+      "box": "DUST_BOX_EPT.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 10.25,
+        "width": 1,
+        "radius": 0,
+        "thickness": 0
+      },
+      "doorPrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 10.25,
+        "width": 1,
+        "radius": 0,
+        "thickness": 0
+      }
+    },
+    {
+      "id": 25,
+      "type": "EPT",
+      "manufacturer": "VON DUPRIN",
+      "modelNumber": "EPT-10",
+      "template": "NA",
+      "tabs": "EPT_TAB.PRT",
+      "box": "DUST_BOX_EPT.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 9.0625,
+        "width": 1.25,
+        "radius": 0,
+        "thickness": 0.25
+      },
+      "doorPrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 9.0625,
+        "width": 1.25,
+        "radius": 0,
+        "thickness": 0.25
+      }
+    },
+    {
+      "id": 26,
+      "type": "EPT",
+      "manufacturer": "SECURITRON",
+      "modelNumber": "EL-CEPT",
+      "template": "NA",
+      "tabs": "EPT_TAB.PRT",
+      "box": "DUST_BOX_EPT.PRT",
+      "blank": "NO-VALUE",
+      "framePrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 9.0625,
+        "width": 1.25,
+        "radius": 0,
+        "thickness": 0.25
+      },
+      "doorPrep": {
+        "shape": 2,
+        "dia": 0,
+        "length": 9.0625,
+        "width": 1.25,
+        "radius": 0,
+        "thickness": 0.25
+      }
+    },
+    {
+      "id": 27,
+      "type": "EPT",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 28,
+      "type": "EPT",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 29,
+      "type": "EPT",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 30,
+      "type": "EPT",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    },
+    {
+      "id": 31,
+      "type": "EPT",
+      "manufacturer": "",
+      "modelNumber": "",
+      "template": "",
+      "tabs": "",
+      "box": null,
+      "blank": null,
+      "framePrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      },
+      "doorPrep": {
+        "shape": null,
+        "dia": null,
+        "length": null,
+        "width": null,
+        "radius": null,
+        "thickness": null
+      }
+    }
+  ]
+}

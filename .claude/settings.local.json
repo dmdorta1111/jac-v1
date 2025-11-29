@@ -46,7 +46,14 @@
       "Bash(curl:*)",
       "Bash(npx playwright --version)",
       "Bash(cp:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(dir:*)",
+      "SlashCommand(/plan:fast Create \"Project STDS\" button in LeftSidebar with modal for editing/submitting project-level standards\n\n## Context\n- LeftSidebar.tsx has existing button pattern (3D Viewer uses useModelModal)\n- model-viewer-modal.tsx uses Radix Dialog with header, content, overlay\n- stds-form.json contains 17 sections with ~100+ fields for standards config\n- DynamicFormRenderer.tsx handles form rendering from JSON specs\n- model-modal-provider.tsx pattern: createContext, open/close/toggle state\n\n## Implementation Steps\n\n### 1. Create STDS Modal Provider\nFile: `components/providers/stds-modal-provider.tsx`\n- Copy model-modal-provider.tsx structure\n- Replace \"ModelModal\" with \"STDSModal\"\n- Export StdsModalProvider and useStdsModal hook\n\n### 2. Create STDS Form Modal Component\nFile: `components/stds-form-modal.tsx`\n- Copy model-viewer-modal.tsx structure\n- Replace 3D Canvas with DynamicFormRenderer\n- Load stds-form.json spec\n- Handle form submission (API endpoint TBD or local state)\n- Title: \"Project Standards\" or \"Project STDS\"\n- Include fullscreen toggle, theme toggle from model-viewer pattern\n\n### 3. Update LeftSidebar.tsx\n- Import useStdsModal hook\n- Add \"Project STDS\" button below existing 3D Viewer button\n- Use Settings or Sliders icon from lucide-react\n- Style matching 3D Viewer button pattern\n\n### 4. Update app/layout.tsx\n- Import StdsModalProvider\n- Wrap children with StdsModalProvider (after ModelModalProvider)\n- Import and render StdsFormModal component\n\n## Files to Modify\n1. NEW: `components/providers/stds-modal-provider.tsx`\n2. NEW: `components/stds-form-modal.tsx`\n3. EDIT: `components/LeftSidebar.tsx` - add button\n4. EDIT: `app/layout.tsx` - add provider and modal\n\n## Dependencies\n- DynamicFormRenderer for form rendering\n- stds-form.json for form spec\n- Radix Dialog primitives (already used))",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_run_code",
+      "Bash(tasklist:*)",
+      "Bash(timeout /t 5)"
     ],
     "deny": [],
     "ask": []

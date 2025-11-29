@@ -4,8 +4,10 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import { ModelModalProvider } from "@/components/providers/model-modal-provider";
 import { WorkflowModalProvider } from "@/components/providers/workflow-modal-provider";
+import { StdsModalProvider } from "@/components/providers/stds-modal-provider";
 import { ProjectProvider } from "@/components/providers/project-context";
 import { ModelViewerModal } from "@/components/model-viewer-modal";
+import { StdsFormModal } from "@/components/stds-form-modal";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import "./globals.css";
@@ -42,15 +44,18 @@ export default function RootLayout({
           <SidebarProvider>
             <ProjectProvider>
               <ModelModalProvider>
-                <WorkflowModalProvider>
-                  <div className="relative flex min-h-screen flex-col">
-                    <Header />
-                    <main className="flex-1 pb-20">{children}</main>
-                    <Footer />
-                  </div>
-                  {/* Modals rendered at root level */}
-                  <ModelViewerModal />
-                </WorkflowModalProvider>
+                <StdsModalProvider>
+                  <WorkflowModalProvider>
+                    <div className="relative flex min-h-screen flex-col">
+                      <Header />
+                      <main className="flex-1 pb-20">{children}</main>
+                      <Footer />
+                    </div>
+                    {/* Modals rendered at root level */}
+                    <ModelViewerModal />
+                    <StdsFormModal />
+                  </WorkflowModalProvider>
+                </StdsModalProvider>
               </ModelModalProvider>
             </ProjectProvider>
           </SidebarProvider>

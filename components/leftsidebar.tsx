@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
+import { Box, GitBranch, MessageSquare, Plus, Sliders, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
+import { useStdsModal } from "@/components/providers/stds-modal-provider";
 import { Button } from "./ui/button";
 
 export interface ChatSession {
@@ -65,6 +66,7 @@ export function LeftSidebar({
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
   const { open: openModelModal } = useModelModal();
   const { open: openWorkflowModal } = useWorkflowModal();
+  const { open: openStdsModal } = useStdsModal();
 
   // Close sidebar on Escape key
   useEffect(() => {
@@ -168,12 +170,27 @@ export function LeftSidebar({
             )}
           </div>
         </div>
-        {/* 3D Model Viewer Button */}
-        <div className="shrink-0 pt-3 sticky bottom-0 bg-background/95 backdrop-blur-sm pb-2 -mx-4 px-4 border-t border-border/50 mt-2">
+        {/* Footer Buttons: Project STDS & 3D Viewer */}
+        <div className="shrink-0 pt-3 sticky bottom-0 bg-background/95 backdrop-blur-sm pb-2 -mx-4 px-4 border-t border-border/50 mt-2 space-y-2">
+          {/* Project STDS Button */}
+          <Button
+            onClick={() => {
+              openStdsModal();
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                closeSidebar();
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400 shadow-sm transition-all duration-200 hover:bg-amber-500/10 hover:border-amber-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="Open Project Standards"
+          >
+            <Sliders className="size-5" />
+            Project STDS
+          </Button>
+
+          {/* 3D Model Viewer Button */}
           <Button
             onClick={() => {
               openModelModal();
-              // Close mobile sidebar after opening modal
               if (typeof window !== "undefined" && window.innerWidth < 1024) {
                 closeSidebar();
               }
