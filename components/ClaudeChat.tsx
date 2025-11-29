@@ -38,18 +38,6 @@ import {
   MessageAttachments,
 } from "@/components/ai-elements/message";
 import {
-  ChainOfThought,
-  ChainOfThoughtHeader,
-  ChainOfThoughtContent,
-  ChainOfThoughtStep,
-} from "@/components/ai-elements/chain-of-thought";
-import {
-  Task,
-  TaskTrigger,
-  TaskContent,
-  TaskItem,
-} from "@/components/ai-elements/task";
-import {
   projectSetupExample,
   codeAnalysisExample,
   dataProcessingExample,
@@ -182,6 +170,7 @@ export function ClaudeChat() {
   const [filteredSteps, setFilteredSteps] = useState<FlowStep[]>([]);
   const [flowExecutor, setFlowExecutor] = useState<FlowExecutor | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [currentItemNumber, setCurrentItemNumber] = useState<string | null>(null);
 
   // Access global project metadata context for header display
   const { setMetadata: setProjectMetadata } = useProject();
@@ -191,11 +180,59 @@ export function ClaudeChat() {
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
   /**
+   * Load existing project state from JSON files
+   * @param folderPath - Project folder path (e.g., "project-docs/SDI/SO123")
+   * @returns Merged state from project-header.json and any item files
+   */
+  const loadExistingProjectState = async (folderPath: string): Promise<Record<string, any>> => {
+    const state: Record<string, any> = {};
+
+    try {
+      // Load project-header.json if exists
+      const headerRes = await fetch(`/api/read-json?path=${encodeURIComponent(folderPath + '/project-header.json')}`);
+      if (headerRes.ok) {
+        const headerData = await headerRes.json();
+        if (headerData.success && headerData.data) {
+          Object.assign(state, headerData.data);
+          console.log('Loaded project header state:', Object.keys(headerData.data));
+        }
+      }
+    } catch (e) {
+      console.warn('No project header found or error loading:', e);
+    }
+
+    return state;
+  };
+
+  /**
+   * Load existing item state from JSON file
+   * @param folderPath - Project folder path
+   * @param itemNumber - Item number (e.g., "001")
+   * @returns Item data or empty object
+   */
+  const loadExistingItemState = async (folderPath: string, itemNumber: string): Promise<Record<string, any>> => {
+    try {
+      const res = await fetch(`/api/save-item-data?projectPath=${encodeURIComponent(folderPath)}&itemNumber=${itemNumber}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data) {
+          console.log('Loaded item state for:', itemNumber, Object.keys(data.data));
+          return data.data;
+        }
+      }
+    } catch (e) {
+      console.warn('No item data found:', e);
+    }
+    return {};
+  };
+
+  /**
    * Initialize stepper with dynamic steps from flow
    * @param flow - Loaded form flow definition
    * @param isRevision - Whether this is a revision/edit of existing item
+   * @param initialState - Optional initial state to populate executor
    */
-  const initializeStepper = async (flow: FormFlow, isRevision: boolean): Promise<FlowStep[] | null> => {
+  const initializeStepper = async (flow: FormFlow, isRevision: boolean, initialState: Record<string, any> = {}): Promise<FlowStep[] | null> => {
     try {
       // Filter steps based on revision status
       const steps = filterSteps(flow, isRevision);
@@ -221,9 +258,10 @@ export function ClaudeChat() {
       setCurrentStepOrder(0);
       setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
 
-      // Initialize FlowExecutor for conditional navigation
-      const executor = createFlowExecutor(flow, steps, {});
+      // Initialize FlowExecutor for conditional navigation with initial state
+      const executor = createFlowExecutor(flow, steps, initialState);
       setFlowExecutor(executor);
+      console.log('FlowExecutor initialized with state:', Object.keys(initialState));
 
       return steps; // Return filtered steps for immediate use
     } catch (error) {
@@ -248,8 +286,11 @@ export function ClaudeChat() {
           throw new Error('SDI form flow not found');
         }
 
+        // Load existing project state from JSON files (for resuming)
+        const existingState = await loadExistingProjectState(folderPath);
+
         // Initialize stepper with flow (isRevision = false for new items)
-        const steps = await initializeStepper(flow, false);
+        const steps = await initializeStepper(flow, false, existingState);
 
         if (!steps || steps.length === 0) {
           throw new Error('Failed to initialize stepper or no steps found');
@@ -382,8 +423,13 @@ export function ClaudeChat() {
           throw new Error(`Form template not found: ${currentStepId}`);
         }
 
-        // 2. Validate form data with Zod schema
-        const validationResult = validateFormData(formSpec, formData);
+        // 2. Merge current form data with accumulated flow state
+        // This allows conditionals to reference values from previous forms
+        const accumulatedState = flowExecutor.getState();
+        const mergedData = { ...accumulatedState, ...formData };
+
+        // 3. Validate form data with Zod schema (using merged data for conditionals)
+        const validationResult = validateFormData(formSpec, mergedData);
 
         if (!validationResult.success) {
           // Show validation errors
@@ -447,14 +493,67 @@ export function ClaudeChat() {
         // Update project metadata with first form data (project-header)
         if (currentStepOrder === 0) {
           setProjectMetadata({
-            SO_NUM: validationResult.data.SO_NUM || projectContext.salesOrderNumber,
-            JOB_NAME: validationResult.data.JOB_NAME || '',
-            CUSTOMER_NAME: validationResult.data.CUSTOMER_NAME || '',
+            SO_NUM: String(validationResult.data.SO_NUM || projectContext.salesOrderNumber),
+            JOB_NAME: String(validationResult.data.JOB_NAME || ''),
+            CUSTOMER_NAME: String(validationResult.data.CUSTOMER_NAME || ''),
             productType: projectContext.productType,
             salesOrderNumber: projectContext.salesOrderNumber,
             folderPath: projectContext.folderPath,
             isRevision: false,
           });
+
+          // Save project-header.json to project folder
+          try {
+            await fetch('/api/generate-project-doc', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                projectData: {
+                  ...validationResult.data,
+                  productType: projectContext.productType,
+                },
+                action: 'project_header',
+                targetFolder: projectContext.folderPath,
+                output: 'json',
+              }),
+            });
+            console.log('Project header JSON saved to:', projectContext.folderPath);
+          } catch (jsonError) {
+            console.error('Failed to save project header JSON:', jsonError);
+            // Continue flow - not blocking
+          }
+        }
+
+        // Save item data JSON for forms after project-header (step 1+)
+        if (currentStepOrder >= 1 && projectContext.folderPath) {
+          // Get item number from form data or flow state
+          const itemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
+
+          // Track item number when set in sdi-project form (step 1)
+          if (currentStepId === 'sdi-project' && validationResult.data.ITEM_NUM) {
+            const paddedItemNum = String(validationResult.data.ITEM_NUM).padStart(3, '0');
+            setCurrentItemNumber(paddedItemNum);
+          }
+
+          if (itemNum) {
+            const paddedItemNumber = String(itemNum).padStart(3, '0');
+            try {
+              await fetch('/api/save-item-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  projectPath: projectContext.folderPath,
+                  itemNumber: paddedItemNumber,
+                  formData: validationResult.data,
+                  merge: true,  // Accumulate data from all forms
+                }),
+              });
+              console.log(`Item ${paddedItemNumber} JSON saved/updated`);
+            } catch (jsonError) {
+              console.error('Failed to save item JSON:', jsonError);
+              // Continue flow - not blocking
+            }
+          }
         }
 
         // Remove form from current message
@@ -1025,6 +1124,7 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
 
           <div className="space-y-4 py-4">
             <Input
+              name="salesOrder"
               placeholder="Enter sales order number"
               value={salesOrder}
               onChange={(e) => setSalesOrder(e.target.value)}
@@ -1070,7 +1170,6 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
 function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { message: Message; onFormSubmit?: (data: Record<string, any>) => void; validationErrors?: Record<string, string> }) {
   const isUser = message.sender === "user";
   const role = isUser ? "user" : "assistant";
-  const hasReasoning = !isUser && message.reasoning && message.reasoning.length > 0;
   const hasForm = !isUser && message.formSpec;
 
   const Avatar = (
@@ -1087,99 +1186,6 @@ function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { messa
 
   const messageBody = (
     <>
-      {/* Chain of Thought for bot messages */}
-      {hasReasoning && (
-            <ChainOfThought className="mb-4">
-              <ChainOfThoughtHeader>Reasoning</ChainOfThoughtHeader>
-              <ChainOfThoughtContent>
-                {message.reasoning!.map((step, index) => (
-                  <ChainOfThoughtStep
-                    key={index}
-                    label={step.label}
-                    description={step.description}
-                    status={step.status || "complete"}
-                  />
-                ))}
-              </ChainOfThoughtContent>
-            </ChainOfThought>
-          )}
-
-          {/* Task List for process tracking */}
-          {!isUser && message.tasks && message.tasks.length > 0 && (
-            <div className="mb-4 space-y-3">
-              {message.tasks.map((task) => {
-                const statusColorMap = {
-                  pending: "text-muted-foreground",
-                  active: "text-zinc-700 dark:text-zinc-300",
-                  complete: "text-accent-color dark:text-accent-color",
-                };
-                const statusBgMap = {
-                  pending: "bg-muted/50 dark:bg-muted/50",
-                  active: "bg-zinc-100/50 dark:bg-zinc-800/50",
-                  complete: "bg-accent-color/10 dark:bg-accent-color/10",
-                };
-                return (
-                  <Task key={task.id} defaultOpen={task.status === "active"}>
-                    <TaskTrigger
-                      title={task.title}
-                      className={`rounded-lg p-2.5 transition-all ${ statusBgMap[task.status]
-                      } hover:opacity-80`}
-                    >
-                      <div className="flex w-full items-center gap-3">
-                        <div
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${ task.status === "complete"
-                              ? "border-accent-color bg-accent-color dark:border-accent-color dark:bg-accent-color"
-                              : task.status === "active"
-                                ? "border-zinc-600 bg-zinc-100 dark:border-zinc-400 dark:bg-zinc-900"
-                                : "border-muted-foreground bg-transparent dark:border-muted-foreground"
-                          }`}
-                        >
-                          {task.status === "complete" && (
-                            <span className="text-xs font-bold text-white">✓</span>
-                          )}
-                          {task.status === "active" && (
-                            <span className="h-2 w-2 rounded-full bg-zinc-600 dark:bg-zinc-400" />
-                          )}
-                        </div>
-                        <p
-                          className={`flex-1 text-sm font-semibold ${ statusColorMap[task.status]
-                          }`}
-                        >
-                          {task.title}
-                        </p>
-                        <svg
-                          className="size-4 transition-transform group-data-[state=open]:rotate-180"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                          />
-                        </svg>
-                      </div>
-                    </TaskTrigger>
-                    {task.items && task.items.length > 0 && (
-                      <TaskContent className="mt-2">
-                        <div className="space-y-2">
-                          {task.items.map((item, idx) => (
-                            <TaskItem key={idx} className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-muted-foreground">•</span>
-                              <span>{item}</span>
-                            </TaskItem>
-                          ))}
-                        </div>
-                      </TaskContent>
-                    )}
-                  </Task>
-                );
-              })}
-            </div>
-          )}
-
           {isUser ? (
             <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-zinc-800 dark:text-zinc-100">
               {message.text}

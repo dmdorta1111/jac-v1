@@ -2,15 +2,79 @@ import { z } from 'zod';
 import type { FormSpec, FormField } from '@/lib/form-templates/types';
 
 /**
+ * Check if a conditional field should be visible based on current form data
+ * Supports both boolean (true/false) and number (0/1) comparisons for switch fields
+ */
+function checkConditional(
+  field: FormField,
+  data: Record<string, unknown>
+): boolean {
+  if (!field.conditional) return true;
+
+  const { conditions, logic } = field.conditional;
+
+  const results = conditions.map(({ field: dependentField, value: requiredValue, operator }) => {
+    const currentValue = data[dependentField];
+
+    // Handle undefined/null values
+    if (currentValue === undefined || currentValue === null) {
+      return operator === 'notEquals';
+    }
+
+    // Normalize boolean/number comparison for switch fields
+    // Switches return boolean but JSON may compare to 0/1
+    const normalizedCurrent = typeof currentValue === 'boolean'
+      ? (currentValue ? 1 : 0)
+      : currentValue;
+    const normalizedRequired = typeof requiredValue === 'boolean'
+      ? (requiredValue ? 1 : 0)
+      : requiredValue;
+
+    switch (operator) {
+      case 'equals':
+        // Use loose equality for type coercion (string "1" == number 1)
+        return normalizedCurrent == normalizedRequired;
+      case 'notEquals':
+        return normalizedCurrent != normalizedRequired;
+      case 'greaterThan':
+        return Number(currentValue) > Number(requiredValue);
+      case 'greaterThanOrEqual':
+        return Number(currentValue) >= Number(requiredValue);
+      case 'lessThan':
+        return Number(currentValue) < Number(requiredValue);
+      case 'lessThanOrEqual':
+        return Number(currentValue) <= Number(requiredValue);
+      default:
+        return true;
+    }
+  });
+
+  // Apply AND/OR logic
+  if (logic === 'OR') {
+    return results.some(r => r);
+  } else {
+    return results.every(r => r);
+  }
+}
+
+/**
  * Build Zod schema from FormSpec definition
  * Maps field types to Zod validators with required/optional logic
+ * @param formSpec - The form specification
+ * @param data - Current form data (used to evaluate conditionals)
  */
-export function buildZodSchema(formSpec: FormSpec): z.ZodObject<any> {
+export function buildZodSchema(
+  formSpec: FormSpec,
+  data?: Record<string, unknown>
+): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const schemaFields: Record<string, z.ZodTypeAny> = {};
 
   formSpec.sections.forEach((section) => {
     section.fields.forEach((field) => {
-      const fieldSchema = buildFieldSchema(field);
+      // If data provided, check if field is visible based on conditionals
+      // Hidden conditional fields should be optional (not validated as required)
+      const isVisible = data ? checkConditional(field, data) : true;
+      const fieldSchema = buildFieldSchema(field, isVisible);
       schemaFields[field.name] = fieldSchema;
     });
   });
@@ -20,9 +84,15 @@ export function buildZodSchema(formSpec: FormSpec): z.ZodObject<any> {
 
 /**
  * Build Zod schema for individual field based on type and validation rules
+ * @param field - The field specification
+ * @param isVisible - Whether the field is currently visible (conditionals evaluated)
  */
-function buildFieldSchema(field: FormField): z.ZodTypeAny {
+function buildFieldSchema(field: FormField, isVisible: boolean = true): z.ZodTypeAny {
   let schema: z.ZodTypeAny;
+
+  // If field is hidden (conditional not met), make it fully optional
+  // This prevents validation errors for hidden required fields
+  const effectiveRequired = field.required && isVisible;
 
   // Map field types to Zod validators
   switch (field.type) {
@@ -49,7 +119,7 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
 
     case 'integer':
       // Allow null/undefined for optional, coerce empty string to null
-      if (field.required) {
+      if (effectiveRequired) {
         schema = z.number().int();
         if (field.min !== undefined) {
           schema = (schema as z.ZodNumber).min(field.min, `Minimum value is ${field.min}`);
@@ -67,7 +137,7 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
 
     case 'float':
       // Allow null/undefined for optional, coerce empty string to null
-      if (field.required) {
+      if (effectiveRequired) {
         schema = z.number();
         if (field.min !== undefined) {
           schema = (schema as z.ZodNumber).min(field.min, `Minimum value is ${field.min}`);
@@ -136,7 +206,7 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
 
     case 'table':
       // Table stores selected row as single record (not array)
-      if (field.required) {
+      if (effectiveRequired) {
         // Required table must have at least one key-value pair selected
         schema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
           .refine(val => Object.keys(val).length > 0, {
@@ -153,8 +223,8 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
       schema = z.string();
   }
 
-  // Handle required/optional
-  if (field.required) {
+  // Handle required/optional based on effective required (considers visibility)
+  if (effectiveRequired) {
     // Add required error message based on schema type
     if (schema instanceof z.ZodString) {
       schema = schema.min(1, `${field.label} is required`);
@@ -185,12 +255,15 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
 
 /**
  * Validate form data against schema and return result with formatted errors
+ * Passes current data to buildZodSchema so conditionals can be evaluated
  */
 export function validateFormData(
   formSpec: FormSpec,
-  data: Record<string, any>
-): { success: true; data: Record<string, any> } | { success: false; errors: Record<string, string> } {
-  const schema = buildZodSchema(formSpec);
+  data: Record<string, unknown>
+): { success: true; data: Record<string, unknown> } | { success: false; errors: Record<string, string> } {
+  // Pass data to buildZodSchema so it can evaluate conditionals
+  // Hidden conditional fields will be made optional (not required)
+  const schema = buildZodSchema(formSpec, data);
   const result = schema.safeParse(data);
 
   if (result.success) {

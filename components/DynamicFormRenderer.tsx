@@ -42,7 +42,7 @@ import {
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
-type FormFieldValue = string | number | boolean | string[] | Date | Record<string, string | number> | undefined;
+type FormFieldValue = string | number | boolean | (string | number)[] | Date | Record<string, string | number> | undefined;
 
 // Helper functions for type-safe value extraction
 const toStringValue = (value: FormFieldValue): string => {
@@ -51,7 +51,7 @@ const toStringValue = (value: FormFieldValue): string => {
   return '';
 };
 
-const toArrayValue = (value: FormFieldValue): string[] => {
+const toArrayValue = (value: FormFieldValue): (string | number)[] => {
   if (Array.isArray(value)) return value;
   return [];
 };
@@ -105,7 +105,7 @@ interface FormField {
     pattern?: string;
     message?: string;
   };
-  options?: Array<{ value: string; label: string }>;
+  options?: Array<{ value: string | number; label: string }>;
   helperText?: string;
   rows?: number;
   min?: number;
@@ -180,7 +180,8 @@ export default function DynamicFormRenderer({
   };
 
   const validateField = (field: FormField, value: FormFieldValue): string | null => {
-    if (field.required && (!value || value === '' || (Array.isArray(value) && value.length === 0))) {
+    // Check required - allow 0 as valid, only reject undefined/null/empty
+    if (field.required && (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0))) {
       return `${field.label} is required`;
     }
 
@@ -374,15 +375,24 @@ export default function DynamicFormRenderer({
               )}
             </FieldContent>
             <Select
-              value={typeof value === 'string' ? value : undefined}
-              onValueChange={(val) => handleFieldChange(field.name, val)}
+              value={value !== undefined && value !== null ? String(value) : ''}
+              onValueChange={(val) => {
+                // Detect if original option values are numeric
+                const hasNumericOptions = field.options?.some(opt => typeof opt.value === 'number');
+                if (hasNumericOptions) {
+                  const numVal = Number(val);
+                  handleFieldChange(field.name, isNaN(numVal) ? val : numVal);
+                } else {
+                  handleFieldChange(field.name, val);
+                }
+              }}
             >
               <SelectTrigger aria-invalid={!!error} id={field.id}>
                 <SelectValue placeholder={field.placeholder || 'Select an option'} />
               </SelectTrigger>
               <SelectContent>
                 {field.options?.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={String(option.value)} value={String(option.value)}>
                     {option.label}
                   </SelectItem>
                 ))}
@@ -662,10 +672,11 @@ export default function DynamicFormRenderer({
                   {field.tableData && field.tableData.length > 0 ? (
                     field.tableData.map((row, rowIndex) => {
                       const isSelected = selectedRowIndex === rowIndex;
+                      const rowId = (row as Record<string, unknown>).__id as string || `row-${field.name}-${rowIndex}`;
 
                       return (
                         <TableRow
-                          key={rowIndex}
+                          key={rowId}
                           onClick={() => handleTableRowSelect(field.name, rowIndex, row)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
@@ -699,7 +710,7 @@ export default function DynamicFormRenderer({
                             </div>
                           </TableCell>
                           {field.columns?.map((column) => (
-                            <TableCell key={`${rowIndex}-${column.key}`}>
+                            <TableCell key={`${rowId}-${column.key}`}>
                               {row[column.key]}
                             </TableCell>
                           ))}
@@ -745,7 +756,7 @@ export default function DynamicFormRenderer({
 
           {/* Form Sections */}
           {formSpec.sections.map((section) => (
-            <FieldSet key={section.id}>
+            <FieldSet key={`${formSpec.formId}-${section.id}`} name={section.id}>
               <FieldContent>
                 <FieldLegend variant="label">{section.title}</FieldLegend>
                 {section.description && (
@@ -755,9 +766,9 @@ export default function DynamicFormRenderer({
 
               <FieldGroup>
                 {section.fields.map((field) => (
-                  <Fragment key={field.id}>
+                  <div key={`${formSpec.formId}-${field.id}`} className="contents">
                     {renderField(field)}
-                  </Fragment>
+                  </div>
                 ))}
               </FieldGroup>
             </FieldSet>

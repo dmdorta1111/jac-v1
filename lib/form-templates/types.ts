@@ -4,6 +4,25 @@ export type FieldType =
   | 'radio' | 'slider' | 'date' | 'switch'
   | 'table' | 'integer' | 'float';
 
+export type ConditionalOperator =
+  | 'equals'
+  | 'notEquals'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'lessThan'
+  | 'lessThanOrEqual';
+
+export interface FieldCondition {
+  field: string;
+  operator: ConditionalOperator;
+  value: string | number | boolean;
+}
+
+export interface FieldConditional {
+  conditions: FieldCondition[];
+  logic: 'AND' | 'OR';
+}
+
 export interface FormField {
   id: string;
   name: string;
@@ -29,6 +48,7 @@ export interface FormField {
   columns?: Array<{ key: string; label: string }>;
   tableData?: Array<Record<string, string | number>>;
   editable?: boolean;
+  conditional?: FieldConditional;
 }
 
 export interface FormSection {
