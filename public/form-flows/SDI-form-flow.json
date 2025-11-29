@@ -111,7 +111,7 @@
         ]
       },
       {
-        "order": 3,
+        "order": 4,
         "lineNumber": 2609,
         "condition": {
           "expression": "HINGES == 1 AND FRAME_PROCESSED <> 'PROCESSED'",
@@ -163,7 +163,7 @@
         ]
       },
       {
-        "order": 4,
+        "order": 5,
         "lineNumber": 2668,
         "condition": {
           "expression": "FRAME_PROCESSED <> 'PROCESSED' AND (OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4)",
@@ -232,7 +232,7 @@
         ]
       },
       {
-        "order": 5,
+        "order": 6,
         "lineNumber": 2744,
         "condition": {
           "expression": "FRAME_ELEVATION == 5",
@@ -244,7 +244,7 @@
         "formTemplate": "frame-5-20"
       },
       {
-        "order": 6,
+        "order": 7,
         "lineNumber": 2781,
         "condition": {
           "expression": "FRAME_PROCESSED <> 'PROCESSED' AND (OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4)",
@@ -302,7 +302,7 @@
         ]
       },
       {
-        "order": 7,
+        "order": 8,
         "lineNumber": 2888,
         "condition": {
           "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
@@ -355,7 +355,7 @@
         ]
       },
       {
-        "order": 8,
+        "order": 9,
         "lineNumber": 2933,
         "condition": {
           "expression": "SUB_TYPE == 'P' AND EQUAL_ELEVATIONS == 0",
@@ -368,7 +368,7 @@
         "formTemplate": "door-elevation-info"
       },
       {
-        "order": 9,
+        "order": 10,
         "lineNumber": 2954,
         "condition": {
           "expression": "DOOR_ELEVATION == '*N*' OR DOOR_ELEVATION == '*G*' OR DOOR_ELEVATION == '*V*' OR DOOR_ELEVATION == '*C*'",
@@ -426,7 +426,7 @@
         ]
       },
       {
-        "order": 10,
+        "order": 11,
         "lineNumber": 3021,
         "condition": {
           "expression": "SUB_TYPE == 'P' AND EQUAL_ELEVATIONS == 0",
@@ -438,7 +438,7 @@
         "formTemplate": "door-elevation-info"
       },
       {
-        "order": 11,
+        "order": 12,
         "lineNumber": 3039,
         "condition": {
           "expression": "DOOR_ELEVATION_2 == '*N*' OR DOOR_ELEVATION_2 == '*G*' OR DOOR_ELEVATION_2 == '*V*' OR DOOR_ELEVATION_2 == '*C*'",
@@ -450,7 +450,7 @@
         "formTemplate": "door-lite"
       },
       {
-        "order": 12,
+        "order": 13,
         "lineNumber": 3112,
         "condition": {
           "expression": "DOOR_ELEVATION == '*L*'",
@@ -462,7 +462,7 @@
         "formTemplate": "door-louver"
       },
       {
-        "order": 13,
+        "order": 14,
         "lineNumber": 3147,
         "condition": {
           "expression": "CORE == 2 OR CORE == 7 OR CORE == 9",
@@ -479,7 +479,7 @@
         "formTemplate": "steel-stiff-info"
       },
       {
-        "order": 14,
+        "order": 15,
         "lineNumber": 3224,
         "condition": {
           "expression": "PRIMARY_LOCK == 1",
@@ -491,7 +491,7 @@
         "formTemplate": "lock-options"
       },
       {
-        "order": 15,
+        "order": 16,
         "lineNumber": 3284,
         "condition": {
           "expression": "SECONDARY_LOCK == 1",
@@ -503,7 +503,7 @@
         "formTemplate": "lock-options"
       },
       {
-        "order": 16,
+        "order": 17,
         "lineNumber": 3326,
         "condition": {
           "expression": "DUMMY_TRIM == 1 AND SUB_TYPE == 'P'"
@@ -514,7 +514,7 @@
         "formTemplate": "dummy-trim"
       },
       {
-        "order": 17,
+        "order": 18,
         "lineNumber": 3346,
         "condition": {
           "expression": "(PRIMARY_STRIKE == 1 AND OPENING_TYPE == 2 AND SUB_TYPE == 'S') OR (OPENING_TYPE == 3 AND PRIMARY_LOCK == 1) OR (OPENING_TYPE == 1 AND SUB_TYPE == 'P' AND PRIMARY_LOCK == 1) OR (OPENING_TYPE == 1 AND PRIMARY_LOCK_TYPE == 3)",
@@ -526,7 +526,7 @@
         "formTemplate": "strikes"
       },
       {
-        "order": 18,
+        "order": 19,
         "lineNumber": 3379,
         "condition": {
           "expression": "(SECONDARY_STRIKE == 1 AND OPENING_TYPE == 2) OR (OPENING_TYPE == 3 AND SECONDARY_LOCK == 1) OR (OPENING_TYPE == 1 AND SUB_TYPE == 'P' AND SECONDARY_LOCK == 1)"
@@ -537,7 +537,7 @@
         "formTemplate": "strikes"
       },
       {
-        "order": 19,
+        "order": 20,
         "lineNumber": 3413,
         "condition": {
           "expression": "PUSH_PULL == 1",
@@ -549,7 +549,7 @@
         "formTemplate": "push-pull"
       },
       {
-        "order": 20,
+        "order": 21,
         "lineNumber": 3468,
         "condition": {
           "expression": "SUB_TYPE == 'P' AND EQUAL_PUSH_PULLS == 0",
@@ -562,7 +562,7 @@
         "formTemplate": "push-pull"
       },
       {
-        "order": 21,
+        "order": 22,
         "lineNumber": 3506,
         "condition": {
           "expression": "HOLDER_STOP == 1",
@@ -574,7 +574,7 @@
         "formTemplate": "holder-stop"
       },
       {
-        "order": 22,
+        "order": 23,
         "lineNumber": 3535,
         "condition": {
           "expression": "SUB_TYPE == 'P' AND EQUAL_HOLDERS == 0",
@@ -587,7 +587,7 @@
         "formTemplate": "holder-stop"
       },
       {
-        "order": 23,
+        "order": 24,
         "lineNumber": 3611,
         "condition": {
           "expression": "FRAME_PROCESSED <> 'PROCESSED' AND CLOSER == 1",
@@ -599,7 +599,7 @@
         "formTemplate": "closers"
       },
       {
-        "order": 24,
+        "order": 25,
         "lineNumber": 3643,
         "condition": {
           "expression": "SUB_TYPE == 'P' AND EQUAL_CLOSERS == 0",
@@ -612,7 +612,7 @@
         "formTemplate": "closers"
       },
       {
-        "order": 25,
+        "order": 26,
         "lineNumber": 3704,
         "condition": {
           "expression": "FRAME_PROCESSED <> 'PROCESSED' AND DPS > 0"
@@ -623,7 +623,7 @@
         "formTemplate": "dps"
       },
       {
-        "order": 26,
+        "order": 27,
         "lineNumber": 3731,
         "condition": {
           "expression": "EPT > 0"
@@ -634,7 +634,7 @@
         "formTemplate": "ept"
       },
       {
-        "order": 27,
+        "order": 28,
         "lineNumber": 3763,
         "condition": {
           "expression": "AUTO_BOTTOM == 2",
@@ -646,7 +646,7 @@
         "formTemplate": "auto-bottom"
       },
       {
-        "order": 28,
+        "order": 29,
         "lineNumber": 3787,
         "condition": {
           "expression": "HEAD_STRIKE == 1"
@@ -657,7 +657,7 @@
         "formTemplate": "strikes"
       },
       {
-        "order": 29,
+        "order": 30,
         "lineNumber": 3814,
         "condition": {
           "expression": "KICK_PLATE == 1"
@@ -668,7 +668,7 @@
         "formTemplate": "kick-plate"
       },
       {
-        "order": 30,
+        "order": 31,
         "lineNumber": 4453,
         "condition": {
           "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
@@ -679,7 +679,7 @@
         "formType": "action"
       },
       {
-        "order": 31,
+        "order": 32,
         "lineNumber": 4466,
         "condition": {
           "expression": "OPENING_TYPE == 2 OR OPENING_TYPE == 3 OR OPENING_TYPE == 4",
@@ -690,7 +690,7 @@
         "formType": "action"
       },
       {
-        "order": 32,
+        "order": 33,
         "lineNumber": 4478,
         "condition": null,
         "context": "Model building phase",
@@ -699,7 +699,7 @@
         "formType": "action"
       },
       {
-        "order": 33,
+        "order": 34,
         "lineNumber": 5203,
         "condition": {
           "expression": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
@@ -710,7 +710,7 @@
         "formType": "action"
       },
       {
-        "order": 34,
+        "order": 35,
         "lineNumber": 5207,
         "condition": {
           "expression": "OPENING_TYPE == 2 OR OPENING_TYPE == 3",
@@ -721,7 +721,7 @@
         "formType": "action"
       },
       {
-        "order": 35,
+        "order": 36,
         "lineNumber": 5214,
         "condition": {
           "expression": "CHOICE == 5 AND WO_CHOICE == 1",
@@ -732,7 +732,7 @@
         "formType": "action"
       },
       {
-        "order": 36,
+        "order": 37,
         "lineNumber": 5217,
         "condition": {
           "expression": "CHOICE == 5",
@@ -743,7 +743,7 @@
         "formType": "action"
       },
       {
-        "order": 37,
+        "order": 38,
         "lineNumber": 5228,
         "condition": {
           "expression": "CHOICE == 8",
@@ -754,7 +754,7 @@
         "formType": "action"
       },
       {
-        "order": 38,
+        "order": 39,
         "lineNumber": 5247,
         "condition": {
           "expression": "CHOICE == 5 AND WO_CHOICE == 1",
@@ -765,7 +765,7 @@
         "formType": "action"
       },
       {
-        "order": 39,
+        "order": 40,
         "lineNumber": 5439,
         "condition": {
           "expression": "CHOICE == 5 AND WO_CHOICE == 3",
@@ -776,7 +776,7 @@
         "formType": "action"
       },
       {
-        "order": 40,
+        "order": 41,
         "lineNumber": 5444,
         "condition": {
           "expression": "CHOICE == 5 AND WO_CHOICE == 3",

@@ -370,8 +370,8 @@
           "helperText": "Toggle to enable"
         },
         {
-          "id": "options-mag-lock",
-          "name": "MAG_LOCK",
+          "id": "options-mag-lock-single",
+          "name": "MAG_LOCK_SINGLE",
           "label": "Mag Lock",
           "type": "switch",
           "defaultValue": false,
@@ -388,8 +388,8 @@
           }
         },
         {
-          "id": "options-ept",
-          "name": "EPT",
+          "id": "options-ept-single",
+          "name": "EPT_SINGLE",
           "label": "Ept",
           "type": "switch",
           "defaultValue": false,
@@ -406,8 +406,8 @@
           }
         },
         {
-          "id": "options-dps",
-          "name": "DPS",
+          "id": "options-dps-single",
+          "name": "DPS_SINGLE",
           "label": "Dps",
           "type": "switch",
           "defaultValue": false,
@@ -552,8 +552,8 @@
           }
         },
         {
-          "id": "options-ept-2",
-          "name": "EPT",
+          "id": "options-ept-pair",
+          "name": "EPT_PAIR",
           "label": "Ept",
           "type": "radio",
           "required": false,
@@ -587,8 +587,8 @@
           }
         },
         {
-          "id": "options-dps-2",
-          "name": "DPS",
+          "id": "options-dps-pair",
+          "name": "DPS_PAIR",
           "label": "Dps",
           "type": "radio",
           "required": false,
@@ -622,8 +622,8 @@
           }
         },
         {
-          "id": "options-mag-lock-2",
-          "name": "MAG_LOCK",
+          "id": "options-mag-lock-pair",
+          "name": "MAG_LOCK_PAIR",
           "label": "Mag Lock",
           "type": "radio",
           "required": false,
