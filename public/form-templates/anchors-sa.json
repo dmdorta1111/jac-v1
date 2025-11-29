@@ -12,8 +12,9 @@
           "id": "anchors-sa-help",
           "name": "HELP",
           "label": "Show Help Image",
-          "type": "checkbox",
-          "description": "Display ANCHORS.GIF reference image"
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Display ANCHORS.GIF reference image"
         },
         {
           "id": "anchors-sa-item-num",
@@ -235,7 +236,8 @@
           "id": "anchors-sa-anchor-bolts",
           "name": "ANCHOR_BOLTS",
           "label": "Anchor Bolts",
-          "type": "checkbox",
+          "type": "switch",
+          "defaultValue": false,
           "conditional": {
             "conditions": [
               {
@@ -266,14 +268,16 @@
           "id": "anchors-sa-dust-boxes",
           "name": "DUST_BOXES",
           "label": "Dust Boxes",
-          "type": "checkbox",
-          "description": "Enable dust boxes"
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Enable dust boxes"
         },
         {
           "id": "anchors-sa-grout-holes",
           "name": "GROUT_HOLES",
           "label": "Grout Holes",
-          "type": "checkbox",
+          "type": "switch",
+          "defaultValue": false,
           "conditional": {
             "conditions": [
               {
@@ -311,13 +315,15 @@
           "id": "anchors-sa-bottom-only",
           "name": "BOTTOM_ONLY",
           "label": "Bottom Only",
-          "type": "checkbox"
+          "type": "switch",
+          "defaultValue": false
         },
         {
           "id": "anchors-sa-head-anchors",
           "name": "HEAD_ANCHORS",
           "label": "Head Anchors",
-          "type": "checkbox",
+          "type": "switch",
+          "defaultValue": false,
           "conditional": {
             "conditions": [
               {

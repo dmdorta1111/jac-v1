@@ -48,40 +48,74 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
       break;
 
     case 'integer':
-      schema = z.number().int();
-
-      if (field.min !== undefined) {
-        schema = (schema as z.ZodNumber).min(field.min, `Minimum value is ${field.min}`);
+      // Allow null/undefined for optional, coerce empty string to null
+      if (field.required) {
+        schema = z.number().int();
+        if (field.min !== undefined) {
+          schema = (schema as z.ZodNumber).min(field.min, `Minimum value is ${field.min}`);
+        }
+        if (field.max !== undefined) {
+          schema = (schema as z.ZodNumber).max(field.max, `Maximum value is ${field.max}`);
+        }
+      } else {
+        schema = z.preprocess(
+          (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
+          z.number().int().nullable()
+        );
       }
-      if (field.max !== undefined) {
-        schema = (schema as z.ZodNumber).max(field.max, `Maximum value is ${field.max}`);
-      }
-      break;
+      return schema; // Early return - integer handles its own required/optional
 
     case 'float':
-      schema = z.number();
-
-      if (field.min !== undefined) {
-        schema = (schema as z.ZodNumber).min(field.min, `Minimum value is ${field.min}`);
+      // Allow null/undefined for optional, coerce empty string to null
+      if (field.required) {
+        schema = z.number();
+        if (field.min !== undefined) {
+          schema = (schema as z.ZodNumber).min(field.min, `Minimum value is ${field.min}`);
+        }
+        if (field.max !== undefined) {
+          schema = (schema as z.ZodNumber).max(field.max, `Maximum value is ${field.max}`);
+        }
+      } else {
+        schema = z.preprocess(
+          (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
+          z.number().nullable()
+        );
       }
-      if (field.max !== undefined) {
-        schema = (schema as z.ZodNumber).max(field.max, `Maximum value is ${field.max}`);
-      }
-      break;
+      return schema; // Early return - float handles its own required/optional
 
-    case 'checkbox':
     case 'switch':
       schema = z.boolean();
       break;
 
+    case 'checkbox':
+      // Checkbox with options = multi-select (string array)
+      // Checkbox without options = single boolean toggle
+      if (field.options && field.options.length > 0) {
+        schema = z.array(z.union([z.string(), z.number()]));
+      } else {
+        schema = z.boolean();
+      }
+      break;
+
     case 'select':
     case 'radio':
-      // Create enum from options
+      // Create union from options - support both string and number values
       if (field.options && field.options.length > 0) {
         const values = field.options.map(opt => opt.value);
-        schema = z.enum(values as [string, ...string[]]);
+        // Check if values are numbers or strings
+        const hasNumbers = values.some(v => typeof v === 'number');
+        const hasStrings = values.some(v => typeof v === 'string');
+
+        if (hasNumbers && !hasStrings) {
+          schema = z.number();
+        } else if (hasStrings && !hasNumbers) {
+          schema = z.enum(values as [string, ...string[]]);
+        } else {
+          // Mixed or unknown - accept both
+          schema = z.union([z.string(), z.number()]);
+        }
       } else {
-        schema = z.string();
+        schema = z.union([z.string(), z.number()]);
       }
       break;
 
@@ -101,9 +135,18 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
       break;
 
     case 'table':
-      // Table data is array of records
-      schema = z.array(z.record(z.string(), z.union([z.string(), z.number()])));
-      break;
+      // Table stores selected row as single record (not array)
+      if (field.required) {
+        // Required table must have at least one key-value pair selected
+        schema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .refine(val => Object.keys(val).length > 0, {
+            message: `${field.label} requires a selection`,
+          });
+      } else {
+        schema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))
+          .optional().nullable();
+      }
+      return schema; // Early return - table handles its own required/optional
 
     default:
       // Fallback to string for unknown types
@@ -112,18 +155,26 @@ function buildFieldSchema(field: FormField): z.ZodTypeAny {
 
   // Handle required/optional
   if (field.required) {
-    // Add required error message
+    // Add required error message based on schema type
     if (schema instanceof z.ZodString) {
       schema = schema.min(1, `${field.label} is required`);
     } else if (schema instanceof z.ZodNumber) {
-      schema = schema.refine(val => val !== null && val !== undefined, {
-        message: `${field.label} is required`,
+      // Numbers are required by default, just ensure non-NaN
+      schema = schema.refine(val => !isNaN(val), {
+        message: `${field.label} must be a valid number`,
       });
+    } else if (schema instanceof z.ZodArray) {
+      // Required arrays must have at least 1 item
+      schema = schema.min(1, `${field.label} requires at least one selection`);
     }
+    // Other types (boolean, record, union) are required by default
   } else {
-    // Make optional - allow null, undefined, or empty string
+    // Make optional - allow null, undefined, or empty values
     if (schema instanceof z.ZodString) {
       schema = schema.optional().or(z.literal(''));
+    } else if (schema instanceof z.ZodArray) {
+      // Optional arrays can be empty or undefined
+      schema = schema.optional();
     } else {
       schema = schema.optional().nullable();
     }

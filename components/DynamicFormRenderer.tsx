@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -754,7 +754,11 @@ export default function DynamicFormRenderer({
               </FieldContent>
 
               <FieldGroup>
-                {section.fields.map((field) => renderField(field))}
+                {section.fields.map((field) => (
+                  <Fragment key={field.id}>
+                    {renderField(field)}
+                  </Fragment>
+                ))}
               </FieldGroup>
             </FieldSet>
           ))}

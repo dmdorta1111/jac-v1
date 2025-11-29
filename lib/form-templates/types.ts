@@ -19,7 +19,7 @@ export interface FormField {
     pattern?: string;
     message?: string;
   };
-  options?: Array<{ value: string; label: string }>;
+  options?: Array<{ value: string | number; label: string }>;
   helperText?: string;
   rows?: number;
   min?: number;
