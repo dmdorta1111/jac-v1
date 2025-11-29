@@ -193,8 +193,8 @@
           ]
         },
         {
-          "id": "lock-options-lock-electrified-2",
-          "name": "LOCK_ELECTRIFIED",
+          "id": "lock-options-lock-electrified-type",
+          "name": "LOCK_ELECTRIFIED_TYPE",
           "label": "Lock Electrified",
           "type": "radio",
           "required": false,

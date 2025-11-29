@@ -273,8 +273,8 @@
           }
         },
         {
-          "id": "hinge-info-electric-hinge-position-2",
-          "name": "ELECTRIC_HINGE_POSITION",
+          "id": "hinge-info-electric-hinge-position-select",
+          "name": "ELECTRIC_HINGE_POSITION_SELECT",
           "label": "Electric Hinge Position",
           "type": "radio",
           "required": false,

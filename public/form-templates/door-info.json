@@ -188,8 +188,8 @@
           }
         },
         {
-          "id": "door-info-weep-holes-2",
-          "name": "WEEP_HOLES",
+          "id": "door-info-weep-holes-alt",
+          "name": "WEEP_HOLES_ALT",
           "label": "Weep Holes",
           "type": "switch",
           "defaultValue": false,
@@ -426,8 +426,8 @@
           ]
         },
         {
-          "id": "door-info-top-edge-2",
-          "name": "TOP_EDGE_",
+          "id": "door-info-top-edge-alt",
+          "name": "TOP_EDGE_ALT",
           "label": "Top Edge",
           "type": "radio",
           "required": false,
@@ -455,8 +455,8 @@
           ]
         },
         {
-          "id": "door-info-bottom-edge-2",
-          "name": "BOTTOM_EDGE_",
+          "id": "door-info-bottom-edge-alt",
+          "name": "BOTTOM_EDGE_ALT",
           "label": "Bottom Edge",
           "type": "radio",
           "required": false,
