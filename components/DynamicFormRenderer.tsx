@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,23 @@ const toNumberValue = (value: FormFieldValue, fallback: number): number => {
 
 const toBooleanValue = (value: FormFieldValue): boolean => {
   return typeof value === 'boolean' ? value : false;
+};
+
+// Helper to determine column span for field in responsive grid layout
+// Returns: 1-5 based on field type for responsive 5-column grid
+const getFieldColSpan = (field: FormField): 1 | 2 | 5 => {
+  // Always full width types - multi-option or expansive content
+  if (['textarea', 'table', 'radio', 'checkbox'].includes(field.type)) {
+    return 5;
+  }
+
+  // Select/date/slider get 2 columns
+  if (['select', 'date', 'slider'].includes(field.type)) {
+    return 2;
+  }
+
+  // All other fields: single column (input, integer, float, switch, etc.)
+  return 1;
 };
 
 const toDateValue = (value: FormFieldValue): Date | undefined => {
@@ -163,6 +180,78 @@ export default function DynamicFormRenderer({
   // Merge external validation errors with internal errors
   const allErrors = { ...errors, ...validationErrors };
   const [selectedTableRows, setSelectedTableRows] = useState<Record<string, number>>({});
+  const hasInitialFocused = useRef(false);
+  const previousFormId = useRef(formSpec.formId);
+
+  // Reset focus flag when form changes
+  useEffect(() => {
+    if (previousFormId.current !== formSpec.formId) {
+      hasInitialFocused.current = false;
+      previousFormId.current = formSpec.formId;
+    }
+  }, [formSpec.formId]);
+
+  // Helper to check if a field is empty
+  const isFieldEmpty = (field: FormField, value: FormFieldValue): boolean => {
+    if (value === undefined || value === null || value === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+    return false;
+  };
+
+  // Helper to focus on a field by id
+  const focusField = (fieldId: string) => {
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      const element = document.getElementById(fieldId);
+      if (element) {
+        element.focus();
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
+
+  // Auto-focus on first empty field when form loads
+  useEffect(() => {
+    if (hasInitialFocused.current) return;
+    hasInitialFocused.current = true;
+
+    // Find first empty visible field
+    for (const section of formSpec.sections) {
+      for (const field of section.fields) {
+        // Skip non-focusable field types
+        if (field.type === 'table') continue;
+
+        const value = formData[field.name];
+        if (isFieldEmpty(field, value)) {
+          focusField(field.id);
+          return;
+        }
+      }
+    }
+
+    // If all fields have values, focus on first field
+    const firstField = formSpec.sections[0]?.fields[0];
+    if (firstField && firstField.type !== 'table') {
+      focusField(firstField.id);
+    }
+  }, [formSpec.formId]); // Re-run when form changes
+
+  // Auto-focus on first error field when validation errors occur
+  useEffect(() => {
+    const errorKeys = Object.keys(allErrors);
+    if (errorKeys.length === 0) return;
+
+    // Find first field with error in form order
+    for (const section of formSpec.sections) {
+      for (const field of section.fields) {
+        if (allErrors[field.name]) {
+          focusField(field.id);
+          return;
+        }
+      }
+    }
+  }, [errors, validationErrors]);
 
   // Helper to create form-scoped state keys (defensive against name collisions)
   const getTableStateKey = (fieldName: string) => `${formSpec.formId}__${fieldName}`;
@@ -741,15 +830,15 @@ export default function DynamicFormRenderer({
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4">
+    <div className="w-full max-w-none px-2 sm:px-4 lg:px-6">
       <form onSubmit={handleSubmit}>
         <FieldGroup>
           {/* Form Header */}
           <FieldSet>
             <FieldContent>
-              <FieldLegend className="text-2xl font-bold">{formSpec.title}</FieldLegend>
+              <FieldLegend className="text-xl font-bold">{formSpec.title}</FieldLegend>
               {formSpec.description && (
-                <FieldDescription className="text-base">{formSpec.description}</FieldDescription>
+                <FieldDescription className="text-sm">{formSpec.description}</FieldDescription>
               )}
             </FieldContent>
           </FieldSet>
@@ -764,18 +853,38 @@ export default function DynamicFormRenderer({
                 )}
               </FieldContent>
 
-              <FieldGroup>
-                {section.fields.map((field) => (
-                  <div key={`${formSpec.formId}-${field.id}`} className="contents">
-                    {renderField(field)}
-                  </div>
-                ))}
-              </FieldGroup>
+              {/* Grid layout: responsive 1→2→4→5 columns based on breakpoint */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+                {section.fields.map((field) => {
+                  const colSpan = getFieldColSpan(field);
+                  const renderedField = renderField(field);
+                  if (!renderedField) return null;
+
+                  // Build responsive col-span classes for 5-column grid
+                  let spanClass = "col-span-1"; // Default single column
+                  if (colSpan === 5) {
+                    // Full width across all breakpoints
+                    spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
+                  } else if (colSpan === 2) {
+                    // Medium width fields (select, date, slider)
+                    spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
+                  }
+
+                  return (
+                    <div
+                      key={`${formSpec.formId}-${field.id}`}
+                      className={spanClass}
+                    >
+                      {renderedField}
+                    </div>
+                  );
+                })}
+              </div>
             </FieldSet>
           ))}
 
           {/* Form Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4 sm:pt-6 border-t border-border mt-4">
             <Button type="submit" variant="secondary" className="flex-1">
               {formSpec.submitButton.text}
             </Button>

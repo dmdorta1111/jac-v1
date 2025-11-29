@@ -486,7 +486,7 @@ Form specification with 16 configuration fields.
           "id": "Sched-add-revision",
           "name": "ADD_REVISION",
           "label": "Add Revision",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

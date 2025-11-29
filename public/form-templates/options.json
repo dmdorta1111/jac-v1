@@ -555,7 +555,7 @@
           "id": "options-ept-pair",
           "name": "EPT_PAIR",
           "label": "Ept",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -590,7 +590,7 @@
           "id": "options-dps-pair",
           "name": "DPS_PAIR",
           "label": "Dps",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -625,7 +625,7 @@
           "id": "options-mag-lock-pair",
           "name": "MAG_LOCK_PAIR",
           "label": "Mag Lock",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -660,7 +660,7 @@
           "id": "options-flush-bolts",
           "name": "FLUSH_BOLTS",
           "label": "Flush Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -695,7 +695,7 @@
           "id": "options-top-bolt-type",
           "name": "TOP_BOLT_TYPE",
           "label": "Top Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -727,7 +727,7 @@
           "id": "options-bottom-bolt-type",
           "name": "BOTTOM_BOLT_TYPE",
           "label": "Bottom Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -759,7 +759,7 @@
           "id": "options-surface-bolts",
           "name": "SURFACE_BOLTS",
           "label": "Surface Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -794,7 +794,7 @@
           "id": "options-auto-bottom",
           "name": "AUTO_BOTTOM",
           "label": "Auto Bottom",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -830,7 +830,7 @@
           "id": "options-lead-lined",
           "name": "LEAD_LINED",
           "label": "Lead Lined",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

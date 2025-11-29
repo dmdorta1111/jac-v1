@@ -133,7 +133,7 @@ Form specification with 22 configuration fields.
           "id": "SDI-Project-opening-type",
           "name": "OPENING_TYPE",
           "label": "Opening Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -162,7 +162,7 @@ Form specification with 22 configuration fields.
           "id": "SDI-Project-handi",
           "name": "HANDI_",
           "label": "Handi",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

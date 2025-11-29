@@ -37,7 +37,7 @@ Form specification with 4 configuration fields.
           "id": "seconary-lock-options-lock-type",
           "name": "LOCK_TYPE",
           "label": "Lock Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -84,7 +84,7 @@ Form specification with 4 configuration fields.
           "id": "seconary-lock-options-strike-type",
           "name": "STRIKE_TYPE",
           "label": "Strike Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

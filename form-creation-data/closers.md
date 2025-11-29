@@ -132,7 +132,7 @@ Form specification with 7 configuration fields.
           "id": "closers-closer-type",
           "name": "CLOSER_TYPE",
           "label": "Closer Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

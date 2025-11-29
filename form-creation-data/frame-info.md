@@ -754,7 +754,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-construction",
           "name": "CONSTRUCTION_",
           "label": "Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -775,7 +775,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-head-grain",
           "name": "HEAD_GRAIN_",
           "label": "Head Grain",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -792,7 +792,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-side-lite-side",
           "name": "SIDE_LITE_SIDE",
           "label": "Side Lite Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -827,7 +827,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-side-lite-stops",
           "name": "SIDE_LITE_STOPS",
           "label": "Side Lite Stops",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -854,7 +854,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-glass-type-2",
           "name": "GLASS_TYPE_",
           "label": "Glass Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -893,7 +893,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-borrowed-lite-trim-type",
           "name": "BORROWED_LITE_TRIM_TYPE",
           "label": "Borrowed Lite Trim Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

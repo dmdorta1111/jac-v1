@@ -67,7 +67,7 @@ Form specification with 5 configuration fields.
           "id": "flush-bolt-info-flush-bolts",
           "name": "FLUSH_BOLTS",
           "label": "Flush Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -92,7 +92,7 @@ Form specification with 5 configuration fields.
           "id": "flush-bolt-info-top-bolt-type",
           "name": "TOP_BOLT_TYPE",
           "label": "Top Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -124,7 +124,7 @@ Form specification with 5 configuration fields.
           "id": "flush-bolt-info-bottom-bolt-type",
           "name": "BOTTOM_BOLT_TYPE",
           "label": "Bottom Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

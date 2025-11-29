@@ -83,7 +83,7 @@ Form specification with 5 configuration fields.
           "id": "kick-plate-kick-plate-side",
           "name": "KICK_PLATE_SIDE",
           "label": "Kick Plate Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

@@ -310,7 +310,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-type",
           "name": "ANCHOR_TYPE",
           "label": "Anchor Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -367,7 +367,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-floor-clips",
           "name": "FLOOR_CLIPS_",
           "label": "Floor Clips",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -400,7 +400,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-base-clips",
           "name": "BASE_CLIPS",
           "label": "Base Clips",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -429,7 +429,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-surf",
           "name": "ANCHOR_SURF",
           "label": "Anchor Surf",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -456,7 +456,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-bolt-type",
           "name": "ANCHOR_BOLT_TYPE",
           "label": "Anchor Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -497,7 +497,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-strap-type",
           "name": "ANCHOR_STRAP_TYPE",
           "label": "Anchor Strap Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -720,7 +720,7 @@ Form specification with 4 configuration fields.
           "id": "BOM-Lines-process-type",
           "name": "PROCESS_TYPE_",
           "label": "Process Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -817,7 +817,7 @@ Form specification with 4 configuration fields.
           "id": "BOM-Sheets-process-type",
           "name": "PROCESS_TYPE_",
           "label": "Process Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -1227,7 +1227,7 @@ Form specification with 7 configuration fields.
           "id": "closers-closer-type",
           "name": "CLOSER_TYPE",
           "label": "Closer Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -1439,7 +1439,7 @@ Form specification with 20 configuration fields.
           "id": "Copy of Document-add-revision",
           "name": "ADD_REVISION",
           "label": "Add Revision",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -1456,7 +1456,7 @@ Form specification with 20 configuration fields.
           "id": "Copy of Document-as-built",
           "name": "AS_BUILT",
           "label": "As Built",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -1778,7 +1778,7 @@ Form specification with 18 configuration fields.
           "id": "custom-hinges-hinge-dimension-method",
           "name": "HINGE_DIMENSION_METHOD",
           "label": "Hinge Dimension Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2135,7 +2135,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-door-construction",
           "name": "DOOR_CONSTRUCTION_",
           "label": "Door Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2152,7 +2152,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-core",
           "name": "CORE",
           "label": "Core",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2175,7 +2175,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-hinge-edge",
           "name": "HINGE_EDGE_",
           "label": "Hinge Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2196,7 +2196,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-strike-edge",
           "name": "STRIKE_EDGE_",
           "label": "Strike Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2217,7 +2217,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-top-edge",
           "name": "TOP_EDGE_",
           "label": "Top Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2250,7 +2250,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-bottom-edge",
           "name": "BOTTOM_EDGE_",
           "label": "Bottom Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2283,7 +2283,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-top-edge-2",
           "name": "TOP_EDGE_",
           "label": "Top Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2312,7 +2312,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-bottom-edge-2",
           "name": "BOTTOM_EDGE_",
           "label": "Bottom Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2341,7 +2341,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-astragal-door",
           "name": "ASTRAGAL_DOOR_",
           "label": "Astragal Door",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2787,7 +2787,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-door-lite",
           "name": "DOOR_LITE",
           "label": "Door Lite",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2818,7 +2818,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-vision-dimension-method",
           "name": "VISION_DIMENSION_METHOD",
           "label": "Vision Dimension Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2859,7 +2859,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-vision-shape",
           "name": "VISION_SHAPE",
           "label": "Vision Shape",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2876,7 +2876,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-door-lite-trim-type",
           "name": "DOOR_LITE_TRIM_TYPE_",
           "label": "Door Lite Trim Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2897,7 +2897,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-removable-side",
           "name": "REMOVABLE_SIDE",
           "label": "Removable Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -2914,7 +2914,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-glass-type-2",
           "name": "GLASS_TYPE_",
           "label": "Glass Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3166,7 +3166,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-door-lite",
           "name": "DOOR_LITE",
           "label": "Door Lite",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3197,7 +3197,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-door-lite-trim-type",
           "name": "DOOR_LITE_TRIM_TYPE_",
           "label": "Door Lite Trim Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3226,7 +3226,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-rem-stop-side",
           "name": "REM_STOP_SIDE",
           "label": "Rem Stop Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3262,7 +3262,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-vision-shape",
           "name": "VISION_SHAPE_",
           "label": "Vision Shape",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3279,7 +3279,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-glass-supplier",
           "name": "GLASS_SUPPLIER_",
           "label": "Glass Supplier",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3296,7 +3296,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-glass-installer",
           "name": "GLASS_INSTALLER_",
           "label": "Glass Installer",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3366,7 +3366,7 @@ Form specification with 5 configuration fields.
           "id": "door-louver-door-louver",
           "name": "DOOR_LOUVER",
           "label": "Door Louver",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3397,7 +3397,7 @@ Form specification with 5 configuration fields.
           "id": "door-louver-louver-dimension-method",
           "name": "LOUVER_DIMENSION_METHOD",
           "label": "Louver Dimension Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3595,7 +3595,7 @@ Form specification with 9 configuration fields.
           "id": "dps-dps",
           "name": "DPS",
           "label": "Dps",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -3630,7 +3630,7 @@ Form specification with 9 configuration fields.
           "id": "dps-dps-position",
           "name": "DPS_POSITION",
           "label": "Dps Position",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -4151,7 +4151,7 @@ Form specification with 16 configuration fields.
           "id": "Drawing-History-add-revision",
           "name": "ADD_REVISION",
           "label": "Add Revision",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -4473,7 +4473,7 @@ Form specification with 5 configuration fields.
           "id": "flush-bolt-info-flush-bolts",
           "name": "FLUSH_BOLTS",
           "label": "Flush Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -4498,7 +4498,7 @@ Form specification with 5 configuration fields.
           "id": "flush-bolt-info-top-bolt-type",
           "name": "TOP_BOLT_TYPE",
           "label": "Top Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -4530,7 +4530,7 @@ Form specification with 5 configuration fields.
           "id": "flush-bolt-info-bottom-bolt-type",
           "name": "BOTTOM_BOLT_TYPE",
           "label": "Bottom Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -4607,7 +4607,7 @@ Form specification with 3 configuration fields.
           "id": "flush-pull-flush-pull-side",
           "name": "FLUSH_PULL_SIDE",
           "label": "Flush Pull Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -4812,7 +4812,7 @@ Form specification with 20 configuration fields.
           "id": "frame-5-20-construction",
           "name": "CONSTRUCTION",
           "label": "Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -5595,7 +5595,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-construction",
           "name": "CONSTRUCTION_",
           "label": "Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -5616,7 +5616,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-head-grain",
           "name": "HEAD_GRAIN_",
           "label": "Head Grain",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -5633,7 +5633,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-side-lite-side",
           "name": "SIDE_LITE_SIDE",
           "label": "Side Lite Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -5668,7 +5668,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-side-lite-stops",
           "name": "SIDE_LITE_STOPS",
           "label": "Side Lite Stops",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -5695,7 +5695,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-glass-type-2",
           "name": "GLASS_TYPE_",
           "label": "Glass Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -5734,7 +5734,7 @@ Form specification with 46 configuration fields.
           "id": "frame-info-borrowed-lite-trim-type",
           "name": "BORROWED_LITE_TRIM_TYPE",
           "label": "Borrowed Lite Trim Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6054,7 +6054,7 @@ Form specification with 17 configuration fields.
           "id": "hinge-info-electric-hinge-position-2",
           "name": "ELECTRIC_HINGE_POSITION",
           "label": "Electric Hinge Position",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6101,7 +6101,7 @@ Form specification with 17 configuration fields.
           "id": "hinge-info-elec-hinge-door",
           "name": "ELEC_HINGE_DOOR",
           "label": "Elec Hinge Door",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6362,7 +6362,7 @@ Form specification with 11 configuration fields.
           "id": "holder-stop-hs-type",
           "name": "HS_TYPE",
           "label": "Hs Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6412,7 +6412,7 @@ Form specification with 1 configuration fields.
           "id": "hospital-latch-orientation",
           "name": "ORIENTATION",
           "label": "Orientation",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6520,7 +6520,7 @@ Form specification with 5 configuration fields.
           "id": "kick-plate-kick-plate-side",
           "name": "KICK_PLATE_SIDE",
           "label": "Kick Plate Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6724,7 +6724,7 @@ Form specification with 21 configuration fields.
           "id": "lite-info-construction",
           "name": "CONSTRUCTION_",
           "label": "Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6745,7 +6745,7 @@ Form specification with 21 configuration fields.
           "id": "lite-info-head-grain",
           "name": "HEAD_GRAIN_",
           "label": "Head Grain",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -6999,7 +6999,7 @@ Form specification with 15 configuration fields.
           "id": "lock-options-lock-type",
           "name": "LOCK_TYPE",
           "label": "Lock Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7012,7 +7012,7 @@ Form specification with 15 configuration fields.
           "id": "lock-options-lock-electrified-2",
           "name": "LOCK_ELECTRIFIED",
           "label": "Lock Electrified",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7033,7 +7033,7 @@ Form specification with 15 configuration fields.
           "id": "lock-options-backset-reference",
           "name": "BACKSET_REFERENCE",
           "label": "Backset Reference",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7746,7 +7746,7 @@ Form specification with 38 configuration fields.
           "id": "options-ept-2",
           "name": "EPT",
           "label": "Ept",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7781,7 +7781,7 @@ Form specification with 38 configuration fields.
           "id": "options-dps-2",
           "name": "DPS",
           "label": "Dps",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7816,7 +7816,7 @@ Form specification with 38 configuration fields.
           "id": "options-mag-lock-2",
           "name": "MAG_LOCK",
           "label": "Mag Lock",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7851,7 +7851,7 @@ Form specification with 38 configuration fields.
           "id": "options-flush-bolts",
           "name": "FLUSH_BOLTS",
           "label": "Flush Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7886,7 +7886,7 @@ Form specification with 38 configuration fields.
           "id": "options-top-bolt-type",
           "name": "TOP_BOLT_TYPE",
           "label": "Top Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7918,7 +7918,7 @@ Form specification with 38 configuration fields.
           "id": "options-bottom-bolt-type",
           "name": "BOTTOM_BOLT_TYPE",
           "label": "Bottom Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7950,7 +7950,7 @@ Form specification with 38 configuration fields.
           "id": "options-surface-bolts",
           "name": "SURFACE_BOLTS",
           "label": "Surface Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -7985,7 +7985,7 @@ Form specification with 38 configuration fields.
           "id": "options-auto-bottom",
           "name": "AUTO_BOTTOM",
           "label": "Auto Bottom",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -8021,7 +8021,7 @@ Form specification with 38 configuration fields.
           "id": "options-lead-lined",
           "name": "LEAD_LINED",
           "label": "Lead Lined",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -8100,7 +8100,7 @@ Form specification with 6 configuration fields.
           "id": "Parameters-operation",
           "name": "OPERATION",
           "label": "Operation",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -8121,7 +8121,7 @@ Form specification with 6 configuration fields.
           "id": "Parameters-model-type",
           "name": "MODEL_TYPE",
           "label": "Model Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -8142,7 +8142,7 @@ Form specification with 6 configuration fields.
           "id": "Parameters-parameter-type",
           "name": "PARAMETER_TYPE",
           "label": "Parameter Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -8933,7 +8933,7 @@ Form specification with 16 configuration fields.
           "id": "Sched-add-revision",
           "name": "ADD_REVISION",
           "label": "Add Revision",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9091,7 +9091,7 @@ Form specification with 22 configuration fields.
           "id": "SDI-Project-opening-type",
           "name": "OPENING_TYPE",
           "label": "Opening Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9120,7 +9120,7 @@ Form specification with 22 configuration fields.
           "id": "SDI-Project-handi",
           "name": "HANDI_",
           "label": "Handi",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9232,7 +9232,7 @@ Form specification with 4 configuration fields.
           "id": "seconary-lock-options-lock-type",
           "name": "LOCK_TYPE",
           "label": "Lock Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9279,7 +9279,7 @@ Form specification with 4 configuration fields.
           "id": "seconary-lock-options-strike-type",
           "name": "STRIKE_TYPE",
           "label": "Strike Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9438,7 +9438,7 @@ Form specification with 5 configuration fields.
           "id": "steel-stiff-info-steel-stiffener-material",
           "name": "STEEL_STIFFENER_MATERIAL",
           "label": "Steel Stiffener Material",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9455,7 +9455,7 @@ Form specification with 5 configuration fields.
           "id": "steel-stiff-info-steel-stiffener-insulation",
           "name": "STEEL_STIFFENER_INSULATION",
           "label": "Steel Stiffener Insulation",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9703,7 +9703,7 @@ Form specification with 4 configuration fields.
           "id": "transom-panel-transom-panel-attach-method",
           "name": "TRANSOM_PANEL_ATTACH_METHOD",
           "label": "Transom Panel Attach Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9724,7 +9724,7 @@ Form specification with 4 configuration fields.
           "id": "transom-panel-transom-panel-core",
           "name": "TRANSOM_PANEL_CORE",
           "label": "Transom Panel Core",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -9819,7 +9819,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-type",
           "name": "ANCHOR_TYPE",
           "label": "Anchor Type",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "required": true,
           "options": [
             { "value": 0, "label": "None" },
@@ -9879,7 +9879,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-floor-clips",
           "name": "FLOOR_CLIPS_",
           "label": "Floor Clips",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             { "value": 0, "label": "None" },
             { "value": 1, "label": "Fixed" },
@@ -9893,7 +9893,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-base-clips",
           "name": "BASE_CLIPS",
           "label": "Base Clips",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             { "value": 0, "label": "None" },
             { "value": 1, "label": "Base Clips" },
@@ -10107,7 +10107,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-surf",
           "name": "ANCHOR_SURF",
           "label": "Anchor Surface",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             { "value": 0, "label": "Soffit" },
             { "value": 1, "label": "Rabbet" }
@@ -10124,7 +10124,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-bolt-type",
           "name": "ANCHOR_BOLT_TYPE",
           "label": "Anchor Bolt Type",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             { "value": 0, "label": "Expansion" },
             { "value": 1, "label": "Lag" },
@@ -10142,7 +10142,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-strap-type",
           "name": "ANCHOR_STRAP_TYPE",
           "label": "Anchor Strap Type",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             { "value": 0, "label": "Flat" },
             { "value": 1, "label": "Channel" }

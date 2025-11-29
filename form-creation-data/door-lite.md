@@ -406,7 +406,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-door-lite",
           "name": "DOOR_LITE",
           "label": "Door Lite",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -437,7 +437,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-vision-dimension-method",
           "name": "VISION_DIMENSION_METHOD",
           "label": "Vision Dimension Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -478,7 +478,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-vision-shape",
           "name": "VISION_SHAPE",
           "label": "Vision Shape",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -495,7 +495,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-door-lite-trim-type",
           "name": "DOOR_LITE_TRIM_TYPE_",
           "label": "Door Lite Trim Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -516,7 +516,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-removable-side",
           "name": "REMOVABLE_SIDE",
           "label": "Removable Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -533,7 +533,7 @@ Form specification with 27 configuration fields.
           "id": "door-lite-glass-type-2",
           "name": "GLASS_TYPE_",
           "label": "Glass Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

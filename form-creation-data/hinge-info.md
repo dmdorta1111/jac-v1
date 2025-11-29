@@ -285,7 +285,7 @@ Form specification with 17 configuration fields.
           "id": "hinge-info-electric-hinge-position-2",
           "name": "ELECTRIC_HINGE_POSITION",
           "label": "Electric Hinge Position",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -332,7 +332,7 @@ Form specification with 17 configuration fields.
           "id": "hinge-info-elec-hinge-door",
           "name": "ELEC_HINGE_DOOR",
           "label": "Elec Hinge Door",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

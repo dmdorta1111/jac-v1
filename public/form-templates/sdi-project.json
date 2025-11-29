@@ -124,7 +124,7 @@
           "id": "SDI-Project-opening-type",
           "name": "OPENING_TYPE",
           "label": "Opening Type",
-          "type": "radio",
+          "type": "select",
           "required": true,
           "defaultValue": 3,
           "options": [
@@ -154,7 +154,7 @@
           "id": "SDI-Project-handi",
           "name": "HANDI_",
           "label": "Hand",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "defaultValue": 0,
           "options": [

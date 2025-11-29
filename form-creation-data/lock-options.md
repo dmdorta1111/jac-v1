@@ -192,7 +192,7 @@ Form specification with 15 configuration fields.
           "id": "lock-options-lock-type",
           "name": "LOCK_TYPE",
           "label": "Lock Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -205,7 +205,7 @@ Form specification with 15 configuration fields.
           "id": "lock-options-lock-electrified-2",
           "name": "LOCK_ELECTRIFIED",
           "label": "Lock Electrified",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -226,7 +226,7 @@ Form specification with 15 configuration fields.
           "id": "lock-options-backset-reference",
           "name": "BACKSET_REFERENCE",
           "label": "Backset Reference",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

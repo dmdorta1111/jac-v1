@@ -175,7 +175,7 @@ Form specification with 21 configuration fields.
           "id": "lite-info-construction",
           "name": "CONSTRUCTION_",
           "label": "Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -196,7 +196,7 @@ Form specification with 21 configuration fields.
           "id": "lite-info-head-grain",
           "name": "HEAD_GRAIN_",
           "label": "Head Grain",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

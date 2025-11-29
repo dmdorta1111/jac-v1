@@ -13,8 +13,8 @@ export default function Home() {
       {/* Subtle grid pattern for depth
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#00000008_1px,transparent_1px),linear-gradient(to_bottom,#00000008_1px,transparent_1px)] bg-[size:24px_24px] dark:bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)]" /> */}
 
-      {/* Main Content - Centered Container */}
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl flex-1 flex-col">
+      {/* Main Content - Full Width Container */}
+      <div className="relative z-10 flex h-full w-full flex-1 flex-col">
         <ClaudeChat />
       </div>
     </div>

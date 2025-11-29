@@ -30,7 +30,7 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
-      "group flex w-full max-w-[80%] flex-col gap-2",
+      "group flex flex-col gap-2",
       from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
       className
     )}
@@ -47,7 +47,7 @@ export const MessageContent = ({
 }: MessageContentProps) => (
   <div
     className={cn(
-      "flex w-fit flex-col gap-2.5 overflow-hidden text-sm",
+      "flex flex-col gap-2.5 text-sm",
       "group-[.is-user]:ml-auto group-[.is-user]:rounded-xl group-[.is-user]:bg-primary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-primary-foreground group-[.is-user]:shadow-sm",
       "group-[.is-assistant]:text-foreground",
       className

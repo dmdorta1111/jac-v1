@@ -24,10 +24,22 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   // Validate expression syntax (whitelist approach)
   validateExpression(jsExpression);
 
+  // Extract variable names from expression and ensure they exist in context
+  // Default undefined variables to null to prevent ReferenceError
+  const expressionVars = extractVariableNames(jsExpression);
+  const safeContext: Record<string, any> = { ...context };
+
+  for (const varName of expressionVars) {
+    if (!(varName in safeContext)) {
+      safeContext[varName] = null;
+      console.log(`Variable "${varName}" not in context, defaulting to null`);
+    }
+  }
+
   try {
     // Create function with context variables as parameters
-    const varNames = Object.keys(context);
-    const varValues = Object.values(context);
+    const varNames = Object.keys(safeContext);
+    const varValues = Object.values(safeContext);
 
     // Build function body with safe evaluation
     const fn = new Function(...varNames, `return ${jsExpression};`);
@@ -41,6 +53,25 @@ export function safeEval(expression: string, context: Record<string, any>): bool
     console.error('Expression evaluation error:', error, 'Expression:', jsExpression);
     throw new Error(`Failed to evaluate condition: ${expression}`);
   }
+}
+
+/**
+ * Extract variable names from a JavaScript expression
+ * Matches identifiers that are not keywords, operators, or literals
+ */
+function extractVariableNames(expression: string): string[] {
+  // Remove string literals first to avoid matching inside strings
+  const withoutStrings = expression.replace(/'[^']*'|"[^"]*"/g, '');
+
+  // Match valid JavaScript identifiers
+  const identifierPattern = /\b([A-Z_][A-Z0-9_]*)\b/gi;
+  const matches = withoutStrings.match(identifierPattern) || [];
+
+  // Filter out JavaScript keywords and boolean literals
+  const keywords = new Set(['true', 'false', 'null', 'undefined', 'NaN', 'Infinity']);
+  const uniqueVars = [...new Set(matches)].filter(v => !keywords.has(v.toLowerCase()));
+
+  return uniqueVars;
 }
 
 /**

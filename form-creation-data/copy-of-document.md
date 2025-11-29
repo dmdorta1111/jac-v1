@@ -183,7 +183,7 @@ Form specification with 20 configuration fields.
           "id": "Copy of Document-add-revision",
           "name": "ADD_REVISION",
           "label": "Add Revision",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -200,7 +200,7 @@ Form specification with 20 configuration fields.
           "id": "Copy of Document-as-built",
           "name": "AS_BUILT",
           "label": "As Built",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

@@ -12,6 +12,7 @@ interface GenerateDocRequest {
   projectData: Record<string, any>;
   action: 'initial_quote' | 'project_header' | 'quote';
   targetFolder?: string;
+  output?: 'md' | 'json';  // Output format: markdown (default) or JSON
 }
 
 /**
@@ -78,7 +79,7 @@ Update this file as project requirements evolve.
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateDocRequest = await request.json();
-    const { projectData, action, targetFolder } = body;
+    const { projectData, action, targetFolder, output = 'md' } = body;
 
     // Validate required fields
     if (!projectData) {
@@ -103,6 +104,28 @@ export async function POST(request: NextRequest) {
           { error: 'Invalid or non-existent target folder' },
           { status: 400 }
         );
+      }
+
+      // Handle JSON output for project header
+      if (output === 'json') {
+        const jsonContent = {
+          ...projectData,
+          createdAt: new Date().toISOString(),
+        };
+        const jsonFilename = 'project-header.json';
+        const jsonPath = path.join(validatedPath, jsonFilename);
+
+        await writeFile(jsonPath, JSON.stringify(jsonContent, null, 2), 'utf-8');
+
+        const relativePath = path.relative(process.cwd(), jsonPath);
+
+        return NextResponse.json({
+          success: true,
+          filename: jsonFilename,
+          path: relativePath,
+          data: jsonContent,
+          message: 'Project header JSON saved successfully',
+        });
       }
 
       // Save to project root as project-header.md

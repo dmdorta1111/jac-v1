@@ -4,7 +4,7 @@ import { useState } from 'react';
 import DynamicFormRenderer from '@/components/DynamicFormRenderer';
 
 // Local type definition (not exported from DynamicFormRenderer)
-type FormFieldValue = string | number | boolean | string[] | Date | Record<string, string | number> | undefined;
+type FormFieldValue = string | number | boolean | (string | number)[] | Date | Record<string, string | number> | undefined;
 
 // Test form spec with multiple table fields and scenarios
 const testFormSpec = {

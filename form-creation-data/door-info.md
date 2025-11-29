@@ -290,7 +290,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-door-construction",
           "name": "DOOR_CONSTRUCTION_",
           "label": "Door Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -307,7 +307,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-core",
           "name": "CORE",
           "label": "Core",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -330,7 +330,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-hinge-edge",
           "name": "HINGE_EDGE_",
           "label": "Hinge Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -351,7 +351,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-strike-edge",
           "name": "STRIKE_EDGE_",
           "label": "Strike Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -372,7 +372,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-top-edge",
           "name": "TOP_EDGE_",
           "label": "Top Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -405,7 +405,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-bottom-edge",
           "name": "BOTTOM_EDGE_",
           "label": "Bottom Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -438,7 +438,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-top-edge-2",
           "name": "TOP_EDGE_",
           "label": "Top Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -467,7 +467,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-bottom-edge-2",
           "name": "BOTTOM_EDGE_",
           "label": "Bottom Edge",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -496,7 +496,7 @@ Form specification with 29 configuration fields.
           "id": "door-info-astragal-door",
           "name": "ASTRAGAL_DOOR_",
           "label": "Astragal Door",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

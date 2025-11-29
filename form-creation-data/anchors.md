@@ -297,7 +297,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-type",
           "name": "ANCHOR_TYPE",
           "label": "Anchor Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -354,7 +354,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-floor-clips",
           "name": "FLOOR_CLIPS_",
           "label": "Floor Clips",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -387,7 +387,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-base-clips",
           "name": "BASE_CLIPS",
           "label": "Base Clips",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -416,7 +416,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-surf",
           "name": "ANCHOR_SURF",
           "label": "Anchor Surf",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -443,7 +443,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-bolt-type",
           "name": "ANCHOR_BOLT_TYPE",
           "label": "Anchor Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -484,7 +484,7 @@ Form specification with 23 configuration fields.
           "id": "anchors-anchor-strap-type",
           "name": "ANCHOR_STRAP_TYPE",
           "label": "Anchor Strap Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

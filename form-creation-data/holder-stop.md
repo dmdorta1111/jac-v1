@@ -222,7 +222,7 @@ Form specification with 11 configuration fields.
           "id": "holder-stop-hs-type",
           "name": "HS_TYPE",
           "label": "Hs Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

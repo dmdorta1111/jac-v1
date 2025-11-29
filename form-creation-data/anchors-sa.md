@@ -66,7 +66,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-type",
           "name": "ANCHOR_TYPE",
           "label": "Anchor Type",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "required": true,
           "options": [
             {
@@ -178,7 +178,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-floor-clips",
           "name": "FLOOR_CLIPS_",
           "label": "Floor Clips",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             {
               "value": 0,
@@ -210,7 +210,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-base-clips",
           "name": "BASE_CLIPS",
           "label": "Base Clips",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             {
               "value": 0,
@@ -523,7 +523,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-surf",
           "name": "ANCHOR_SURF",
           "label": "Anchor Surface",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             {
               "value": 0,
@@ -554,7 +554,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-bolt-type",
           "name": "ANCHOR_BOLT_TYPE",
           "label": "Anchor Bolt Type",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             {
               "value": 0,
@@ -589,7 +589,7 @@ Form specification with 28 configuration fields for anchor settings with advance
           "id": "anchors-sa-anchor-strap-type",
           "name": "ANCHOR_STRAP_TYPE",
           "label": "Anchor Strap Type",
-          "type": "radioGroup",
+          "type": "switchGroup",
           "options": [
             {
               "value": 0,

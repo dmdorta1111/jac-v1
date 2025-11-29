@@ -45,7 +45,7 @@ Form specification with 5 configuration fields.
           "id": "door-louver-door-louver",
           "name": "DOOR_LOUVER",
           "label": "Door Louver",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -76,7 +76,7 @@ Form specification with 5 configuration fields.
           "id": "door-louver-louver-dimension-method",
           "name": "LOUVER_DIMENSION_METHOD",
           "label": "Louver Dimension Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

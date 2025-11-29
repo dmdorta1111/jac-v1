@@ -37,7 +37,7 @@ Form specification with 4 configuration fields.
           "id": "transom-panel-transom-panel-attach-method",
           "name": "TRANSOM_PANEL_ATTACH_METHOD",
           "label": "Transom Panel Attach Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -58,7 +58,7 @@ Form specification with 4 configuration fields.
           "id": "transom-panel-transom-panel-core",
           "name": "TRANSOM_PANEL_CORE",
           "label": "Transom Panel Core",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

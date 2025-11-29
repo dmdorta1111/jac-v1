@@ -200,7 +200,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-door-lite",
           "name": "DOOR_LITE",
           "label": "Door Lite",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -231,7 +231,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-door-lite-trim-type",
           "name": "DOOR_LITE_TRIM_TYPE_",
           "label": "Door Lite Trim Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -260,7 +260,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-rem-stop-side",
           "name": "REM_STOP_SIDE",
           "label": "Rem Stop Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -296,7 +296,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-vision-shape",
           "name": "VISION_SHAPE_",
           "label": "Vision Shape",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -313,7 +313,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-glass-supplier",
           "name": "GLASS_SUPPLIER_",
           "label": "Glass Supplier",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -330,7 +330,7 @@ Form specification with 17 configuration fields.
           "id": "door-lite-old-glass-installer",
           "name": "GLASS_INSTALLER_",
           "label": "Glass Installer",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

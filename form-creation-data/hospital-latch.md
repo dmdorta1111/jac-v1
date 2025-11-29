@@ -21,7 +21,7 @@ Form specification with 1 configuration fields.
           "id": "hospital-latch-orientation",
           "name": "ORIENTATION",
           "label": "Orientation",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

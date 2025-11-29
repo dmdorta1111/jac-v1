@@ -45,7 +45,7 @@ Form specification with 5 configuration fields.
           "id": "steel-stiff-info-steel-stiffener-material",
           "name": "STEEL_STIFFENER_MATERIAL",
           "label": "Steel Stiffener Material",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -62,7 +62,7 @@ Form specification with 5 configuration fields.
           "id": "steel-stiff-info-steel-stiffener-insulation",
           "name": "STEEL_STIFFENER_INSULATION",
           "label": "Steel Stiffener Insulation",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

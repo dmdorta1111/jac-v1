@@ -46,7 +46,7 @@ Form specification with 6 configuration fields.
           "id": "Parameters-operation",
           "name": "OPERATION",
           "label": "Operation",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -67,7 +67,7 @@ Form specification with 6 configuration fields.
           "id": "Parameters-model-type",
           "name": "MODEL_TYPE",
           "label": "Model Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -88,7 +88,7 @@ Form specification with 6 configuration fields.
           "id": "Parameters-parameter-type",
           "name": "PARAMETER_TYPE",
           "label": "Parameter Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

@@ -366,7 +366,7 @@ const CircleStepIndicator = ({
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-sm font-medium" aria-live="polite">
-          {currentStep} of {totalSteps}
+          {Math.round(fillPercentage)}%
         </span>
       </div>
     </div>

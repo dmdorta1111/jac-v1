@@ -105,7 +105,7 @@ const CircleStepIndicator = ({ currentStep, totalSteps, size = 80, strokeWidth =
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-sm font-medium" aria-live="polite">
-          {currentStep} of {totalSteps}
+          {Math.round(fillPercentage)}%
         </span>
       </div>
     </div>
@@ -888,23 +888,6 @@ export function ClaudeChat() {
         onDeleteSession={deleteSession}
       />
 
-      {/* Vertical Stepper - Desktop Only */}
-      {showStepper && (
-        <div className="hidden lg:flex flex-col w-64 shrink-0 border-r border-border bg-background/50 backdrop-blur-sm p-6 animate-in slide-in-from-left duration-300 ease-out">
-          <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wide">Project Steps</h3>
-          <Stepper.Provider variant="vertical" className="flex-1">
-            <Stepper.Navigation className="flex flex-col gap-4">
-              {steps.map((step, index) => (
-                <Stepper.Step key={step.id} of={step.id}>
-                  <Stepper.Title className="text-foreground">{step.title}</Stepper.Title>
-                  <Stepper.Description className="text-muted-foreground text-xs">{step.description}</Stepper.Description>
-                </Stepper.Step>
-              ))}
-            </Stepper.Navigation>
-          </Stepper.Provider>
-        </div>
-      )}
-
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col items-center w-full">
         {/* CircleStepIndicator - Show when SDI flow is active */}
@@ -916,15 +899,11 @@ export function ClaudeChat() {
               size={60}
               strokeWidth={5}
             />
-            <div className="ml-4 text-sm text-muted-foreground">
-              <p className="font-semibold">SDI Form Flow</p>
-              <p className="text-xs">Step {currentStepOrder + 1} of {totalSteps}</p>
-            </div>
           </div>
         )}
 
         {/* Messages Area */}
-        <div className="w-full flex-1 overflow-y-auto px-6 py-4 sm:px-8">
+        <div className="w-full flex-1 overflow-y-auto px-3 py-3 sm:px-6 sm:py-4 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {messages.length === 0 ? (
             <WelcomeScreen
               onSuggestionClick={(text) => handleSubmit({ text, files: [] })}
@@ -932,7 +911,7 @@ export function ClaudeChat() {
               setProjectContext={setProjectContext}
             />
           ) : (
-            <div className="mx-auto flex max-w-4xl flex-col gap-6">
+            <div className="flex w-full flex-col gap-4 sm:gap-6 px-2 sm:px-4 lg:px-8">
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} message={msg} onFormSubmit={handleFormSubmit} validationErrors={validationErrors} />
               ))}
@@ -946,7 +925,7 @@ export function ClaudeChat() {
         {error && (
           <div
             role="alert"
-            className="mx-auto w-full max-w-4xl flex items-center gap-3 rounded-lg bg-red-50 px-6 py-3 text-sm text-red-600 shadow-md dark:bg-destructive/10 dark:text-red-400"
+            className="mx-4 md:mx-8 flex items-center gap-3 rounded-lg bg-red-50 px-6 py-3 text-sm text-red-600 shadow-md dark:bg-destructive/10 dark:text-red-400"
           >
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
             <span className="flex-1">{error}</span>
@@ -1185,7 +1164,7 @@ function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { messa
   );
 
   const messageBody = (
-    <>
+    <div className={hasForm ? 'w-full' : ''}>
           {isUser ? (
             <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-zinc-800 dark:text-zinc-100">
               {message.text}
@@ -1216,7 +1195,7 @@ function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { messa
 
           {/* Dynamic Form */}
           {hasForm && onFormSubmit && (
-            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
+            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4 w-full">
               <DynamicFormRenderer
                 formSpec={message.formSpec}
                 onSubmit={onFormSubmit}
@@ -1235,7 +1214,7 @@ function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { messa
               minute: "2-digit",
             })}
           </span>
-      </>
+      </div>
     );
 
     return (
@@ -1250,9 +1229,9 @@ function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { messa
             <div className="flex flex-col items-end">{Avatar}</div>
           </div>
         ) : (
-          <div className="flex items-start gap-3">
+          <div className={`flex items-start gap-3 ${hasForm ? 'w-full' : ''}`}>
             <div className="flex flex-col items-start">{Avatar}</div>
-            <MessageComponent from={role} className="max-w-[90%] text-left">
+            <MessageComponent from={role} className={`text-left ${hasForm ? 'flex-1 max-w-none' : 'max-w-[90%]'}`}>
               <MessageContent className="rounded-none bg-transparent px-0 py-0 text-foreground shadow-none">
                 {messageBody}
               </MessageContent>

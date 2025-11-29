@@ -176,7 +176,7 @@ Form specification with 20 configuration fields.
           "id": "frame-5-20-construction",
           "name": "CONSTRUCTION",
           "label": "Construction",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

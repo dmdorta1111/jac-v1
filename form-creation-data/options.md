@@ -564,7 +564,7 @@ Form specification with 38 configuration fields.
           "id": "options-ept-2",
           "name": "EPT",
           "label": "Ept",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -599,7 +599,7 @@ Form specification with 38 configuration fields.
           "id": "options-dps-2",
           "name": "DPS",
           "label": "Dps",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -634,7 +634,7 @@ Form specification with 38 configuration fields.
           "id": "options-mag-lock-2",
           "name": "MAG_LOCK",
           "label": "Mag Lock",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -669,7 +669,7 @@ Form specification with 38 configuration fields.
           "id": "options-flush-bolts",
           "name": "FLUSH_BOLTS",
           "label": "Flush Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -704,7 +704,7 @@ Form specification with 38 configuration fields.
           "id": "options-top-bolt-type",
           "name": "TOP_BOLT_TYPE",
           "label": "Top Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -736,7 +736,7 @@ Form specification with 38 configuration fields.
           "id": "options-bottom-bolt-type",
           "name": "BOTTOM_BOLT_TYPE",
           "label": "Bottom Bolt Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -768,7 +768,7 @@ Form specification with 38 configuration fields.
           "id": "options-surface-bolts",
           "name": "SURFACE_BOLTS",
           "label": "Surface Bolts",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -803,7 +803,7 @@ Form specification with 38 configuration fields.
           "id": "options-auto-bottom",
           "name": "AUTO_BOTTOM",
           "label": "Auto Bottom",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -839,7 +839,7 @@ Form specification with 38 configuration fields.
           "id": "options-lead-lined",
           "name": "LEAD_LINED",
           "label": "Lead Lined",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

@@ -37,7 +37,7 @@ Form specification with 3 configuration fields.
           "id": "flush-pull-flush-pull-side",
           "name": "FLUSH_PULL_SIDE",
           "label": "Flush Pull Side",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

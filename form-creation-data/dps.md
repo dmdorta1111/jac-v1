@@ -177,7 +177,7 @@ Form specification with 9 configuration fields.
           "id": "dps-dps",
           "name": "DPS",
           "label": "Dps",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
@@ -212,7 +212,7 @@ Form specification with 9 configuration fields.
           "id": "dps-dps-position",
           "name": "DPS_POSITION",
           "label": "Dps Position",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

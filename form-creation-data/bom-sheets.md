@@ -68,7 +68,7 @@ Form specification with 4 configuration fields.
           "id": "BOM-Sheets-process-type",
           "name": "PROCESS_TYPE_",
           "label": "Process Type",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {

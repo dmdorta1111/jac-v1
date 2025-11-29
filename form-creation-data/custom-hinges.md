@@ -297,7 +297,7 @@ Form specification with 18 configuration fields.
           "id": "custom-hinges-hinge-dimension-method",
           "name": "HINGE_DIMENSION_METHOD",
           "label": "Hinge Dimension Method",
-          "type": "radio",
+          "type": "select",
           "required": false,
           "options": [
             {
