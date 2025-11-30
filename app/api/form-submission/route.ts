@@ -97,17 +97,32 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/form-submission?sessionId=xxx
- * Retrieve all form submissions for a session
+ * GET /api/form-submission
+ * Retrieve form submissions with flexible query options:
+ * - ?sessionId=xxx - Get all submissions for a session
+ * - ?salesOrderNumber=xxx - Get all submissions for a project (for session rebuild)
+ * - ?salesOrderNumber=xxx&itemNumber=001 - Get submissions for specific item
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
+    const salesOrderNumber = searchParams.get('salesOrderNumber');
+    const itemNumber = searchParams.get('itemNumber');
 
-    if (!sessionId) {
+    // Build query based on provided parameters
+    const query: Record<string, unknown> = {};
+
+    if (sessionId) {
+      query.sessionId = sessionId;
+    } else if (salesOrderNumber) {
+      query['metadata.salesOrderNumber'] = salesOrderNumber;
+      if (itemNumber) {
+        query['metadata.itemNumber'] = itemNumber;
+      }
+    } else {
       return NextResponse.json(
-        { success: false, error: 'sessionId parameter is required' },
+        { success: false, error: 'Either sessionId or salesOrderNumber parameter is required' },
         { status: 400 }
       );
     }
@@ -116,13 +131,13 @@ export async function GET(request: NextRequest) {
 
     const submissions = await db
       .collection('form_submissions')
-      .find({ sessionId })
+      .find(query)
       .sort({ 'metadata.submittedAt': 1 })
       .toArray();
 
     return NextResponse.json({
       success: true,
-      sessionId,
+      query: sessionId ? { sessionId } : { salesOrderNumber, itemNumber },
       count: submissions.length,
       submissions,
     });

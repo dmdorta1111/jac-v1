@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
+import { Box, CheckCircle2, Clock, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
@@ -13,6 +13,12 @@ export interface ChatSession {
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
+  itemNumber?: string;
+  projectMetadata?: any;
+  flowState?: Record<string, any>;
+  flowComplete?: boolean;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export interface Message {
@@ -114,13 +120,13 @@ export function LeftSidebar({
       <aside
         id="chat-sidebar"
         role="navigation"
-        aria-label="Chat sessions"
+        aria-label=''
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
       >
-        {/* New Chat Button */}
-        <div className="shrink-0 pb-3">
+
+        {/* <div className="shrink-0 pb-3">
           <Button
             onClick={onNewChat}
             className="flex w-full items-center justify-center gap-2.5 border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -128,7 +134,7 @@ export function LeftSidebar({
             <Plus className="size-5" />
             New Item
           </Button>
-        </div>
+        </div> */}
         {/* Workflow Viewer Button
         <div className="mb-4">
           <button
@@ -149,10 +155,7 @@ export function LeftSidebar({
 
         {/* Chat Sessions List */}
         <div className="flex-1 min-h-0 overflow-y-auto py-2 pb-2">
-          <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Recent Chats
-          </p>
-          <div className="space-y-1.5 pb-2" role="listbox" aria-label="Chat sessions">
+          <div className="space-y-1.5 pb-2" role="listbox" aria-label="">
             {chatSessions.length === 0 ? (
               <EmptyState />
             ) : (
@@ -212,6 +215,16 @@ interface SessionItemProps {
 }
 
 function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemProps) {
+  // Determine status icon
+  const StatusIcon = session.flowComplete ? CheckCircle2 : Clock;
+  const statusColor = session.flowComplete ? "text-green-500" : "text-yellow-500";
+  const statusLabel = session.flowComplete ? "Completed" : "In Progress";
+
+  // Calculate progress percentage if available
+  const progressText = session.currentStep !== undefined && session.totalSteps
+    ? `${Math.round((session.currentStep / session.totalSteps) * 100)}%`
+    : null;
+
   return (
     <div
       role="option"
@@ -230,10 +243,20 @@ function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemPro
           : "text-foreground hover:bg-accent"
       }`}
     >
-      <MessageSquare className="size-4 shrink-0" aria-hidden="true" />
+      {/* Status Icon */}
+      <StatusIcon
+        className={`size-4 shrink-0 ${statusColor}`}
+        aria-label={statusLabel}
+      />
       <span className="flex-1 truncate text-sm font-medium">
         {session.title || 'New Item'}
       </span>
+      {/* Progress indicator */}
+      {progressText && (
+        <span className="text-xs text-muted-foreground shrink-0">
+          {progressText}
+        </span>
+      )}
       <Button
         type="button"
         variant="ghost"

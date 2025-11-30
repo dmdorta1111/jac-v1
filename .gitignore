@@ -76,6 +76,9 @@ prompt.md
 #SmartAssembly
 SmartAssembly/
 
+# Lock files (item number reservation)
+**/.item-lock
+
 # Windows reserved names
 nul
 NUL

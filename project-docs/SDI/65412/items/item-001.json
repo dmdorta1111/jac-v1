@@ -1,0 +1,32 @@
+{
+  "_metadata": {
+    "itemNumber": "001",
+    "lastUpdated": "2025-11-29T19:17:24.587Z",
+    "formIds": [
+      "options"
+    ]
+  },
+  "options": {
+    "HINGES": true,
+    "CLOSER": false,
+    "WELDED_PREPS": false,
+    "PRIMARY_LOCK": false,
+    "SECONDARY_LOCK": false,
+    "DUMMY_TRIM": false,
+    "PRIMARY_STRIKE": false,
+    "SECONDARY_STRIKE": false,
+    "PUSH_PULL": false,
+    "HOLDER_STOP": false,
+    "AUTO_OPERATOR": false,
+    "COORDINATOR": false,
+    "MAG_LOCK_SINGLE": false,
+    "EPT_SINGLE": false,
+    "DPS_SINGLE": false,
+    "ASTRAGAL": false,
+    "ASTRAGAL_INSTALLED": false,
+    "HEAD_STRIKE": false,
+    "SILENCERS": false,
+    "DOOR_EDGE_REINFORCEMENT": false,
+    "KICK_PLATE": false
+  }
+}

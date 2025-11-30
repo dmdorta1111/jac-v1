@@ -1,0 +1,18 @@
+{
+  "ITEM_NUM": "002",
+  "QTY": 1,
+  "JOW": 12,
+  "JOH": 1,
+  "JD": 1,
+  "FIRE_RATING": 1,
+  "DOOR_QTY": 2,
+  "SUBMITTAL": false,
+  "APPROVAL": false,
+  "DOOR_LABEL_CONSTRUCTION": false,
+  "MULTIPLE_TAGS": false,
+  "SDI_LOCATION": false,
+  "OPENING_TYPE": 1,
+  "HANDI_": 0,
+  "productType": "SDI",
+  "createdAt": "2025-11-30T02:34:42.303Z"
+}

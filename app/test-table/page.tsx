@@ -196,6 +196,7 @@ export default function TestTablePage() {
       {showForm ? (
         <DynamicFormRenderer
           formSpec={testFormSpec}
+          sessionId="test-page-session"
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />

@@ -1,21 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, readFile, mkdir, readdir } from 'fs/promises';
+import fs, { writeFile, readFile, mkdir, readdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 
 /**
  * POST /api/save-item-data
  * Save/merge item form data to JSON file
+ * Handles file renaming when item number changes
  *
  * Body:
  * - projectPath: string (e.g., "project-docs/SDI/SO123")
- * - itemNumber: string (e.g., "001")
+ * - itemNumber: string (e.g., "001") - the NEW/current item number
+ * - originalItemNumber: string (optional) - the ORIGINAL item number (for rename detection)
  * - formData: Record<string, any>
  * - merge: boolean (default true - merge with existing)
+ * - sessionId: string (optional) - for MongoDB updates
+ * - salesOrderNumber: string (optional) - for MongoDB updates
  */
 export async function POST(request: NextRequest) {
   try {
-    const { projectPath, itemNumber, formData, merge = true } = await request.json();
+    const {
+      projectPath,
+      itemNumber,
+      originalItemNumber,  // NEW: Track original for rename
+      formId,
+      formData,
+      merge = true,
+      sessionId,
+      salesOrderNumber,
+    } = await request.json();
 
     // Validate required fields
     if (!projectPath || !itemNumber || !formData) {
@@ -33,57 +46,130 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Sanitize item number
-    const sanitizedItemNumber = String(itemNumber).replace(/[^a-zA-Z0-9-_]/g, '');
-    if (!sanitizedItemNumber) {
+    // Sanitize and validate item numbers (must be 3 digits)
+    const sanitizedItemNumber = String(itemNumber).replace(/[^0-9]/g, '').padStart(3, '0');
+    if (!sanitizedItemNumber || !/^\d{3}$/.test(sanitizedItemNumber)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid item number' },
+        { success: false, error: 'Item number must be 3 digits (e.g., "001")' },
         { status: 400 }
       );
     }
 
+    const sanitizedOriginalItemNumber = originalItemNumber
+      ? String(originalItemNumber).replace(/[^0-9]/g, '').padStart(3, '0')
+      : null;
+
     // Build paths
     const itemsDir = path.join(process.cwd(), projectPath, 'items');
-    const itemFile = path.join(itemsDir, `${sanitizedItemNumber}.json`);
+    const itemFile = path.join(itemsDir, `item-${sanitizedItemNumber}.json`);
+    const originalItemFile = sanitizedOriginalItemNumber
+      ? path.join(itemsDir, `item-${sanitizedOriginalItemNumber}.json`)
+      : null;
 
     // Ensure items directory exists
     await mkdir(itemsDir, { recursive: true });
 
-    // Merge with existing data if requested and file exists
-    let finalData = { ...formData };
+    // Check if item number changed (rename scenario)
+    const isRename = sanitizedOriginalItemNumber &&
+                     sanitizedOriginalItemNumber !== sanitizedItemNumber;
 
-    if (merge && existsSync(itemFile)) {
+    let existingData: any = {};
+    let existingFormIds: string[] = [];
+
+    if (isRename && originalItemFile && existsSync(originalItemFile)) {
+      // RENAME SCENARIO: Load data from ORIGINAL file
+      try {
+        const existingContent = await readFile(originalItemFile, 'utf-8');
+        existingData = JSON.parse(existingContent);
+        existingFormIds = existingData._metadata?.formIds || [];
+        console.log(`Rename detected: ${sanitizedOriginalItemNumber} -> ${sanitizedItemNumber}`);
+      } catch (parseError) {
+        console.warn('Failed to parse original item file:', parseError);
+      }
+    } else if (merge && existsSync(itemFile)) {
+      // Normal merge: Load from target file
       try {
         const existingContent = await readFile(itemFile, 'utf-8');
-        const existingData = JSON.parse(existingContent);
-        finalData = {
-          ...existingData,
-          ...formData,
-          updatedAt: new Date().toISOString(),
-        };
+        existingData = JSON.parse(existingContent);
+        existingFormIds = existingData._metadata?.formIds || [];
       } catch (parseError) {
-        console.warn('Failed to parse existing item file, overwriting:', parseError);
-        finalData = {
-          ...formData,
-          createdAt: new Date().toISOString(),
-        };
+        console.warn('Failed to parse existing item file, starting fresh:', parseError);
       }
-    } else {
-      finalData = {
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
     }
 
-    // Write file
+    // Merge new form data (accumulate all forms)
+    const finalData = {
+      ...existingData,
+      ...(formId ? { [formId]: formData } : formData),
+      _metadata: {
+        itemNumber: sanitizedItemNumber,
+        lastUpdated: new Date().toISOString(),
+        formIds: formId
+          ? Array.from(new Set([...existingFormIds, formId]))
+          : existingFormIds,
+        ...(isRename ? { renamedFrom: sanitizedOriginalItemNumber } : {}),
+      },
+    };
+
+    // Write to NEW file location
     await writeFile(itemFile, JSON.stringify(finalData, null, 2), 'utf-8');
 
+    // DELETE original file if renamed
+    if (isRename && originalItemFile && existsSync(originalItemFile)) {
+      try {
+        await fs.unlink(originalItemFile);
+        console.log(`Deleted original file: item-${sanitizedOriginalItemNumber}.json`);
+      } catch (unlinkError) {
+        console.warn('Failed to delete original file:', unlinkError);
+      }
+    }
+
+    // Update MongoDB if session info provided
+    if (isRename && sessionId && salesOrderNumber) {
+      try {
+        // Dynamic import to avoid issues if MongoDB not configured
+        const { MongoClient } = await import('mongodb');
+        const uri = process.env.MONGODB_URI;
+
+        if (uri) {
+          const client = new MongoClient(uri);
+          await client.connect();
+          const db = client.db('jac-forms');
+
+          // Update all form submissions for this session with new item number
+          const result = await db.collection('form-submissions').updateMany(
+            {
+              sessionId,
+              'metadata.salesOrderNumber': salesOrderNumber,
+            },
+            {
+              $set: {
+                'metadata.itemNumber': sanitizedItemNumber,
+                'metadata.renamedFrom': sanitizedOriginalItemNumber,
+                'metadata.renamedAt': new Date().toISOString(),
+              }
+            }
+          );
+
+          console.log(`Updated ${result.modifiedCount} MongoDB records for item rename`);
+          await client.close();
+        }
+      } catch (dbError) {
+        console.warn('MongoDB update failed (non-blocking):', dbError);
+        // Continue - file rename succeeded, DB update is best-effort
+      }
+    }
+
     const relativePath = path.relative(process.cwd(), itemFile);
+
+    console.log(`Saved ${formId || 'form data'} to item-${sanitizedItemNumber}.json${isRename ? ` (renamed from ${sanitizedOriginalItemNumber})` : ''}`);
 
     return NextResponse.json({
       success: true,
       filePath: relativePath,
       itemNumber: sanitizedItemNumber,
+      renamed: isRename,
+      renamedFrom: isRename ? sanitizedOriginalItemNumber : undefined,
     });
 
   } catch (error) {
@@ -131,8 +217,8 @@ export async function GET(request: NextRequest) {
 
     // Load specific item
     if (itemNumber) {
-      const sanitizedItemNumber = String(itemNumber).replace(/[^a-zA-Z0-9-_]/g, '');
-      const itemFile = path.join(itemsDir, `${sanitizedItemNumber}.json`);
+      const sanitizedItemNumber = String(itemNumber).replace(/[^0-9]/g, '').padStart(3, '0');
+      const itemFile = path.join(itemsDir, `item-${sanitizedItemNumber}.json`);
 
       if (!existsSync(itemFile)) {
         return NextResponse.json(
@@ -163,15 +249,19 @@ export async function GET(request: NextRequest) {
     const jsonFiles = files.filter(f => f.endsWith('.json'));
 
     const items = await Promise.all(
-      jsonFiles.map(async (filename) => {
-        const filePath = path.join(itemsDir, filename);
-        const content = await readFile(filePath, 'utf-8');
-        const data = JSON.parse(content);
-        return {
-          itemNumber: filename.replace('.json', ''),
-          data,
-        };
-      })
+      jsonFiles
+        .filter(f => /^item-\d{3}\.json$/.test(f))  // Only item-XXX.json files
+        .map(async (filename) => {
+          const filePath = path.join(itemsDir, filename);
+          const content = await readFile(filePath, 'utf-8');
+          const data = JSON.parse(content);
+          // Extract item number from filename (item-001.json -> 001)
+          const match = filename.match(/^item-(\d{3})\.json$/);
+          return {
+            itemNumber: match ? match[1] : filename.replace('.json', ''),
+            data,
+          };
+        })
     );
 
     return NextResponse.json({

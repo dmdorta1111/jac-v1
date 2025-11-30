@@ -1,0 +1,40 @@
+{
+  "_metadata": {
+    "itemNumber": "000",
+    "lastUpdated": "2025-11-30T02:51:44.540Z",
+    "formIds": [
+      "options"
+    ],
+    "renamedFrom": "001"
+  },
+  "options": {
+    "FLUSH_BOLT_CENTER_TOP": null,
+    "FLUSH_BOLT_CENTER_BOTTOM": null,
+    "SILENCER_HOLE_DIA": null,
+    "HASP_CENTER": null,
+    "TUFLOCK_CENTER": null,
+    "PEEP_CL": null,
+    "PEEP_DIA": null,
+    "HINGES": true,
+    "CLOSER": false,
+    "WELDED_PREPS": false,
+    "PRIMARY_LOCK": false,
+    "SECONDARY_LOCK": false,
+    "DUMMY_TRIM": false,
+    "PRIMARY_STRIKE": false,
+    "SECONDARY_STRIKE": false,
+    "PUSH_PULL": false,
+    "HOLDER_STOP": false,
+    "AUTO_OPERATOR": false,
+    "COORDINATOR": false,
+    "MAG_LOCK_SINGLE": false,
+    "EPT_SINGLE": false,
+    "DPS_SINGLE": false,
+    "ASTRAGAL": false,
+    "ASTRAGAL_INSTALLED": false,
+    "HEAD_STRIKE": false,
+    "SILENCERS": false,
+    "DOOR_EDGE_REINFORCEMENT": false,
+    "KICK_PLATE": false
+  }
+}
