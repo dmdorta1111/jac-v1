@@ -22,7 +22,7 @@
           "label": "Kick Plate Width",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "kick-plate-kick-plate-height-push",
@@ -30,7 +30,7 @@
           "label": "Kick Plate Height Push",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -53,7 +53,7 @@
           "label": "Kick Plate Height Pull",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

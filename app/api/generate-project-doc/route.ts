@@ -1,8 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, readdir } from 'fs/promises';
+import { writeFile, mkdir, readdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
+
+interface FormField {
+  name: string;
+  defaultValue?: string | number | boolean;
+}
+
+interface FormSection {
+  fields: FormField[];
+}
+
+interface FormSpec {
+  sections: FormSection[];
+}
+
+/**
+ * Extract default values from a form spec JSON
+ * Returns an object with field names as keys and default values
+ */
+async function extractStandardsDefaults(): Promise<Record<string, unknown>> {
+  try {
+    const stdsFormPath = path.join(process.cwd(), 'public', 'form-templates', 'stds-form.json');
+    const content = await readFile(stdsFormPath, 'utf-8');
+    const formSpec: FormSpec = JSON.parse(content);
+
+    const defaults: Record<string, unknown> = {};
+
+    for (const section of formSpec.sections) {
+      for (const field of section.fields) {
+        if (field.defaultValue !== undefined && field.defaultValue !== '') {
+          defaults[field.name] = field.defaultValue;
+        }
+      }
+    }
+
+    return defaults;
+  } catch (error) {
+    console.error('Failed to extract standards defaults:', error);
+    return {};
+  }
+}
 
 const anthropic = new Anthropic({
   apiKey: process.env.CLAUDE_API_KEY,
@@ -108,8 +148,12 @@ export async function POST(request: NextRequest) {
 
       // Handle JSON output for project header
       if (output === 'json') {
+        // Extract standards defaults from stds-form.json
+        const standardsDefaults = await extractStandardsDefaults();
+
         const jsonContent = {
           ...projectData,
+          standards: standardsDefaults,
           createdAt: new Date().toISOString(),
         };
         const jsonFilename = 'project-header.json';

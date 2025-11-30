@@ -1,0 +1,264 @@
+{
+  "formId": "dps-ept-table",
+  "itemType": "custom",
+  "title": "DPS/EPT Selection",
+  "description": "Select a Door Position Switch (DPS) or Electric Power Transfer (EPT) from the database",
+  "sections": [
+    {
+      "id": "dps-ept-selection",
+      "title": "DPS/EPT Selection",
+      "fields": [
+        {
+          "id": "dps-ept-table-field",
+          "name": "SELECTED_DPS_EPT",
+          "label": "Available DPS and EPT Devices",
+          "type": "table",
+          "required": true,
+          "helperText": "Select a DPS or EPT configuration from the list below",
+          "columns": [
+            {
+              "key": "id",
+              "label": "ID"
+            },
+            {
+              "key": "type",
+              "label": "Type"
+            },
+            {
+              "key": "manufacturer",
+              "label": "Manufacturer"
+            },
+            {
+              "key": "modelNumber",
+              "label": "Model"
+            },
+            {
+              "key": "template",
+              "label": "Template"
+            },
+            {
+              "key": "framePrepShape",
+              "label": "Frame Shape"
+            },
+            {
+              "key": "framePrepDia",
+              "label": "Frame Dia"
+            },
+            {
+              "key": "framePrepLength",
+              "label": "Frame Len"
+            },
+            {
+              "key": "framePrepWidth",
+              "label": "Frame Width"
+            },
+            {
+              "key": "doorPrepShape",
+              "label": "Door Shape"
+            },
+            {
+              "key": "doorPrepDia",
+              "label": "Door Dia"
+            }
+          ],
+          "tableData": [
+            {
+              "__id": "dps-ept-2",
+              "id": 2,
+              "type": "DPS",
+              "manufacturer": "SCHLAGE",
+              "modelNumber": "7764",
+              "template": "77640",
+              "tabs": "7764_TAB.PRT",
+              "box": "7764_BOX.PRT",
+              "blank": "DPS_BLANK_7764.PRT",
+              "framePrepShape": 2,
+              "framePrepDia": 0,
+              "framePrepLength": 4.9375,
+              "framePrepWidth": 1.3125,
+              "doorPrepShape": "",
+              "doorPrepDia": "",
+              "doorPrepLength": "",
+              "doorPrepWidth": ""
+            },
+            {
+              "__id": "dps-ept-3",
+              "id": 3,
+              "type": "DPS",
+              "manufacturer": "GRI",
+              "modelNumber": "140T-12",
+              "template": "BA-59 REV P",
+              "tabs": "NO-VALUE",
+              "box": "DUST_BOX_DPS_RND.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 1,
+              "framePrepDia": 0.75,
+              "framePrepLength": 0,
+              "framePrepWidth": 0,
+              "doorPrepShape": "",
+              "doorPrepDia": "",
+              "doorPrepLength": "",
+              "doorPrepWidth": ""
+            },
+            {
+              "__id": "dps-ept-4",
+              "id": 4,
+              "type": "DPS",
+              "manufacturer": "SENTROL",
+              "modelNumber": "1076",
+              "template": "SEN1078",
+              "tabs": "NO-VALUE",
+              "box": "DUST_BOX_DPS_RND.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 1,
+              "framePrepDia": 1,
+              "framePrepLength": 0,
+              "framePrepWidth": 0,
+              "doorPrepShape": 1,
+              "doorPrepDia": 1,
+              "doorPrepLength": 0,
+              "doorPrepWidth": 0
+            },
+            {
+              "__id": "dps-ept-5",
+              "id": 5,
+              "type": "DPS",
+              "manufacturer": "SENTROL",
+              "modelNumber": "1078",
+              "template": "SEN1078",
+              "tabs": "NO-VALUE",
+              "box": "DUST_BOX_DPS_RND.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 1,
+              "framePrepDia": 1,
+              "framePrepLength": 0,
+              "framePrepWidth": 0,
+              "doorPrepShape": 1,
+              "doorPrepDia": 1,
+              "doorPrepLength": 0,
+              "doorPrepWidth": 0
+            },
+            {
+              "__id": "dps-ept-6",
+              "id": 6,
+              "type": "DPS",
+              "manufacturer": "SECURITRON",
+              "modelNumber": "DP25",
+              "template": "NA",
+              "tabs": "NO-VALUE",
+              "box": "DUST_BOX_DPS_RND.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 1,
+              "framePrepDia": 0.75,
+              "framePrepLength": 0,
+              "framePrepWidth": 0,
+              "doorPrepShape": 1,
+              "doorPrepDia": 0.75,
+              "doorPrepLength": 0,
+              "doorPrepWidth": 0
+            },
+            {
+              "__id": "dps-ept-22",
+              "id": 22,
+              "type": "EPT",
+              "manufacturer": "SCHLAGE",
+              "modelNumber": "PT1000",
+              "template": "1000 (REV 02-13-13)",
+              "tabs": "EPT_TAB.PRT",
+              "box": "DUST_BOX_EPT.PRT",
+              "blank": "EPT_BLANK_250.PRT",
+              "framePrepShape": 2,
+              "framePrepDia": 0,
+              "framePrepLength": 9.0625,
+              "framePrepWidth": 1.25,
+              "doorPrepShape": "",
+              "doorPrepDia": "",
+              "doorPrepLength": "",
+              "doorPrepWidth": ""
+            },
+            {
+              "__id": "dps-ept-23",
+              "id": 23,
+              "type": "EPT",
+              "manufacturer": "SECURITRON",
+              "modelNumber": "SC",
+              "template": "NA",
+              "tabs": "EPT_TAB.PRT",
+              "box": "DUST_BOX_EPT.PRT",
+              "blank": "EPT_BLANK_250.PRT",
+              "framePrepShape": 2,
+              "framePrepDia": 0,
+              "framePrepLength": 10.8125,
+              "framePrepWidth": 1.25,
+              "doorPrepShape": "",
+              "doorPrepDia": "",
+              "doorPrepLength": "",
+              "doorPrepWidth": ""
+            },
+            {
+              "__id": "dps-ept-24",
+              "id": 24,
+              "type": "EPT",
+              "manufacturer": "STANLEY",
+              "modelNumber": "EPT-5",
+              "template": "STA EPT-5",
+              "tabs": "NO-VALUE",
+              "box": "DUST_BOX_EPT.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 2,
+              "framePrepDia": 0,
+              "framePrepLength": 10.25,
+              "framePrepWidth": 1,
+              "doorPrepShape": 2,
+              "doorPrepDia": 0,
+              "doorPrepLength": 10.25,
+              "doorPrepWidth": 1
+            },
+            {
+              "__id": "dps-ept-25",
+              "id": 25,
+              "type": "EPT",
+              "manufacturer": "VON DUPRIN",
+              "modelNumber": "EPT-10",
+              "template": "NA",
+              "tabs": "EPT_TAB.PRT",
+              "box": "DUST_BOX_EPT.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 2,
+              "framePrepDia": 0,
+              "framePrepLength": 9.0625,
+              "framePrepWidth": 1.25,
+              "doorPrepShape": 2,
+              "doorPrepDia": 0,
+              "doorPrepLength": 9.0625,
+              "doorPrepWidth": 1.25
+            },
+            {
+              "__id": "dps-ept-26",
+              "id": 26,
+              "type": "EPT",
+              "manufacturer": "SECURITRON",
+              "modelNumber": "EL-CEPT",
+              "template": "NA",
+              "tabs": "EPT_TAB.PRT",
+              "box": "DUST_BOX_EPT.PRT",
+              "blank": "NO-VALUE",
+              "framePrepShape": 2,
+              "framePrepDia": 0,
+              "framePrepLength": 9.0625,
+              "framePrepWidth": 1.25,
+              "doorPrepShape": 2,
+              "doorPrepDia": 0,
+              "doorPrepLength": 9.0625,
+              "doorPrepWidth": 1.25
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Select DPS/EPT Device",
+    "action": "select-dps-ept"
+  }
+}

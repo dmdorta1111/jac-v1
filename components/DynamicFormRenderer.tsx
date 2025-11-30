@@ -282,16 +282,16 @@ export default function DynamicFormRenderer({
       }
     }
 
-    // Float validation (2 decimal places)
+    // Float validation (5 decimal places)
     if (field.type === 'float' && value !== '' && value !== undefined) {
       const numValue = Number(value);
       if (isNaN(numValue)) {
         return `${field.label} must be a valid number`;
       }
-      // Check if it has more than 2 decimal places
+      // Check if it has more than 5 decimal places
       const decimalPart = value.toString().split('.')[1];
-      if (decimalPart && decimalPart.length > 2) {
-        return `${field.label} must have at most 2 decimal places`;
+      if (decimalPart && decimalPart.length > 5) {
+        return `${field.label} must have at most 5 decimal places`;
       }
     }
 
@@ -714,13 +714,13 @@ export default function DynamicFormRenderer({
               id={field.id}
               name={field.name}
               type="number"
-              step="0.01"
+              step="0.00001"
               placeholder={field.placeholder}
               value={toStringValue(value)}
               onChange={(e) => {
                 const val = e.target.value;
-                // Allow decimals with up to 2 decimal places
-                if (val === '' || /^-?\d*\.?\d{0,2}$/.test(val)) {
+                // Allow decimals with up to 5 decimal places
+                if (val === '' || /^-?\d*\.?\d{0,5}$/.test(val)) {
                   handleFieldChange(field.name, val === '' ? '' : parseFloat(val));
                 }
               }}

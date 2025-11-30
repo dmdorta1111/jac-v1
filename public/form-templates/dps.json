@@ -14,7 +14,7 @@
           "label": "Dps Ctr",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -37,7 +37,7 @@
           "label": "Dps 2 Ctr",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -57,10 +57,10 @@
         {
           "id": "dps-select-dps",
           "name": "SELECT_DPS",
-          "label": "Select Dps",
+          "label": "Select DPS",
           "type": "switch",
           "defaultValue": false,
-          "helperText": "Toggle to enable",
+          "helperText": "Toggle to select a DPS from the database",
           "conditional": {
             "conditions": [
               {
@@ -76,6 +76,41 @@
             ],
             "logic": "OR"
           }
+        },
+        {
+          "id": "dps-selected-dps-table",
+          "name": "SELECTED_DPS",
+          "label": "Available DPS Devices",
+          "type": "table",
+          "required": false,
+          "helperText": "Select a Door Position Switch from the list",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SELECT_DPS",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "logic": "AND"
+          },
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "manufacturer", "label": "Manufacturer" },
+            { "key": "modelNumber", "label": "Model" },
+            { "key": "template", "label": "Template" },
+            { "key": "framePrepShape", "label": "Frame Shape" },
+            { "key": "framePrepDia", "label": "Frame Dia" },
+            { "key": "framePrepLength", "label": "Frame Len" },
+            { "key": "framePrepWidth", "label": "Frame Width" }
+          ],
+          "tableData": [
+            { "__id": "dps-2", "id": 2, "type": "DPS", "manufacturer": "SCHLAGE", "modelNumber": "7764", "template": "77640", "framePrepShape": 2, "framePrepDia": 0, "framePrepLength": 4.9375, "framePrepWidth": 1.3125 },
+            { "__id": "dps-3", "id": 3, "type": "DPS", "manufacturer": "GRI", "modelNumber": "140T-12", "template": "BA-59 REV P", "framePrepShape": 1, "framePrepDia": 0.75, "framePrepLength": 0, "framePrepWidth": 0 },
+            { "__id": "dps-4", "id": 4, "type": "DPS", "manufacturer": "SENTROL", "modelNumber": "1076", "template": "SEN1078", "framePrepShape": 1, "framePrepDia": 1, "framePrepLength": 0, "framePrepWidth": 0 },
+            { "__id": "dps-5", "id": 5, "type": "DPS", "manufacturer": "SENTROL", "modelNumber": "1078", "template": "SEN1078", "framePrepShape": 1, "framePrepDia": 1, "framePrepLength": 0, "framePrepWidth": 0 },
+            { "__id": "dps-6", "id": 6, "type": "DPS", "manufacturer": "SECURITRON", "modelNumber": "DP25", "template": "NA", "framePrepShape": 1, "framePrepDia": 0.75, "framePrepLength": 0, "framePrepWidth": 0 }
+          ]
         },
         {
           "id": "dps-dps-blank",
@@ -121,10 +156,10 @@
         {
           "id": "dps-select-dps-2",
           "name": "SELECT_DPS_2",
-          "label": "Select Dps 2",
+          "label": "Select DPS 2",
           "type": "switch",
           "defaultValue": false,
-          "helperText": "Toggle to enable",
+          "helperText": "Toggle to select a DPS for door 2 from the database",
           "conditional": {
             "conditions": [
               {
@@ -140,6 +175,41 @@
             ],
             "logic": "OR"
           }
+        },
+        {
+          "id": "dps-selected-dps-2-table",
+          "name": "SELECTED_DPS_2",
+          "label": "Available DPS Devices (Door 2)",
+          "type": "table",
+          "required": false,
+          "helperText": "Select a Door Position Switch for door 2",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SELECT_DPS_2",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "logic": "AND"
+          },
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "manufacturer", "label": "Manufacturer" },
+            { "key": "modelNumber", "label": "Model" },
+            { "key": "template", "label": "Template" },
+            { "key": "framePrepShape", "label": "Frame Shape" },
+            { "key": "framePrepDia", "label": "Frame Dia" },
+            { "key": "framePrepLength", "label": "Frame Len" },
+            { "key": "framePrepWidth", "label": "Frame Width" }
+          ],
+          "tableData": [
+            { "__id": "dps2-2", "id": 2, "type": "DPS", "manufacturer": "SCHLAGE", "modelNumber": "7764", "template": "77640", "framePrepShape": 2, "framePrepDia": 0, "framePrepLength": 4.9375, "framePrepWidth": 1.3125 },
+            { "__id": "dps2-3", "id": 3, "type": "DPS", "manufacturer": "GRI", "modelNumber": "140T-12", "template": "BA-59 REV P", "framePrepShape": 1, "framePrepDia": 0.75, "framePrepLength": 0, "framePrepWidth": 0 },
+            { "__id": "dps2-4", "id": 4, "type": "DPS", "manufacturer": "SENTROL", "modelNumber": "1076", "template": "SEN1078", "framePrepShape": 1, "framePrepDia": 1, "framePrepLength": 0, "framePrepWidth": 0 },
+            { "__id": "dps2-5", "id": 5, "type": "DPS", "manufacturer": "SENTROL", "modelNumber": "1078", "template": "SEN1078", "framePrepShape": 1, "framePrepDia": 1, "framePrepLength": 0, "framePrepWidth": 0 },
+            { "__id": "dps2-6", "id": 6, "type": "DPS", "manufacturer": "SECURITRON", "modelNumber": "DP25", "template": "NA", "framePrepShape": 1, "framePrepDia": 0.75, "framePrepLength": 0, "framePrepWidth": 0 }
+          ]
         },
         {
           "id": "dps-dps-2-blank",

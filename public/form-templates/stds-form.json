@@ -14,7 +14,7 @@
           "label": "Hinge Gap",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.125
         },
         {
@@ -23,7 +23,7 @@
           "label": "Strike Gap",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.125
         },
         {
@@ -32,7 +32,7 @@
           "label": "Top Gap",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.125
         },
         {
@@ -41,7 +41,7 @@
           "label": "Undercut",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.75
         },
         {
@@ -50,7 +50,7 @@
           "label": "Door Gap",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.09375
         },
         {
@@ -59,7 +59,7 @@
           "label": "Closure Channel Clearance",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 2.125
         },
         {
@@ -86,7 +86,7 @@
           "label": "Drywall Allowance",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.75
         }
       ]
@@ -101,7 +101,7 @@
           "label": "Door Thickness",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 1.75
         },
         {
@@ -110,7 +110,7 @@
           "label": "Top Channel Depth",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.75
         },
         {
@@ -119,7 +119,7 @@
           "label": "Bottom Channel Depth",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.75
         },
         {
@@ -128,7 +128,7 @@
           "label": "Top Channel Thickness",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.05
         },
         {
@@ -137,7 +137,7 @@
           "label": "Bottom Channel Thickness",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.05
         },
         {
@@ -220,7 +220,7 @@
           "label": "Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.625
         },
         {
@@ -229,7 +229,7 @@
           "label": "Rabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 1.9375
         },
         {
@@ -238,7 +238,7 @@
           "label": "Xrabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 1.9375
         },
         {
@@ -247,7 +247,7 @@
           "label": "Return",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.5
         },
         {
@@ -256,7 +256,7 @@
           "label": "Xreturn",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.5
         },
         {
@@ -285,7 +285,7 @@
           "label": "Minimum Soffit",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 1.25
         },
         {
@@ -294,7 +294,7 @@
           "label": "Head Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.625
         },
         {
@@ -303,7 +303,7 @@
           "label": "Sill Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.625
         },
         {
@@ -448,7 +448,7 @@
           "label": "Top Hinge",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 7.25
         },
         {
@@ -457,7 +457,7 @@
           "label": "Bottom Hinge",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 12.25
         },
         {
@@ -496,7 +496,7 @@
           "label": "Jamb Hinge Setback",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.375
         },
         {
@@ -505,7 +505,7 @@
           "label": "Door Hinge Setback",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.28125
         },
         {
@@ -514,7 +514,7 @@
           "label": "Door Face Setback",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.09375
         },
         {
@@ -523,7 +523,7 @@
           "label": "Butt Hinge Height Allowance",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.005
         },
         {
@@ -541,7 +541,7 @@
           "label": "Butt Hinge Thickness Allowance",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.015
         },
         {
@@ -593,7 +593,7 @@
           "label": "Primary Strike Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 40.3125
         }
       ]
@@ -617,7 +617,7 @@
           "label": "Anchor Jb Dist",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 7.25
         },
         {
@@ -626,7 +626,7 @@
           "label": "Anchor Jt Dist",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 7.25
         },
         {
@@ -741,7 +741,7 @@
           "label": "Surface Closer Width 2",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 5.25
         },
         {
@@ -810,7 +810,7 @@
           "label": "Flush Pull Backset",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 2.75
         }
       ]
@@ -971,7 +971,7 @@
           "label": "Glass Stop Width",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.625
         },
         {
@@ -1065,7 +1065,7 @@
           "label": "Frame Weld Allowance Face",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.04
         },
         {
@@ -1074,7 +1074,7 @@
           "label": "Frame Weld Allowance Fully",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.12
         }
       ]
@@ -1172,7 +1172,7 @@
           "label": "Silencer Hole Dia",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "defaultValue": 0.281
         },
         {

@@ -38,7 +38,7 @@
           "label": "Undercut",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-door-gauge",
@@ -81,7 +81,7 @@
           "label": "Door Thickness",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-top-channel-depth",
@@ -89,7 +89,7 @@
           "label": "Top Channel Depth",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-bottom-channel-depth",
@@ -97,7 +97,7 @@
           "label": "Bottom Channel Depth",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-strike-gap",
@@ -105,7 +105,7 @@
           "label": "Strike Gap",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-hinge-gap",
@@ -113,7 +113,7 @@
           "label": "Hinge Gap",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-door-width-adjustment",
@@ -121,7 +121,7 @@
           "label": "Door Width Adjustment",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "door-info-closure-channel-clearance",
@@ -129,7 +129,7 @@
           "label": "Closure Channel Clearance",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -152,7 +152,7 @@
           "label": "Active Leaf",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

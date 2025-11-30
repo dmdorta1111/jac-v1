@@ -14,7 +14,7 @@
           "label": "Ept Ctr",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -37,7 +37,7 @@
           "label": "Ept 2 Ctr",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -60,10 +60,43 @@
         {
           "id": "ept-select-ept",
           "name": "SELECT_EPT",
-          "label": "Select Ept",
+          "label": "Select EPT",
           "type": "switch",
           "defaultValue": false,
-          "helperText": "Toggle to enable"
+          "helperText": "Toggle to select an EPT from the database"
+        },
+        {
+          "id": "ept-selected-ept-table",
+          "name": "SELECTED_EPT",
+          "label": "Available EPT Devices",
+          "type": "table",
+          "required": false,
+          "helperText": "Select an Electric Power Transfer from the list",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SELECT_EPT",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "logic": "AND"
+          },
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "manufacturer", "label": "Manufacturer" },
+            { "key": "modelNumber", "label": "Model" },
+            { "key": "template", "label": "Template" },
+            { "key": "framePrepLength", "label": "Frame Len" },
+            { "key": "framePrepWidth", "label": "Frame Width" }
+          ],
+          "tableData": [
+            { "__id": "ept-22", "id": 22, "type": "EPT", "manufacturer": "SCHLAGE", "modelNumber": "PT1000", "template": "1000 (REV 02-13-13)", "framePrepLength": 9.0625, "framePrepWidth": 1.25 },
+            { "__id": "ept-23", "id": 23, "type": "EPT", "manufacturer": "SECURITRON", "modelNumber": "SC", "template": "NA", "framePrepLength": 10.8125, "framePrepWidth": 1.25 },
+            { "__id": "ept-24", "id": 24, "type": "EPT", "manufacturer": "STANLEY", "modelNumber": "EPT-5", "template": "STA EPT-5", "framePrepLength": 10.25, "framePrepWidth": 1 },
+            { "__id": "ept-25", "id": 25, "type": "EPT", "manufacturer": "VON DUPRIN", "modelNumber": "EPT-10", "template": "NA", "framePrepLength": 9.0625, "framePrepWidth": 1.25 },
+            { "__id": "ept-26", "id": 26, "type": "EPT", "manufacturer": "SECURITRON", "modelNumber": "EL-CEPT", "template": "NA", "framePrepLength": 9.0625, "framePrepWidth": 1.25 }
+          ]
         },
         {
           "id": "ept-ept-blank",
@@ -94,10 +127,10 @@
         {
           "id": "ept-select-ept-2",
           "name": "SELECT_EPT_2",
-          "label": "Select Ept 2",
+          "label": "Select EPT 2",
           "type": "switch",
           "defaultValue": false,
-          "helperText": "Toggle to enable",
+          "helperText": "Toggle to select an EPT for door 2 from the database",
           "conditional": {
             "conditions": [
               {
@@ -108,6 +141,39 @@
             ],
             "logic": "AND"
           }
+        },
+        {
+          "id": "ept-selected-ept-2-table",
+          "name": "SELECTED_EPT_2",
+          "label": "Available EPT Devices (Door 2)",
+          "type": "table",
+          "required": false,
+          "helperText": "Select an Electric Power Transfer for door 2",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SELECT_EPT_2",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "logic": "AND"
+          },
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "manufacturer", "label": "Manufacturer" },
+            { "key": "modelNumber", "label": "Model" },
+            { "key": "template", "label": "Template" },
+            { "key": "framePrepLength", "label": "Frame Len" },
+            { "key": "framePrepWidth", "label": "Frame Width" }
+          ],
+          "tableData": [
+            { "__id": "ept2-22", "id": 22, "type": "EPT", "manufacturer": "SCHLAGE", "modelNumber": "PT1000", "template": "1000 (REV 02-13-13)", "framePrepLength": 9.0625, "framePrepWidth": 1.25 },
+            { "__id": "ept2-23", "id": 23, "type": "EPT", "manufacturer": "SECURITRON", "modelNumber": "SC", "template": "NA", "framePrepLength": 10.8125, "framePrepWidth": 1.25 },
+            { "__id": "ept2-24", "id": 24, "type": "EPT", "manufacturer": "STANLEY", "modelNumber": "EPT-5", "template": "STA EPT-5", "framePrepLength": 10.25, "framePrepWidth": 1 },
+            { "__id": "ept2-25", "id": 25, "type": "EPT", "manufacturer": "VON DUPRIN", "modelNumber": "EPT-10", "template": "NA", "framePrepLength": 9.0625, "framePrepWidth": 1.25 },
+            { "__id": "ept2-26", "id": 26, "type": "EPT", "manufacturer": "SECURITRON", "modelNumber": "EL-CEPT", "template": "NA", "framePrepLength": 9.0625, "framePrepWidth": 1.25 }
+          ]
         },
         {
           "id": "ept-ept-2-blank",

@@ -40,7 +40,7 @@
           "label": "Jd",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-info-frame-gauge",
@@ -74,11 +74,11 @@
           "label": "Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -106,11 +106,11 @@
           "label": "Rabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -138,11 +138,11 @@
           "label": "Xrabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -165,11 +165,11 @@
           "label": "Return",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places"
+          "helperText": "Precision: 5 decimal places"
         },
         {
           "id": "frame-info-xreturn",
@@ -177,11 +177,11 @@
           "label": "Xreturn",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places"
+          "helperText": "Precision: 5 decimal places"
         },
         {
           "id": "frame-info-facee",
@@ -189,11 +189,11 @@
           "label": "Facee",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places"
+          "helperText": "Precision: 5 decimal places"
         },
         {
           "id": "frame-info-xfacee",
@@ -201,11 +201,11 @@
           "label": "Xfacee",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places"
+          "helperText": "Precision: 5 decimal places"
         },
         {
           "id": "frame-info-head",
@@ -213,11 +213,11 @@
           "label": "Head",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places"
+          "helperText": "Precision: 5 decimal places"
         },
         {
           "id": "frame-info-xhead",
@@ -225,11 +225,11 @@
           "label": "Xhead",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places"
+          "helperText": "Precision: 5 decimal places"
         },
         {
           "id": "frame-info-head-stopp",
@@ -237,11 +237,11 @@
           "label": "Head Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -269,11 +269,11 @@
           "label": "Hospital Stops Height",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -291,11 +291,11 @@
           "label": "Hospital Stops Angle",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -336,11 +336,11 @@
           "label": "Sill",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -363,11 +363,11 @@
           "label": "Xsill",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -390,11 +390,11 @@
           "label": "Sill Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -417,11 +417,11 @@
           "label": "Side Lite Jow",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -444,11 +444,11 @@
           "label": "Side Lite Mullion",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -471,11 +471,11 @@
           "label": "Side Lite Glass Thickness",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -498,7 +498,7 @@
           "label": "Active Leaf",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -521,7 +521,7 @@
           "label": "Glass Thickness",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -539,7 +539,7 @@
           "label": "Glass Stop Width",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -557,7 +557,7 @@
           "label": "Max Glazing Hole Space",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

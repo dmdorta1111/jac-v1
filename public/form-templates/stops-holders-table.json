@@ -1,0 +1,218 @@
+{
+  "formId": "stops-holders-table",
+  "itemType": "custom",
+  "title": "Door Stops and Holders Selection",
+  "description": "Select a door stop or holder from the database",
+  "sections": [
+    {
+      "id": "stops-holders-selection",
+      "title": "Stops/Holders Selection",
+      "fields": [
+        {
+          "id": "stops-holders-table-field",
+          "name": "SELECTED_STOP_HOLDER",
+          "label": "Available Door Stops and Holders",
+          "type": "table",
+          "required": true,
+          "helperText": "Select a door stop or holder configuration from the list below",
+          "columns": [
+            {
+              "key": "id",
+              "label": "ID"
+            },
+            {
+              "key": "manufacturer",
+              "label": "Manufacturer"
+            },
+            {
+              "key": "modelNumber",
+              "label": "Model"
+            },
+            {
+              "key": "doorOpening",
+              "label": "Door Opening"
+            },
+            {
+              "key": "frameCutWidth",
+              "label": "Frame Cut W"
+            },
+            {
+              "key": "frameCutLength",
+              "label": "Frame Cut L"
+            },
+            {
+              "key": "frameReinforcementModel",
+              "label": "Reinforcement Model"
+            }
+          ],
+          "tableData": [
+            {
+              "__id": "stop-holder-3",
+              "id": 3,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "101",
+              "doorOpening": "18 - 23",
+              "frameCutWidth": 1,
+              "frameCutLength": 3.5,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+            },
+            {
+              "__id": "stop-holder-4",
+              "id": 4,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "102",
+              "doorOpening": "23-1/16 - 27",
+              "frameCutWidth": 1,
+              "frameCutLength": 3.5,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+            },
+            {
+              "__id": "stop-holder-5",
+              "id": 5,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "103",
+              "doorOpening": "27-1/16 - 33",
+              "frameCutWidth": 1,
+              "frameCutLength": 3.5,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+            },
+            {
+              "__id": "stop-holder-6",
+              "id": 6,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "104",
+              "doorOpening": "33-1 /16 - 39",
+              "frameCutWidth": 1,
+              "frameCutLength": 3.5,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+            },
+            {
+              "__id": "stop-holder-7",
+              "id": 7,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "105",
+              "doorOpening": "39-1/16 - 45 ",
+              "frameCutWidth": 1,
+              "frameCutLength": 3.5,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+            },
+            {
+              "__id": "stop-holder-8",
+              "id": 8,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "106",
+              "doorOpening": "45-1/16 - 54 ",
+              "frameCutWidth": 1,
+              "frameCutLength": 3.5,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+            },
+            {
+              "__id": "stop-holder-9",
+              "id": 9,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "411",
+              "doorOpening": "18 - 23",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 2.875,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+            },
+            {
+              "__id": "stop-holder-10",
+              "id": 10,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "412",
+              "doorOpening": "23-1/16 - 27",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 2.875,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+            },
+            {
+              "__id": "stop-holder-11",
+              "id": 11,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "413",
+              "doorOpening": "27-1/16 - 33",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 2.875,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+            },
+            {
+              "__id": "stop-holder-12",
+              "id": 12,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "414",
+              "doorOpening": "33-1 /16 - 39",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 2.875,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+            },
+            {
+              "__id": "stop-holder-13",
+              "id": 13,
+              "manufacturer": "GLYNN-JOHNSON",
+              "modelNumber": "415",
+              "doorOpening": "39-1/16 - 45 ",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 2.875,
+              "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+            },
+            {
+              "__id": "stop-holder-18",
+              "id": 18,
+              "manufacturer": "RIXSON",
+              "modelNumber": "2-136",
+              "doorOpening": "18 - 24",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 3,
+              "frameReinforcementModel": "RIXSON-2.ASM"
+            },
+            {
+              "__id": "stop-holder-19",
+              "id": 19,
+              "manufacturer": "RIXSON",
+              "modelNumber": "2-236",
+              "doorOpening": "24-1/16 - 30",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 3,
+              "frameReinforcementModel": "RIXSON-2.ASM"
+            },
+            {
+              "__id": "stop-holder-20",
+              "id": 20,
+              "manufacturer": "RIXSON",
+              "modelNumber": "2-336",
+              "doorOpening": "30-1/16 - 36",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 3,
+              "frameReinforcementModel": "RIXSON-2.ASM"
+            },
+            {
+              "__id": "stop-holder-21",
+              "id": 21,
+              "manufacturer": "RIXSON",
+              "modelNumber": "2-436",
+              "doorOpening": "36-1 /16 - 42",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 3,
+              "frameReinforcementModel": "RIXSON-2.ASM"
+            },
+            {
+              "__id": "stop-holder-23",
+              "id": 23,
+              "manufacturer": "RIXSON",
+              "modelNumber": "2-536",
+              "doorOpening": "42-1/16 - 48",
+              "frameCutWidth": 0.75,
+              "frameCutLength": 3,
+              "frameReinforcementModel": "RIXSON-2.ASM"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitButton": {
+    "text": "Select Stop/Holder",
+    "action": "select-stop-holder"
+  }
+}

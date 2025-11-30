@@ -53,7 +53,9 @@
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_run_code",
       "Bash(tasklist:*)",
-      "Bash(timeout /t 5)"
+      "Bash(timeout /t 5)",
+      "Bash(del C:UserswavegVsCodeProjectsjac-v1convert-stops-holders.js)",
+      "Bash(del \"C:\\Users\\waveg\\VsCodeProjects\\jac-v1\\update-placeholders.js\")"
     ],
     "deny": [],
     "ask": []

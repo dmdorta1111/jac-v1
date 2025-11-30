@@ -32,7 +32,7 @@
           "label": "Auto Bott Width",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "auto-bottom-auto-bott-depth",
@@ -40,7 +40,7 @@
           "label": "Auto Bott Depth",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "auto-bottom-bottom-channel-thickness",
@@ -48,7 +48,7 @@
           "label": "Bottom Channel Thickness",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "auto-bottom-plunger-hole-dia",
@@ -56,7 +56,7 @@
           "label": "Plunger Hole Dia",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -74,7 +74,7 @@
           "label": "Plunger Hole Loc",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

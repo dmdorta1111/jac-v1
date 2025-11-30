@@ -14,7 +14,7 @@
           "label": "Steel Stiffener Width",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "steel-stiff-info-maximum-stiffener-ctr",
@@ -22,7 +22,7 @@
           "label": "Maximum Stiffener Ctr",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "steel-stiff-info-steel-stiffener-gauge",

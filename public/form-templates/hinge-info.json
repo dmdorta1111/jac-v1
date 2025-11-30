@@ -14,7 +14,7 @@
           "label": "Top Gap",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "hinge-info-hinge-manufacturer",
@@ -60,7 +60,7 @@
           "label": "Template Hinge Gap",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -88,7 +88,7 @@
           "label": "Hinge Gap Add",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -116,7 +116,7 @@
           "label": "Alt Strike Center",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

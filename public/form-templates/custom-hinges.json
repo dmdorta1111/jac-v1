@@ -14,7 +14,7 @@
           "label": "Top Gap",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "custom-hinges-custom-hinge-qty",
@@ -45,7 +45,7 @@
           "label": "Maximum Hinge Spacing",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -68,7 +68,7 @@
           "label": "Jamb Hinge Setback",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "custom-hinges-door-hinge-setback",
@@ -76,7 +76,7 @@
           "label": "Door Hinge Setback",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "custom-hinges-door-face-setback",
@@ -84,7 +84,7 @@
           "label": "Door Face Setback",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "custom-hinges-top-hinge",
@@ -92,7 +92,7 @@
           "label": "Top Hinge",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -110,7 +110,7 @@
           "label": "Bottom Hinge",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -128,7 +128,7 @@
           "label": "Hinge Location 1",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -146,7 +146,7 @@
           "label": "Hinge Location 2",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -164,7 +164,7 @@
           "label": "Hinge Location 3",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -182,7 +182,7 @@
           "label": "Hinge Location 4",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -200,7 +200,7 @@
           "label": "Hinge Location 5",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -218,7 +218,7 @@
           "label": "Hinge Location 6",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -236,7 +236,7 @@
           "label": "Hinge Location 7",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -254,7 +254,7 @@
           "label": "Hinge Location 8",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -272,7 +272,7 @@
           "label": "Hinge Location 9",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

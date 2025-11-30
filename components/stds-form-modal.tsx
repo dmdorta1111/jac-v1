@@ -7,29 +7,97 @@ import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { useStdsModal } from "@/components/providers/stds-modal-provider";
+import { useProject } from "@/components/providers/project-context";
 import { Button } from "@/components/ui/button";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 
+interface FormField {
+  id: string;
+  name: string;
+  label: string;
+  type: string;
+  defaultValue?: unknown;
+  [key: string]: unknown;
+}
+
+interface FormSection {
+  id: string;
+  title: string;
+  fields: FormField[];
+}
+
 interface FormSpec {
   formId: string;
+  itemType: string;
   title: string;
   description?: string;
-  sections: unknown[];
+  sections: FormSection[];
+  submitButton: {
+    text: string;
+    action: string;
+  };
 }
 
 export function StdsFormModal() {
   const { isOpen, close } = useStdsModal();
+  const { metadata } = useProject();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [formSpec, setFormSpec] = React.useState<FormSpec | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [projectStandards, setProjectStandards] = React.useState<Record<string, unknown> | null>(null);
 
-  // Load form spec on mount
+  // Build project path from metadata
+  const projectPath = React.useMemo(() => {
+    if (metadata?.folderPath) {
+      return metadata.folderPath;
+    }
+    if (metadata?.productType && metadata?.SO_NUM) {
+      const productFolder = metadata.productType === 'SDI' ? 'SDI' :
+                           metadata.productType === 'EMJAC' ? 'EMJAC' : 'HARMONIC';
+      return `project-docs/${productFolder}/${metadata.SO_NUM}`;
+    }
+    return null;
+  }, [metadata]);
+
+  // Load form spec and project standards when modal opens
   React.useEffect(() => {
-    if (isOpen && !formSpec) {
-      fetch("/form-templates/stds-form.json")
-        .then((res) => res.json())
-        .then((spec) => {
-          setFormSpec(spec);
+    if (isOpen) {
+      setIsLoading(true);
+
+      // Load form spec
+      const loadFormSpec = fetch("/form-templates/stds-form.json")
+        .then((res) => res.json());
+
+      // Load project standards if we have a project path
+      const loadStandards = projectPath
+        ? fetch(`/api/project-standards?projectPath=${encodeURIComponent(projectPath)}`)
+            .then((res) => res.ok ? res.json() : { standards: null })
+            .then((data) => data.standards || null)
+            .catch(() => null)
+        : Promise.resolve(null);
+
+      Promise.all([loadFormSpec, loadStandards])
+        .then(([spec, standards]) => {
+          // If we have project standards, merge them into form spec as defaultValues
+          if (standards && Object.keys(standards).length > 0) {
+            const updatedSpec = {
+              ...spec,
+              sections: spec.sections.map((section: FormSection) => ({
+                ...section,
+                fields: section.fields.map((field: FormField) => ({
+                  ...field,
+                  defaultValue: standards[field.name] !== undefined
+                    ? standards[field.name]
+                    : field.defaultValue,
+                })),
+              })),
+            };
+            setFormSpec(updatedSpec);
+            setProjectStandards(standards);
+          } else {
+            setFormSpec(spec);
+            setProjectStandards(null);
+          }
           setIsLoading(false);
         })
         .catch((err) => {
@@ -37,7 +105,7 @@ export function StdsFormModal() {
           setIsLoading(false);
         });
     }
-  }, [isOpen, formSpec]);
+  }, [isOpen, projectPath]);
 
   // Handle escape key
   React.useEffect(() => {
@@ -65,21 +133,28 @@ export function StdsFormModal() {
   // Called by DynamicFormRenderer when user clicks Submit
   const handleSubmit = async (formData: Record<string, unknown>) => {
     try {
-      // Save to project standards file
-      const response = await fetch("/api/save-item-data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "standards",
-          data: formData,
-        }),
-      });
+      // If we have a project path, save to project-header.json
+      if (projectPath) {
+        const response = await fetch("/api/project-standards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectPath,
+            standards: formData,
+          }),
+        });
 
-      if (response.ok) {
-        toast.success("Project standards saved successfully");
-        close();
+        if (response.ok) {
+          setProjectStandards(formData);
+          toast.success("Project standards saved successfully");
+          close();
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.error || "Failed to save standards");
+        }
       } else {
-        toast.error("Failed to save standards");
+        // No project selected - show warning
+        toast.warning("No project selected. Please create or select a project first.");
       }
     } catch (error) {
       console.error("Save error:", error);

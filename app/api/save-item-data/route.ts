@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
 
     // Merge with existing data if requested and file exists
     let finalData = { ...formData };
+    const isNewItem = !existsSync(itemFile);
 
-    if (merge && existsSync(itemFile)) {
+    if (merge && !isNewItem) {
       try {
         const existingContent = await readFile(itemFile, 'utf-8');
         const existingData = JSON.parse(existingContent);
@@ -64,12 +65,14 @@ export async function POST(request: NextRequest) {
       } catch (parseError) {
         console.warn('Failed to parse existing item file, overwriting:', parseError);
         finalData = {
+          CHOICE: 1, // Default CHOICE value for new items
           ...formData,
           createdAt: new Date().toISOString(),
         };
       }
     } else {
       finalData = {
+        CHOICE: 1, // Default CHOICE value for new items
         ...formData,
         createdAt: new Date().toISOString(),
       };

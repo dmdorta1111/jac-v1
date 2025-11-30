@@ -117,9 +117,9 @@
           "label": "Anchor Center",
           "type": "float",
           "required": true,
-          "placeholder": "0.0000",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
           "conditional": {
             "conditions": [
@@ -299,7 +299,7 @@
           "name": "GROUT_HOLE_DIA",
           "label": "Grout Hole Diameter",
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -357,7 +357,7 @@
           "label": "Transom Anchor Center",
           "type": "float",
           "required": true,
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -375,7 +375,7 @@
           "label": "Anchor Recess",
           "type": "float",
           "required": true,
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-sa-drywall-allowance",
@@ -383,7 +383,7 @@
           "label": "Drywall Allowance",
           "type": "float",
           "required": true,
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -415,28 +415,28 @@
           "name": "ANCHOR_JT_DIST",
           "label": "Anchor JT Distance",
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-sa-anchor-jb-dist",
           "name": "ANCHOR_JB_DIST",
           "label": "Anchor JB Distance",
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-sa-anchor-hdj-dist",
           "name": "ANCHOR_HDJ_DIST",
           "label": "Anchor HDJ Distance",
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-sa-anchor-hmax",
           "name": "ANCHOR_HMAX",
           "label": "Anchor H Max",
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         }
       ]
     },
@@ -466,7 +466,7 @@
           "name": "ANCHOR_JMAX",
           "label": "Anchor J Max",
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

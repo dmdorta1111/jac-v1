@@ -14,7 +14,7 @@
           "label": "Strike Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "seconary-lock-options-primary-strike-center",
@@ -22,7 +22,7 @@
           "label": "Primary Strike Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "seconary-lock-options-lock-type",

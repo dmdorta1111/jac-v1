@@ -14,7 +14,7 @@
           "label": "Flush Pull Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "flush-pull-flush-pull-backset",
@@ -22,7 +22,7 @@
           "label": "Flush Pull Backset",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "flush-pull-flush-pull-side",

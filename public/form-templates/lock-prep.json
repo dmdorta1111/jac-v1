@@ -14,7 +14,7 @@
           "label": "Mortise Box Depth",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
