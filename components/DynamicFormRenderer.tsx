@@ -116,6 +116,7 @@ interface FormField {
   placeholder?: string;
   defaultValue?: FormFieldValue;
   required?: boolean;
+  readonly?: boolean;  // When true, field is displayed but cannot be edited
   validation?: {
     min?: number;
     max?: number;
@@ -163,23 +164,36 @@ interface DynamicFormSpec {
 
 interface DynamicFormRendererProps {
   formSpec: DynamicFormSpec;
+  sessionId: string; // Unique session identifier for multi-session support
+  initialData?: Record<string, FormFieldValue>; // External data to restore form state (e.g., from session switch)
   onSubmit: (data: Record<string, FormFieldValue>) => void;
   onCancel?: () => void;
+  onFormDataChange?: (formId: string, data: Record<string, FormFieldValue>) => void; // Sync unsaved form data to parent
   validationErrors?: Record<string, string>;
+  selectedTableRows?: Record<string, number>; // Session-scoped table row selections (fieldName -> rowIndex)
+  onTableRowSelect?: (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => void; // Callback for table row selection
 }
 
 export default function DynamicFormRenderer({
   formSpec,
+  sessionId,
+  initialData,
   onSubmit,
   onCancel,
+  onFormDataChange,
   validationErrors = {},
+  selectedTableRows = {},
+  onTableRowSelect,
 }: DynamicFormRendererProps) {
-  const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => buildInitialFormData(formSpec));
+  // Merge formSpec defaults with initialData (external restored state takes priority)
+  const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => {
+    const defaults = buildInitialFormData(formSpec);
+    return { ...defaults, ...(initialData || {}) };
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Merge external validation errors with internal errors
   const allErrors = { ...errors, ...validationErrors };
-  const [selectedTableRows, setSelectedTableRows] = useState<Record<string, number>>({});
   const hasInitialFocused = useRef(false);
   const previousFormId = useRef(formSpec.formId);
 
@@ -191,6 +205,38 @@ export default function DynamicFormRenderer({
     }
   }, [formSpec.formId]);
 
+  // Reset form data when session or form step changes to pick up restored/new form values
+  // Merges formSpec defaults with initialData (restored state takes priority)
+  useEffect(() => {
+    const defaults = buildInitialFormData(formSpec);
+    const merged = { ...defaults, ...(initialData || {}) };
+
+    // Only reset formData if:
+    // 1. initialData has content (explicit restore) OR
+    // 2. formData is empty (first render)
+    // This preserves unsaved changes when session switches without initialData
+    const shouldReset =
+      Object.keys(initialData || {}).length > 0 ||
+      Object.keys(formData).length === 0;
+
+    if (shouldReset) {
+      setFormData(merged);
+    }
+  }, [sessionId, formSpec.formId, initialData]);
+
+  // Sync form data to parent on mount and when formSpec changes
+  // This ensures parent has visibility into pre-filled form data
+  // Deferred to next tick to avoid "setState during render" error
+  useEffect(() => {
+    const initialData = buildInitialFormData(formSpec);
+    if (Object.keys(initialData).length > 0) {
+      // Use queueMicrotask to defer callback after render completes
+      queueMicrotask(() => {
+        onFormDataChange?.(formSpec.formId, initialData);
+      });
+    }
+  }, [formSpec.formId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Helper to check if a field is empty
   const isFieldEmpty = (field: FormField, value: FormFieldValue): boolean => {
     if (value === undefined || value === null || value === '') return true;
@@ -199,11 +245,13 @@ export default function DynamicFormRenderer({
     return false;
   };
 
-  // Helper to focus on a field by id
+  // Helper to focus on a field by id (uses session-scoped ID)
   const focusField = (fieldId: string) => {
     // Small delay to ensure DOM is ready
     setTimeout(() => {
-      const element = document.getElementById(fieldId);
+      // Build session-scoped ID for DOM lookup
+      const scopedId = `${sessionId}-${formSpec.formId}-${fieldId}`;
+      const element = document.getElementById(scopedId);
       if (element) {
         element.focus();
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -253,11 +301,19 @@ export default function DynamicFormRenderer({
     }
   }, [errors, validationErrors]);
 
-  // Helper to create form-scoped state keys (defensive against name collisions)
-  const getTableStateKey = (fieldName: string) => `${formSpec.formId}__${fieldName}`;
+  // Helper to create session-scoped field IDs for HTML id attribute
+  const getFieldId = (field: FormField) => `${sessionId}-${formSpec.formId}-${field.id}`;
 
   const handleFieldChange = (name: string, value: FormFieldValue) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value };
+      // Defer parent callback to avoid "setState during render" error
+      // Must be outside setFormData updater to prevent synchronous parent update
+      queueMicrotask(() => {
+        onFormDataChange?.(formSpec.formId, newData);
+      });
+      return newData;
+    });
     // Clear error when field is modified
     if (allErrors[name]) {
       setErrors((prev) => {
@@ -390,37 +446,41 @@ export default function DynamicFormRenderer({
     const value = formData[field.name];
     const error = allErrors[field.name];
 
-    // Handler for table row selection
+    // Handler for table row selection - delegates to parent via prop
     const handleTableRowSelect = (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => {
-      // Use prefixed state key for defensive collision prevention
-      const stateKey = getTableStateKey(fieldName);
-      setSelectedTableRows(prev => ({ ...prev, [stateKey]: rowIndex }));
+      // Defer parent callback to avoid "setState during render" error
+      queueMicrotask(() => {
+        onTableRowSelect?.(fieldName, rowIndex, rowData);
+      });
 
-      // Store actual row data in form state (not prefixed, just fieldName)
+      // Store actual row data in form state
       handleFieldChange(fieldName, rowData);
     };
 
     switch (field.type) {
       case 'input':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>
+              <FieldLabel htmlFor={getFieldId(field)}>
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
+                {field.readonly && <span className="text-muted-foreground ml-1 text-xs">(read-only)</span>}
               </FieldLabel>
               {field.helperText && (
                 <FieldDescription>{field.helperText}</FieldDescription>
               )}
             </FieldContent>
             <Input
-              id={field.id}
+              id={getFieldId(field)}
               name={field.name}
               type={field.inputType || 'text'}
               placeholder={field.placeholder}
               value={toStringValue(value)}
-              onChange={(e) => handleFieldChange(field.name, e.target.value)}
+              onChange={(e) => !field.readonly && handleFieldChange(field.name, e.target.value)}
+              readOnly={field.readonly}
               aria-invalid={!!error}
+              className={field.readonly ? 'bg-muted cursor-not-allowed opacity-70' : ''}
             />
             {error && <FieldError>{error}</FieldError>}
           </Field>
@@ -428,9 +488,9 @@ export default function DynamicFormRenderer({
 
       case 'textarea':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>
+              <FieldLabel htmlFor={getFieldId(field)}>
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </FieldLabel>
@@ -439,7 +499,7 @@ export default function DynamicFormRenderer({
               )}
             </FieldContent>
             <Textarea
-              id={field.id}
+              id={getFieldId(field)}
               name={field.name}
               placeholder={field.placeholder}
               value={toStringValue(value)}
@@ -453,9 +513,9 @@ export default function DynamicFormRenderer({
 
       case 'select':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>
+              <FieldLabel htmlFor={getFieldId(field)}>
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </FieldLabel>
@@ -476,7 +536,7 @@ export default function DynamicFormRenderer({
                 }
               }}
             >
-              <SelectTrigger aria-invalid={!!error} id={field.id}>
+              <SelectTrigger aria-invalid={!!error} id={getFieldId(field)}>
                 <SelectValue placeholder={field.placeholder || 'Select an option'} />
               </SelectTrigger>
               <SelectContent>
@@ -493,7 +553,7 @@ export default function DynamicFormRenderer({
 
       case 'checkbox':
         return (
-          <FieldSet key={field.id} data-invalid={!!error}>
+          <FieldSet key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
               <FieldLegend variant="label">
                 {field.label}
@@ -507,7 +567,7 @@ export default function DynamicFormRenderer({
               {field.options?.map((option) => (
                 <Field key={option.value} orientation="horizontal">
                   <Checkbox
-                    id={`${field.id}-${option.value}`}
+                    id={`${getFieldId(field)}-${option.value}`}
                     name={`${field.name}-${option.value}`}
                     checked={toArrayValue(value).includes(option.value)}
                     onCheckedChange={(checked) => {
@@ -520,7 +580,7 @@ export default function DynamicFormRenderer({
                     aria-invalid={!!error}
                     className="border-muted-foreground/40 data-[state=checked]:bg-zinc-700 data-[state=checked]:border-zinc-700 data-[state=checked]:text-white dark:data-[state=checked]:bg-zinc-400 dark:data-[state=checked]:border-zinc-400"
                   />
-                  <FieldLabel htmlFor={`${field.id}-${option.value}`} className="font-normal">
+                  <FieldLabel htmlFor={`${getFieldId(field)}-${option.value}`} className="font-normal">
                     {option.label}
                   </FieldLabel>
                 </Field>
@@ -532,7 +592,7 @@ export default function DynamicFormRenderer({
 
       case 'radio':
         return (
-          <FieldSet key={field.id} data-invalid={!!error}>
+          <FieldSet key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
               <FieldLegend variant="label">
                 {field.label}
@@ -556,10 +616,10 @@ export default function DynamicFormRenderer({
                   <Field key={option.value} orientation="horizontal">
                     <RadioGroupItem
                       value={String(option.value)}
-                      id={`${field.id}-${option.value}`}
+                      id={`${getFieldId(field)}-${option.value}`}
                       className="border-muted-foreground/40 text-zinc-700 data-[state=checked]:border-zinc-700 dark:text-zinc-400 dark:data-[state=checked]:border-zinc-400 [&_svg]:fill-zinc-700 dark:[&_svg]:fill-zinc-400"
                     />
-                    <FieldLabel htmlFor={`${field.id}-${option.value}`} className="font-normal">
+                    <FieldLabel htmlFor={`${getFieldId(field)}-${option.value}`} className="font-normal">
                       {option.label}
                     </FieldLabel>
                   </Field>
@@ -572,10 +632,10 @@ export default function DynamicFormRenderer({
 
       case 'slider':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
               <div className="flex justify-between items-center">
-                <FieldLabel htmlFor={field.id}>
+                <FieldLabel htmlFor={getFieldId(field)}>
                   {field.label}
                   {field.required && <span className="text-destructive ml-1">*</span>}
                 </FieldLabel>
@@ -588,7 +648,7 @@ export default function DynamicFormRenderer({
               )}
             </FieldContent>
             <Slider
-              id={field.id}
+              id={getFieldId(field)}
               min={field.min || 0}
               max={field.max || 100}
               step={field.step || 1}
@@ -603,9 +663,9 @@ export default function DynamicFormRenderer({
 
       case 'date':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>
+              <FieldLabel htmlFor={getFieldId(field)}>
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </FieldLabel>
@@ -616,7 +676,7 @@ export default function DynamicFormRenderer({
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  id={field.id}
+                  id={getFieldId(field)}
                   variant="outline"
                   className={`w-full justify-start text-left font-normal ${
                     !value && 'text-muted-foreground'
@@ -643,19 +703,19 @@ export default function DynamicFormRenderer({
       case 'switch':
         return (
           <Field
-            key={field.id}
+            key={getFieldId(field)}
             orientation="horizontal"
             data-invalid={!!error}
             className="py-2"
           >
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>{field.label}</FieldLabel>
+              <FieldLabel htmlFor={getFieldId(field)}>{field.label}</FieldLabel>
               {field.helperText && (
                 <FieldDescription>{field.helperText}</FieldDescription>
               )}
             </FieldContent>
             <Switch
-              id={field.id}
+              id={getFieldId(field)}
               name={field.name}
               checked={toBooleanValue(value)}
               onCheckedChange={(checked) => handleFieldChange(field.name, checked)}
@@ -668,31 +728,35 @@ export default function DynamicFormRenderer({
 
       case 'integer':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>
+              <FieldLabel htmlFor={getFieldId(field)}>
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
+                {field.readonly && <span className="text-muted-foreground ml-1 text-xs">(read-only)</span>}
               </FieldLabel>
               {field.helperText && (
                 <FieldDescription>{field.helperText}</FieldDescription>
               )}
             </FieldContent>
             <Input
-              id={field.id}
+              id={getFieldId(field)}
               name={field.name}
               type="number"
               step="1"
               placeholder={field.placeholder}
               value={toStringValue(value)}
               onChange={(e) => {
+                if (field.readonly) return;
                 const val = e.target.value;
                 // Only allow integers
                 if (val === '' || /^-?\d+$/.test(val)) {
                   handleFieldChange(field.name, val === '' ? '' : parseInt(val, 10));
                 }
               }}
+              readOnly={field.readonly}
               aria-invalid={!!error}
+              className={field.readonly ? 'bg-muted cursor-not-allowed opacity-70' : ''}
             />
             {error && <FieldError>{error}</FieldError>}
           </Field>
@@ -700,9 +764,9 @@ export default function DynamicFormRenderer({
 
       case 'float':
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
-              <FieldLabel htmlFor={field.id}>
+              <FieldLabel htmlFor={getFieldId(field)}>
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
               </FieldLabel>
@@ -711,7 +775,7 @@ export default function DynamicFormRenderer({
               )}
             </FieldContent>
             <Input
-              id={field.id}
+              id={getFieldId(field)}
               name={field.name}
               type="number"
               step="0.00001"
@@ -731,12 +795,11 @@ export default function DynamicFormRenderer({
         );
 
       case 'table': {
-        // Use prefixed state key to get selected row index
-        const stateKey = getTableStateKey(field.name);
-        const selectedRowIndex = selectedTableRows[stateKey];
+        // Get selected row index from session-scoped prop
+        const selectedRowIndex = selectedTableRows?.[field.name];
 
         return (
-          <Field key={field.id} data-invalid={!!error}>
+          <Field key={getFieldId(field)} data-invalid={!!error}>
             <FieldContent>
               <FieldLabel>
                 {field.label}
@@ -761,7 +824,8 @@ export default function DynamicFormRenderer({
                   {field.tableData && field.tableData.length > 0 ? (
                     field.tableData.map((row, rowIndex) => {
                       const isSelected = selectedRowIndex === rowIndex;
-                      const rowId = (row as Record<string, unknown>).__id as string || `row-${field.name}-${rowIndex}`;
+                      // Session-scoped row ID to prevent collisions across multiple sessions
+                      const rowId = (row as Record<string, unknown>).__id as string || `${sessionId}-${formSpec.formId}-row-${field.name}-${rowIndex}`;
 
                       return (
                         <TableRow
@@ -844,20 +908,11 @@ export default function DynamicFormRenderer({
           </FieldSet>
 
           {/* Form Sections */}
+          {/* Session-scoped section keys to prevent collisions across multiple sessions */}
           {formSpec.sections.map((section) => (
-            <FieldSet
-              key={`${formSpec.formId}-${section.id}`}
-              name={section.id}
-              className="relative rounded-xl border-2 border-border bg-zinc-900/50 mb-8 shadow-sm overflow-hidden"
-            >
-              {/* Section Header with prominent title */}
-              <FieldContent className="border-b-2 border-amber-500/30" style={{ padding: '1.5rem', paddingBottom: '1rem' }}>
-                <FieldLegend
-                  variant="label"
-                  className="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight"
-                >
-                  {section.title}
-                </FieldLegend>
+            <FieldSet key={`${sessionId}-${formSpec.formId}-${section.id}`} name={section.id}>
+              <FieldContent>
+                <FieldLegend variant="label">{section.title}</FieldLegend>
                 {section.description && (
                   <FieldDescription className="mt-1.5 text-xs text-muted-foreground">
                     {section.description}
@@ -865,62 +920,32 @@ export default function DynamicFormRenderer({
                 )}
               </FieldContent>
 
-              {/* Inner container for field spacing from border - generous padding on all sides */}
-              <div className="p-6" style={{ padding: '1.5rem' }}>
-                {/* Grid layout: responsive 1→2→4→5 columns - 20% smaller fields */}
-                <div className="compact-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4
-                  [&_[data-slot=field]]:gap-1
-                  [&_[data-slot=field-label]]:text-xs
-                  [&_[data-slot=field-description]]:text-[10px]
-                  [&_[data-slot=field-error]]:text-[10px]
-                  [&_[data-slot=field-content]]:gap-0
-                  [&_[data-slot=input]]:h-7
-                  [&_[data-slot=input]]:text-xs
-                  [&_[data-slot=input]]:px-2
-                  [&_[data-slot=input]]:py-1
-                  [&_[data-slot=input]]:rounded-md
-                  [&_button[role=combobox]]:h-7
-                  [&_button[role=combobox]]:text-xs
-                  [&_button[role=combobox]]:px-2
-                  [&_button[role=combobox]]:py-1
-                  [&_[data-slot=field-set]]:gap-2
-                  [&_[data-slot=field-group]]:gap-1.5
-                  [&_[data-slot=checkbox-group]]:gap-1
-                  [&_[data-slot=radio-group]]:gap-1
-                  [&_[role=checkbox]]:h-3.5
-                  [&_[role=checkbox]]:w-3.5
-                  [&_[role=radio]]:h-3.5
-                  [&_[role=radio]]:w-3.5
-                  [&_[role=switch]]:h-4
-                  [&_[role=switch]]:w-7
-                  [&_textarea]:text-xs
-                  [&_textarea]:min-h-[60px]
-                  [&_.text-sm]:text-xs">
-                  {section.fields.map((field) => {
-                    const colSpan = getFieldColSpan(field);
-                    const renderedField = renderField(field);
-                    if (!renderedField) return null;
+              {/* Grid layout: responsive 1→2→4→5 columns based on breakpoint */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+                {section.fields.map((field) => {
+                  const colSpan = getFieldColSpan(field);
+                  const renderedField = renderField(field);
+                  if (!renderedField) return null;
 
-                    // Build responsive col-span classes for 5-column grid
-                    let spanClass = "col-span-1"; // Default single column
-                    if (colSpan === 5) {
-                      // Full width across all breakpoints
-                      spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
-                    } else if (colSpan === 2) {
-                      // Medium width fields (select, date, slider)
-                      spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
-                    }
+                  // Build responsive col-span classes for 5-column grid
+                  let spanClass = "col-span-1"; // Default single column
+                  if (colSpan === 5) {
+                    // Full width across all breakpoints
+                    spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
+                  } else if (colSpan === 2) {
+                    // Medium width fields (select, date, slider)
+                    spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
+                  }
 
-                    return (
-                      <div
-                        key={`${formSpec.formId}-${field.id}`}
-                        className={spanClass}
-                      >
-                        {renderedField}
-                      </div>
-                    );
-                  })}
-                </div>
+                  return (
+                    <div
+                      key={`${sessionId}-${formSpec.formId}-${field.id}`}
+                      className={spanClass}
+                    >
+                      {renderedField}
+                    </div>
+                  );
+                })}
               </div>
             </FieldSet>
           ))}

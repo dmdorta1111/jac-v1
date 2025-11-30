@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   Bot,
   User,
   AlertCircle,
   X,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,70 +54,21 @@ import {
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
-import { defineStepper } from "@/components/ui/stepper";
+import { usePersistedProject } from "@/lib/hooks/usePersistedProject";
+import { usePersistedSession } from "@/lib/hooks/usePersistedSession";
+import { useSessionSync } from "@/lib/hooks/useSessionSync";
+import {
+  validateSessionState,
+  createFreshSessionState,
+  type SessionState,
+} from "@/lib/session-validator";
+import {
+  rebuildSessionsFromDB,
+  isCacheValidForProject,
+} from "@/lib/session-rebuilder";
 import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
-
-// Import CircleStepIndicator component from stepper (exported in namespace)
-const CircleStepIndicator = ({ currentStep, totalSteps, size = 80, strokeWidth = 6 }: {
-  currentStep: number;
-  totalSteps: number;
-  size?: number;
-  strokeWidth?: number;
-}) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const fillPercentage = (currentStep / totalSteps) * 100;
-  const dashOffset = circumference - (circumference * fillPercentage) / 100;
-
-  return (
-    <div
-      role="progressbar"
-      aria-valuenow={currentStep}
-      aria-valuemin={1}
-      aria-valuemax={totalSteps}
-      tabIndex={-1}
-      className="relative inline-flex items-center justify-center"
-    >
-      <svg width={size} height={size}>
-        <title>Step Indicator</title>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-muted-foreground"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          className="text-primary transition-all duration-300 ease-in-out"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm font-medium" aria-live="polite">
-          {Math.round(fillPercentage)}%
-        </span>
-      </div>
-    </div>
-  );
-};
-
-// Define stepper for project creation workflow
-const { Stepper, useStepper, steps } = defineStepper(
-  { id: "project-header", title: "Project Header", description: "Basic project info" },
-  { id: "item-data", title: "Item Data", description: "Item specifications" }
-);
 
 // Project context for tracking active project
 interface ProjectContext {
@@ -159,25 +111,61 @@ export function ClaudeChat() {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
-  const [showStepper, setShowStepper] = useState(false);
 
-  // Flow engine state for dynamic stepper
+  // Flow engine state
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
   const [flowState, setFlowState] = useState<Record<string, Record<string, any>>>({});
   const [currentStepOrder, setCurrentStepOrder] = useState<number>(0);
-  const [stepperDef, setStepperDef] = useState<any>(null);
   const [totalSteps, setTotalSteps] = useState<number>(0);
   const [filteredSteps, setFilteredSteps] = useState<FlowStep[]>([]);
   const [flowExecutor, setFlowExecutor] = useState<FlowExecutor | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentItemNumber, setCurrentItemNumber] = useState<string | null>(null);
 
+  // Session state management for multi-session support
+  const [sessionStateMap, setSessionStateMap] = useState<Record<string, {
+    messages: Message[];
+    flowState: Record<string, any>;
+    currentStepOrder: number;
+    filteredSteps: FlowStep[];
+    itemNumber: string;
+    validationErrors: Record<string, string>; // Session-scoped validation errors
+    activeFormData: Record<string, any>; // Unsaved form data for session persistence
+    completedFormIds: string[]; // Track completed form steps for tab navigation
+    tableSelections: Record<string, number>; // Session-scoped table row selections
+    highestStepReached: number; // Track furthest step visited for forward navigation
+  }>>({});
+
+  // Store active (unsaved) form data per session - synced from DynamicFormRenderer
+  const [activeFormDataMap, setActiveFormDataMap] = useState<Record<string, Record<string, any>>>({});
+
   // Access global project metadata context for header display
-  const { setMetadata: setProjectMetadata } = useProject();
+  const { metadata, setMetadata: setProjectMetadata } = useProject();
+
+  // Load/save project state from localStorage
+  usePersistedProject();
+
+  // Multi-tab synchronization
+  const {
+    broadcastSessionCreated,
+    broadcastSessionDeleted,
+    broadcastSessionUpdated,
+  } = useSessionSync(
+    setChatSessions,
+    setSessionStateMap as React.Dispatch<React.SetStateAction<Record<string, SessionState>>>,
+    currentSessionId
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const generateId = () => Math.random().toString(36).substring(2, 9);
+  // Use crypto.randomUUID for collision-proof ID generation
+  const generateId = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: timestamp + high-entropy random
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+  };
 
   /**
    * Load existing project state from JSON files
@@ -241,18 +229,83 @@ export function ClaudeChat() {
   };
 
   /**
-   * Initialize stepper with dynamic steps from flow
+   * Rebuild sessions from MongoDB when opening an existing project.
+   * This is called when cache is invalid or missing for a recalled project.
+   * @param salesOrderNumber - The SO# to rebuild sessions for
+   */
+  const loadExistingProjectFromDB = async (salesOrderNumber: string): Promise<boolean> => {
+    console.log(`[Rebuild] Loading project from DB: ${salesOrderNumber}`);
+
+    try {
+      // Check if cache is valid
+      if (isCacheValidForProject(chatSessions, salesOrderNumber)) {
+        console.log('[Rebuild] Cache is valid, skipping DB fetch');
+        return true;
+      }
+
+      // Load flow to get step definitions
+      const flow = await loadFlow('SDI-form-flow');
+      if (!flow) {
+        console.error('[Rebuild] Could not load form flow');
+        return false;
+      }
+
+      // Filter steps (non-revision mode)
+      const steps = filterSteps(flow, false);
+
+      // Rebuild sessions from MongoDB
+      const rebuilt = await rebuildSessionsFromDB(salesOrderNumber, steps);
+
+      if (rebuilt.length === 0) {
+        console.log('[Rebuild] No sessions found in DB');
+        return false;
+      }
+
+      // Convert to state structures
+      const sessions = rebuilt.map(r => r.session);
+      const stateMap = rebuilt.reduce((acc, r) => {
+        acc[r.session.id] = r.state;
+        return acc;
+      }, {} as Record<string, SessionState>);
+
+      // Update React state
+      setChatSessions(sessions);
+      setSessionStateMap(stateMap as any);
+
+      // Persist to localStorage
+      try {
+        localStorage.setItem('sessions:list', JSON.stringify(sessions));
+        localStorage.setItem('sessions:state', JSON.stringify(stateMap));
+      } catch (e) {
+        console.warn('[Rebuild] Failed to persist to localStorage:', e);
+      }
+
+      // Switch to first session
+      if (sessions.length > 0) {
+        await switchToSession(sessions[0].id);
+      }
+
+      console.log(`[Rebuild] Successfully rebuilt ${rebuilt.length} sessions`);
+      return true;
+    } catch (error) {
+      console.error('[Rebuild] Error loading from DB:', error);
+      return false;
+    }
+  };
+
+  /**
+   * Initialize flow with dynamic steps
    * @param flow - Loaded form flow definition
    * @param isRevision - Whether this is a revision/edit of existing item
    * @param initialState - Optional initial state to populate executor
    */
-  const initializeStepper = async (flow: FormFlow, isRevision: boolean, initialState: Record<string, any> = {}): Promise<FlowStep[] | null> => {
+  const initializeFlow = async (flow: FormFlow, isRevision: boolean, initialState: Record<string, any> = {}): Promise<FlowStep[] | null> => {
     try {
       // Filter steps based on revision status
       const steps = filterSteps(flow, isRevision);
       setFilteredSteps(steps);
 
-      // Build step definitions for defineStepper
+      // Build step definitions
       const stepDefs = buildStepDefinitions(steps);
 
       if (stepDefs.length === 0) {
@@ -260,14 +313,6 @@ export function ClaudeChat() {
         return null;
       }
 
-      // Create dynamic stepper with steps from flow
-      const dynamicStepper = defineStepper(...stepDefs.map(def => ({
-        id: def.id,
-        title: def.title,
-        description: def.description,
-      })));
-
-      setStepperDef(dynamicStepper);
       setTotalSteps(stepDefs.length);
       setCurrentStepOrder(0);
       setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
@@ -279,7 +324,7 @@ export function ClaudeChat() {
 
       return steps; // Return filtered steps for immediate use
     } catch (error) {
-      console.error('Failed to initialize stepper:', error);
+      console.error('Failed to initialize flow:', error);
       return null;
     }
   };
@@ -291,7 +336,7 @@ export function ClaudeChat() {
     folderPath: string
   ) => {
     try {
-      // For SDI product type, load flow and initialize stepper
+      // For SDI product type, load flow and initialize form flow
       if (productType.toUpperCase() === 'SDI') {
         // Load SDI form flow
         const flow = await loadFlow('SDI-form-flow');
@@ -303,11 +348,11 @@ export function ClaudeChat() {
         // Load existing project state from JSON files (for resuming)
         const existingState = await loadExistingProjectState(folderPath);
 
-        // Initialize stepper with flow (isRevision = false for new items)
-        const steps = await initializeStepper(flow, false, existingState);
+        // Initialize flow (isRevision = false for new items)
+        const steps = await initializeFlow(flow, false, existingState);
 
         if (!steps || steps.length === 0) {
-          throw new Error('Failed to initialize stepper or no steps found');
+          throw new Error('Failed to initialize flow or no steps found');
         }
 
         // Update project metadata with isRevision flag
@@ -319,6 +364,9 @@ export function ClaudeChat() {
           salesOrderNumber,
           folderPath,
           isRevision: false,
+          currentSessionId: undefined,
+          projectHeaderCompleted: false,
+          itemSessions: {},
         });
 
         // Get first form from filtered steps (project-header is now step 0)
@@ -343,17 +391,16 @@ export function ClaudeChat() {
           })),
         };
 
-        // Create bot message with form and stepper info
+        // Create bot message with form
         const botMessage: Message = {
           id: generateId(),
           sender: 'bot',
-          text: `Project folder created at:\n\`${folderPath}\`\n\n**SDI Form Flow** (Step 1 of ${totalSteps})\n\nPlease fill out the project header information:`,
+          text: `Project folder created at:\n\`${folderPath}\`\n\n**Step 1: Project Header**\n\nPlease fill out the project information. After submission, you'll create items for this project.`,
           timestamp: new Date(),
           formSpec: prefilledSpec,
         };
 
         setMessages((prev) => [...prev, botMessage]);
-        setShowStepper(true);
         return;
       }
 
@@ -408,6 +455,309 @@ export function ClaudeChat() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  // Handle form data changes from DynamicFormRenderer for session persistence
+  const handleFormDataChange = useCallback((formId: string, data: Record<string, any>) => {
+    if (!currentSessionId) return;
+
+    setActiveFormDataMap(prev => ({
+      ...prev,
+      [currentSessionId]: {
+        ...(prev[currentSessionId] || {}),
+        ...data,
+      },
+    }));
+  }, [currentSessionId]);
+
+  // Create new item chat session
+  const startNewItemChat = async () => {
+    if (!metadata || !metadata.projectHeaderCompleted) {
+      console.error('Cannot create item: project header not completed');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // 1. Get next item number from API
+      const itemResponse = await fetch(
+        `/api/get-next-item-number?folderPath=${encodeURIComponent(metadata.folderPath || '')}`
+      );
+      const itemData = await itemResponse.json();
+
+      if (!itemData.success) {
+        throw new Error(itemData.error || 'Failed to get next item number');
+      }
+
+      const itemNumber = itemData.nextItemNumber;
+
+      // 2. Create new session
+      const sessionId = generateId();
+      const newSession: ChatSession = {
+        id: sessionId,
+        title: `Item ${itemNumber}`,
+        messages: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        itemNumber,
+        projectMetadata: { ...metadata },
+        flowState: {},
+      };
+
+      // 3. Add session to list and broadcast to other tabs
+      setChatSessions(prev => [...prev, newSession]);
+      broadcastSessionCreated(newSession);
+      setCurrentSessionId(sessionId);
+
+      // 4. Update project metadata
+      setProjectMetadata({
+        ...metadata,
+        currentSessionId: sessionId,
+        itemSessions: {
+          ...metadata.itemSessions,
+          [itemNumber]: {
+            sessionId,
+            itemNumber,
+            createdAt: Date.now(),
+            title: `Item ${itemNumber}`,
+          },
+        },
+      });
+
+      // 5. Load SDI flow and skip to step 1 (sdi-project form)
+      const flow = await loadFlow('SDI-form-flow');
+      if (!flow) {
+        throw new Error('SDI form flow not found');
+      }
+
+      // Filter steps (isRevision = false)
+      const allSteps = filterSteps(flow, false);
+
+      // Skip step 0 (project-header), start at step 1
+      const itemSteps = allSteps.slice(1);
+      setFilteredSteps(itemSteps);
+
+      // Build step definitions for item flow
+      const stepDefs = buildStepDefinitions(itemSteps);
+      setTotalSteps(stepDefs.length);
+      setCurrentStepOrder(0); // Start at first item step (sdi-project)
+      setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
+
+      // Update session with step progress for sidebar display
+      setChatSessions(prev => prev.map(s =>
+        s.id === sessionId
+          ? { ...s, currentStep: 1, totalSteps: stepDefs.length, flowComplete: false }
+          : s
+      ));
+
+      // Initialize FlowExecutor with project-header data as initial state
+      const projectHeaderState = flowExecutor?.getState()?.['project-header'] || {};
+      const executor = createFlowExecutor(flow, itemSteps, projectHeaderState);
+      setFlowExecutor(executor);
+
+      // 6. Load sdi-project form template
+      const formSpec = await loadFormTemplate('sdi-project');
+      if (!formSpec) {
+        throw new Error('sdi-project template not found');
+      }
+
+      // Pre-fill ITEM_NUM field (editable - user can change it)
+      const prefilledSpec = {
+        ...formSpec,
+        sections: formSpec.sections.map(section => ({
+          ...section,
+          fields: section.fields.map(field => {
+            if (field.name === 'ITEM_NUM') {
+              return { ...field, defaultValue: itemNumber };
+            }
+            return field;
+          }),
+        })),
+      };
+
+      // 7. Create bot message with form
+      const botMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Creating **Item ${itemNumber}** for ${metadata.JOB_NAME}\n\n**Step 1 of ${stepDefs.length}:** Item Configuration\n\nPlease fill out the item details:`,
+        timestamp: new Date(),
+        formSpec: prefilledSpec,
+      };
+
+      setMessages([botMessage]);
+      setCurrentItemNumber(itemNumber);
+
+      console.log(`Created item session ${sessionId} for item ${itemNumber}`);
+    } catch (error) {
+      console.error('Failed to create item session:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Error creating item: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Switch to existing session with state restoration
+  // CRITICAL: All async operations must complete BEFORE any state updates
+  // to prevent race conditions that cause data mix-matching between sessions
+  const switchToSession = async (sessionId: string) => {
+    if (sessionId === currentSessionId) return; // Already on this session
+
+    setIsLoading(true);
+
+    try {
+      // ============================================
+      // PHASE 1: SAVE CURRENT SESSION (sync state read)
+      // ============================================
+      if (currentSessionId) {
+        // Use executor's flat state for proper restoration (not component's nested flowState)
+        const executorState = flowExecutor?.getState() || {};
+        const prevHighest = sessionStateMap[currentSessionId]?.highestStepReached ?? 0;
+        const currentState = {
+          messages,
+          flowState: executorState,
+          currentStepOrder,
+          filteredSteps,
+          itemNumber: currentItemNumber || '',
+          validationErrors,
+          activeFormData: activeFormDataMap[currentSessionId] || {}, // Save unsaved form data
+          completedFormIds: sessionStateMap[currentSessionId]?.completedFormIds || [],
+          tableSelections: sessionStateMap[currentSessionId]?.tableSelections || {},
+          highestStepReached: Math.max(prevHighest, currentStepOrder),
+          lastAccessedAt: Date.now(),
+        };
+
+        setSessionStateMap(prev => ({
+          ...prev,
+          [currentSessionId]: currentState,
+        }));
+      }
+
+      // ============================================
+      // PHASE 2: VALIDATE TARGET SESSION
+      // ============================================
+      const sessionState = sessionStateMap[sessionId];
+
+      if (!sessionState || !validateSessionState(sessionState)) {
+        // Session missing or corrupted - create fresh state
+        console.warn(`[Session] Invalid session ${sessionId}, creating fresh`);
+        const session = chatSessions.find(s => s.id === sessionId);
+        const freshState = createFreshSessionState(session?.itemNumber || '');
+
+        // BATCH: All state updates together for fresh session
+        setMessages(freshState.messages);
+        setFlowState(freshState.flowState);
+        setCurrentStepOrder(freshState.currentStepOrder);
+        setFilteredSteps(freshState.filteredSteps);
+        setValidationErrors(freshState.validationErrors);
+        setCurrentItemNumber(freshState.itemNumber || null);
+        setCurrentSessionId(sessionId);
+        setFlowExecutor(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // ============================================
+      // PHASE 3: ASYNC DATA LOADING (complete ALL async before state updates)
+      // ============================================
+      const targetStep = sessionState.highestStepReached ?? sessionState.currentStepOrder;
+      let mergedFlowState = { ...sessionState.flowState };
+
+      // 3a. Load disk data (async)
+      if (metadata?.folderPath && sessionState.itemNumber) {
+        try {
+          const diskData = await loadExistingItemState(metadata.folderPath, sessionState.itemNumber);
+
+          if (Object.keys(diskData).length > 0) {
+            // Disk data takes priority (source of truth)
+            Object.keys(diskData).forEach(key => {
+              if (key !== '_metadata') {
+                const formData = diskData[key];
+                if (formData && typeof formData === 'object' && !Array.isArray(formData)) {
+                  // Flatten individual fields for form defaultValues
+                  Object.keys(formData).forEach(fieldName => {
+                    mergedFlowState[fieldName] = formData[fieldName];
+                  });
+                  // Also keep nested structure for executor state
+                  mergedFlowState[key] = formData;
+                } else {
+                  mergedFlowState[key] = formData;
+                }
+              }
+            });
+            console.log(`[Session Switch] Loaded disk data for item ${sessionState.itemNumber}:`, Object.keys(diskData));
+          }
+        } catch (e) {
+          console.warn('[Session Switch] Failed to load disk data:', e);
+        }
+      }
+
+      // 3b. Load flow definition (async) - BEFORE any state updates
+      const flow = await loadFlow('SDI-form-flow');
+      if (!flow) {
+        throw new Error('SDI form flow not found');
+      }
+
+      // 3c. Create executor with complete merged state - BEFORE any state updates
+      const newExecutor = createFlowExecutor(flow, sessionState.filteredSteps, mergedFlowState);
+      newExecutor.setCurrentStepIndex(targetStep);
+
+      // 3d. Calculate step definitions - BEFORE any state updates
+      const stepDefs = sessionState.filteredSteps.length > 0
+        ? buildStepDefinitions(sessionState.filteredSteps)
+        : [];
+
+      // ============================================
+      // PHASE 4: BATCH ALL STATE UPDATES (sync, no async gaps)
+      // React 18 automatically batches these updates together
+      // This prevents race conditions where component renders with mixed state
+      // ============================================
+
+      // Core session state
+      setCurrentSessionId(sessionId);
+      setMessages(sessionState.messages);
+      setFlowState(mergedFlowState);
+      setFlowExecutor(newExecutor);
+
+      // Flow navigation state
+      setCurrentStepOrder(targetStep);
+      setFilteredSteps(sessionState.filteredSteps);
+      setTotalSteps(stepDefs.length);
+
+      // Item-specific state
+      setCurrentItemNumber(sessionState.itemNumber);
+      setValidationErrors(sessionState.validationErrors || {});
+
+      // Restore active form data for the session
+      if (sessionState.activeFormData && Object.keys(sessionState.activeFormData).length > 0) {
+        setActiveFormDataMap(prev => ({
+          ...prev,
+          [sessionId]: sessionState.activeFormData,
+        }));
+      }
+
+      // Update project metadata
+      if (metadata) {
+        setProjectMetadata({ ...metadata, currentSessionId: sessionId });
+      }
+
+      console.log(`[Session Switch] Complete: ${sessionId} (Item ${sessionState.itemNumber})`);
+    } catch (error) {
+      console.error('[Session Switch] Failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Create First Item button click
+  const handleCreateFirstItem = async () => {
+    await startNewItemChat();
+  };
+
   // Handle form submission from DynamicFormRenderer
   const handleFormSubmit = async (formData: Record<string, any>) => {
     // Check if we have project context (from folder creation)
@@ -426,11 +776,94 @@ export function ClaudeChat() {
     setValidationErrors({});
 
     try {
-      // If using dynamic stepper (SDI flow), handle step progression with validation
-      if (stepperDef && filteredSteps.length > 0 && flowExecutor) {
+      // If using dynamic flow (SDI flow), handle step progression with validation
+      if (filteredSteps.length > 0 && flowExecutor) {
         const currentStep = filteredSteps[currentStepOrder];
         const currentStepId = currentStep?.formTemplate;
 
+        // NEW: Check if this is project-header submission (step 0)
+        if (currentStepOrder === 0 && currentStepId === 'project-header') {
+          // 1. Load form template for validation
+          const formSpec = await loadFormTemplate(currentStepId);
+          if (!formSpec) {
+            throw new Error(`Form template not found: ${currentStepId}`);
+          }
+
+          // 2. Validate form data
+          const accumulatedState = flowExecutor.getState();
+          const mergedData = { ...accumulatedState, ...formData };
+          const validationResult = validateFormData(formSpec, mergedData);
+
+          if (!validationResult.success) {
+            // Show validation errors inline (no chat bubble)
+            setValidationErrors(validationResult.errors);
+            setIsLoading(false);
+            // Errors are displayed inline on the form via validationErrors prop
+            return;
+          }
+
+          // 3. Save project-header to file
+          try {
+            const saveResponse = await fetch('/api/save-project-header', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                folderPath: projectContext.folderPath,
+                data: validationResult.data,
+              }),
+            });
+
+            const saveData = await saveResponse.json();
+            if (!saveData.success) {
+              throw new Error(saveData.error || 'Failed to save project header');
+            }
+          } catch (saveError) {
+            console.error('Project header save error:', saveError);
+            // Continue anyway (graceful degradation)
+          }
+
+          // 4. Update project metadata
+          setProjectMetadata({
+            SO_NUM: String(validationResult.data.SO_NUM),
+            JOB_NAME: String(validationResult.data.JOB_NAME),
+            CUSTOMER_NAME: String(validationResult.data.CUSTOMER_NAME),
+            productType: projectContext.productType,
+            salesOrderNumber: projectContext.salesOrderNumber,
+            folderPath: projectContext.folderPath,
+            isRevision: false,
+            currentSessionId: undefined,
+            projectHeaderCompleted: true, // MARK COMPLETE
+            itemSessions: {},
+          });
+
+          // 5. Update executor state
+          flowExecutor.updateState(currentStepId, validationResult.data);
+
+          // 6. Replace form message with success (no additional chat bubble)
+          setMessages((prev) => {
+            const lastBotIndex = prev.map((m, i) => ({ m, i }))
+              .filter(({ m }) => m.sender === 'bot')
+              .pop()?.i;
+
+            if (lastBotIndex !== undefined) {
+              const updated = [...prev];
+              updated[lastBotIndex] = {
+                ...updated[lastBotIndex],
+                text: `✓ Project header saved!\n\n**${validationResult.data.JOB_NAME}** (SO# ${validationResult.data.SO_NUM})\n\nReady to create your first item?`,
+                formSpec: undefined,
+              };
+              return updated;
+            }
+            return prev.map(msg =>
+              msg.formSpec ? { ...msg, formSpec: undefined, text: `✓ Project header saved!` } : msg
+            );
+          });
+
+          setIsLoading(false);
+          return; // STOP - don't advance to next step
+        }
+
+        // Continue with regular flow for other steps (existing code starts here)
         // 1. Load current form template for validation
         const formSpec = await loadFormTemplate(currentStepId);
         if (!formSpec) {
@@ -446,18 +879,10 @@ export function ClaudeChat() {
         const validationResult = validateFormData(formSpec, mergedData);
 
         if (!validationResult.success) {
-          // Show validation errors
+          // Show validation errors inline (no chat bubble)
           setValidationErrors(validationResult.errors);
           setIsLoading(false);
-
-          // Add error message
-          const errorMessage: Message = {
-            id: generateId(),
-            sender: 'bot',
-            text: 'Please fix the validation errors before continuing.',
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, errorMessage]);
+          // Errors are displayed inline on the form via validationErrors prop
           return;
         }
 
@@ -473,7 +898,7 @@ export function ClaudeChat() {
               formData: validationResult.data,
               metadata: {
                 salesOrderNumber: projectContext.salesOrderNumber,
-                itemNumber: validationResult.data.ITEM_NUM || '',
+                itemNumber: currentItemNumber || validationResult.data.ITEM_NUM || '',
                 productType: projectContext.productType,
                 formVersion: '1.0.0',
                 userId: undefined, // TODO: Add user authentication
@@ -514,6 +939,9 @@ export function ClaudeChat() {
             salesOrderNumber: projectContext.salesOrderNumber,
             folderPath: projectContext.folderPath,
             isRevision: false,
+            currentSessionId: currentSessionId || undefined,
+            projectHeaderCompleted: true,
+            itemSessions: {},
           });
 
           // Save project-header.json to project folder
@@ -540,29 +968,71 @@ export function ClaudeChat() {
 
         // Save item data JSON for forms after project-header (step 1+)
         if (currentStepOrder >= 1 && projectContext.folderPath) {
-          // Get item number from form data or flow state
-          const itemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
+          // Get the NEW item number from form data (user may have changed it)
+          const newItemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
+          // Original item number is tracked in session state (from when session was created)
+          const originalItemNum = currentItemNumber;
 
-          // Track item number when set in sdi-project form (step 1)
-          if (currentStepId === 'sdi-project' && validationResult.data.ITEM_NUM) {
-            const paddedItemNum = String(validationResult.data.ITEM_NUM).padStart(3, '0');
-            setCurrentItemNumber(paddedItemNum);
-          }
+          if (newItemNum) {
+            const paddedNewItemNumber = String(newItemNum).padStart(3, '0');
+            const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
 
-          if (itemNum) {
-            const paddedItemNumber = String(itemNum).padStart(3, '0');
             try {
-              await fetch('/api/save-item-data', {
+              const saveResponse = await fetch('/api/save-item-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   projectPath: projectContext.folderPath,
-                  itemNumber: paddedItemNumber,
+                  itemNumber: paddedNewItemNumber,
+                  originalItemNumber: paddedOriginalItemNumber,  // For rename detection
+                  formId: currentStepId,
                   formData: validationResult.data,
-                  merge: true,  // Accumulate data from all forms
+                  merge: true,
+                  sessionId: currentSessionId,  // For MongoDB updates
+                  salesOrderNumber: projectContext.salesOrderNumber,  // For MongoDB updates
                 }),
               });
-              console.log(`Item ${paddedItemNumber} JSON saved/updated`);
+
+              const saveData = await saveResponse.json();
+              if (!saveData.success) {
+                console.error('Failed to save item data:', saveData.error);
+              } else {
+                console.log(`Item ${paddedNewItemNumber} data saved (${currentStepId})${saveData.renamed ? ` - renamed from ${saveData.renamedFrom}` : ''}`);
+              }
+
+              // Always sync item number to session (handles both initial set and changes)
+              // This ensures sidebar always shows correct item number
+              const itemNumberChanged = paddedNewItemNumber !== paddedOriginalItemNumber;
+
+              // Update currentItemNumber state
+              setCurrentItemNumber(paddedNewItemNumber);
+
+              // Always update session with current item number
+              setChatSessions(prev => prev.map(s =>
+                s.id === currentSessionId
+                  ? { ...s, title: `Item ${paddedNewItemNumber}`, itemNumber: paddedNewItemNumber }
+                  : s
+              ));
+
+              // Update itemSessions map in metadata if item number changed
+              if (itemNumberChanged && metadata?.itemSessions) {
+                const updatedItemSessions = { ...metadata.itemSessions };
+                // Remove old entry if exists
+                if (paddedOriginalItemNumber) {
+                  delete updatedItemSessions[paddedOriginalItemNumber];
+                }
+                // Add/update entry with new item number
+                updatedItemSessions[paddedNewItemNumber] = {
+                  sessionId: currentSessionId || '',
+                  itemNumber: paddedNewItemNumber,
+                  createdAt: Date.now(),
+                  title: `Item ${paddedNewItemNumber}`,
+                };
+                setProjectMetadata({
+                  ...metadata,
+                  itemSessions: updatedItemSessions,
+                });
+              }
             } catch (jsonError) {
               console.error('Failed to save item JSON:', jsonError);
               // Continue flow - not blocking
@@ -574,6 +1044,29 @@ export function ClaudeChat() {
         setMessages((prev) => prev.map(msg =>
           msg.formSpec ? { ...msg, formSpec: undefined } : msg
         ));
+
+        // Track completed form in session state for tab navigation
+        if (currentSessionId && currentStepId) {
+          setSessionStateMap(prev => ({
+            ...prev,
+            [currentSessionId]: {
+              ...(prev[currentSessionId] || createFreshSessionState()),
+              completedFormIds: [
+                ...(prev[currentSessionId]?.completedFormIds || []),
+                currentStepId
+              ].filter((id, idx, arr) => arr.indexOf(id) === idx) // dedupe
+            }
+          }));
+        }
+
+        // Clear active form data since form was submitted successfully
+        if (currentSessionId) {
+          setActiveFormDataMap(prev => {
+            const newMap = { ...prev };
+            delete newMap[currentSessionId];
+            return newMap;
+          });
+        }
 
         // 5. Find next step using conditional navigation
         const nextStep = flowExecutor.findNextStep();
@@ -607,18 +1100,41 @@ export function ClaudeChat() {
           const nextStepIndex = filteredSteps.findIndex(s => s.formTemplate === nextStep.formTemplate);
           if (nextStepIndex !== -1) {
             setCurrentStepOrder(nextStepIndex);
+            // Update session progress for sidebar display
+            setChatSessions(prev => prev.map(s =>
+              s.id === currentSessionId
+                ? { ...s, currentStep: nextStepIndex + 1, totalSteps }
+                : s
+            ));
           }
 
-          // Create bot message with next form
-          const botMessage: Message = {
-            id: generateId(),
-            sender: 'bot',
-            text: `**Step ${nextStepIndex + 1} of ${totalSteps}**\n\n${nextStep.description}\n\nPlease fill out the form below:`,
-            timestamp: new Date(),
-            formSpec: prefilledSpec,
-          };
+          // Replace the last bot message with next form (no new chat bubble)
+          setMessages((prev) => {
+            // Find the last bot message index
+            const lastBotIndex = prev.map((m, i) => ({ m, i }))
+              .filter(({ m }) => m.sender === 'bot')
+              .pop()?.i;
 
-          setMessages((prev) => [...prev, botMessage]);
+            if (lastBotIndex !== undefined) {
+              // Replace the last bot message with the new form
+              const updated = [...prev];
+              updated[lastBotIndex] = {
+                ...updated[lastBotIndex],
+                text: `**Step ${nextStepIndex + 1} of ${totalSteps}**`,
+                formSpec: prefilledSpec,
+              };
+              return updated;
+            }
+
+            // Fallback: add new message if no bot message found
+            return [...prev, {
+              id: generateId(),
+              sender: 'bot' as const,
+              text: `**Step ${nextStepIndex + 1} of ${totalSteps}**`,
+              timestamp: new Date(),
+              formSpec: prefilledSpec,
+            }];
+          });
         } else {
           // Flow complete - no more steps satisfy conditions
           // Export all form data to SmartAssembly JSON
@@ -638,10 +1154,16 @@ export function ClaudeChat() {
               const completionMessage: Message = {
                 id: generateId(),
                 sender: 'bot',
-                text: `✓ Form flow completed!\n\nAll required forms have been filled based on your selections.\n\n**Export Summary:**\n- Variables exported: ${exportData.variableCount}\n- Export path: \`${exportData.exportPath}\`\n- Session ID: ${exportData.sessionId}\n\nYour SDI project data has been exported for SmartAssembly. How can I help with this job?`,
+                text: `✓ Item ${currentItemNumber} configuration complete!\n\nAll required forms have been filled based on your selections.\n\n**Export Summary:**\n- Variables exported: ${exportData.variableCount}\n- Export path: \`${exportData.exportPath}\`\n- Session ID: ${exportData.sessionId}\n\nYour SDI project data has been exported for SmartAssembly.\n\nWould you like to create another item for this project?`,
                 timestamp: new Date(),
               };
               setMessages((prev) => [...prev, completionMessage]);
+              // Mark session as flow complete
+              setChatSessions(prev => prev.map(s =>
+                s.id === currentSessionId
+                  ? { ...s, flowComplete: true, currentStep: totalSteps, totalSteps }
+                  : s
+              ));
             } else {
               throw new Error(exportData.error || 'Export failed');
             }
@@ -650,10 +1172,16 @@ export function ClaudeChat() {
             const errorMessage: Message = {
               id: generateId(),
               sender: 'bot',
-              text: `✓ Form flow completed!\n\nAll forms filled, but I encountered an issue exporting to SmartAssembly:\n${exportError instanceof Error ? exportError.message : 'Unknown error'}\n\nYour data is saved in the database. You can retry export later.`,
+              text: `✓ Item ${currentItemNumber} configuration complete!\n\nAll forms filled, but I encountered an issue exporting to SmartAssembly:\n${exportError instanceof Error ? exportError.message : 'Unknown error'}\n\nYour data is saved in the database. You can retry export later.\n\nWould you like to create another item for this project?`,
               timestamp: new Date(),
             };
             setMessages((prev) => [...prev, errorMessage]);
+            // Mark session as flow complete (even on export error)
+            setChatSessions(prev => prev.map(s =>
+              s.id === currentSessionId
+                ? { ...s, flowComplete: true, currentStep: totalSteps, totalSteps }
+                : s
+            ));
           }
         }
 
@@ -688,8 +1216,7 @@ export function ClaudeChat() {
           CUSTOMER_NAME: formData.CUSTOMER_NAME || '',
         });
 
-        // Show stepper and remove form from messages
-        setShowStepper(true);
+        // Remove form from messages
         setMessages((prev) => prev.map(msg =>
           msg.formSpec ? { ...msg, formSpec: undefined } : msg
         ));
@@ -719,6 +1246,143 @@ export function ClaudeChat() {
     }
   };
 
+  /**
+   * Load and display a previously completed form for editing.
+   * Called when user clicks a form tab in the FormTabNavigation.
+   */
+  const handleFormTabClick = useCallback(async (formId: string) => {
+    if (!currentSessionId || !flowExecutor) return;
+
+    setIsLoading(true);
+
+    try {
+      // 1. Load form template
+      const formSpec = await loadFormTemplate(formId);
+      if (!formSpec) {
+        throw new Error(`Form template not found: ${formId}`);
+      }
+
+      // 2. Get existing data from flowState
+      const existingData = flowExecutor.getState();
+
+      // 3. Pre-fill form with existing data
+      const prefilledSpec = {
+        ...formSpec,
+        sections: formSpec.sections.map(section => ({
+          ...section,
+          fields: section.fields.map(field => ({
+            ...field,
+            defaultValue: existingData[field.name] ?? field.defaultValue,
+          })),
+        })),
+      };
+
+      // 4. Add form to messages (or replace if already visible)
+      const tabEditMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Editing **${formSpec.title}**\n\nMake your changes below:`,
+        timestamp: new Date(),
+        formSpec: prefilledSpec,
+      };
+
+      // Remove any existing forms from messages first
+      setMessages(prev => [
+        ...prev.filter(m => !m.formSpec),
+        tabEditMessage
+      ]);
+
+      console.log(`Loaded form ${formId} for editing`);
+    } catch (error) {
+      console.error('Failed to load form for editing:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Error loading form: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentSessionId, flowExecutor]);
+
+  /**
+   * Navigate to previous form in the flow.
+   * Only navigates to forms that were actually visited (in completedFormIds).
+   * This respects conditional logic - forms skipped during input won't appear in navigation.
+   */
+  const handleNavigatePrev = useCallback(async () => {
+    if (!currentSessionId || filteredSteps.length === 0) return;
+
+    // Get completed forms (actual visited steps, respecting conditional logic)
+    const completedFormIds = sessionStateMap[currentSessionId]?.completedFormIds || [];
+    if (completedFormIds.length === 0) return;
+
+    // Find current form's position in completed forms
+    const currentFormId = filteredSteps[currentStepOrder]?.formTemplate;
+    const currentCompletedIndex = completedFormIds.indexOf(currentFormId);
+
+    // If current form not in completed list, navigate to last completed form
+    if (currentCompletedIndex === -1) {
+      const lastCompletedFormId = completedFormIds[completedFormIds.length - 1];
+      const targetStepIndex = filteredSteps.findIndex(s => s.formTemplate === lastCompletedFormId);
+      if (targetStepIndex !== -1) {
+        setCurrentStepOrder(targetStepIndex);
+        handleFormTabClick(lastCompletedFormId);
+      }
+      return;
+    }
+
+    // Navigate to previous completed form
+    if (currentCompletedIndex <= 0) return; // Already at first completed form
+
+    const prevFormId = completedFormIds[currentCompletedIndex - 1];
+    const targetStepIndex = filteredSteps.findIndex(s => s.formTemplate === prevFormId);
+    if (targetStepIndex !== -1) {
+      setCurrentStepOrder(targetStepIndex);
+      handleFormTabClick(prevFormId);
+    }
+  }, [currentStepOrder, filteredSteps, currentSessionId, sessionStateMap, handleFormTabClick]);
+
+  /**
+   * Navigate to next form in the flow.
+   * Only navigates to forms that were actually visited (in completedFormIds).
+   * This respects conditional logic - forms skipped during input won't appear in navigation.
+   */
+  const handleNavigateNext = useCallback(async () => {
+    if (!currentSessionId || filteredSteps.length === 0) return;
+
+    // Get completed forms (actual visited steps, respecting conditional logic)
+    const completedFormIds = sessionStateMap[currentSessionId]?.completedFormIds || [];
+    if (completedFormIds.length === 0) return;
+
+    // Find current form's position in completed forms
+    const currentFormId = filteredSteps[currentStepOrder]?.formTemplate;
+    const currentCompletedIndex = completedFormIds.indexOf(currentFormId);
+
+    // If current form not in completed list, navigate to first completed form
+    if (currentCompletedIndex === -1) {
+      const firstCompletedFormId = completedFormIds[0];
+      const targetStepIndex = filteredSteps.findIndex(s => s.formTemplate === firstCompletedFormId);
+      if (targetStepIndex !== -1) {
+        setCurrentStepOrder(targetStepIndex);
+        handleFormTabClick(firstCompletedFormId);
+      }
+      return;
+    }
+
+    // Navigate to next completed form
+    if (currentCompletedIndex >= completedFormIds.length - 1) return; // Already at last completed form
+
+    const nextFormId = completedFormIds[currentCompletedIndex + 1];
+    const targetStepIndex = filteredSteps.findIndex(s => s.formTemplate === nextFormId);
+    if (targetStepIndex !== -1) {
+      setCurrentStepOrder(targetStepIndex);
+      handleFormTabClick(nextFormId);
+    }
+  }, [currentStepOrder, filteredSteps, currentSessionId, sessionStateMap, handleFormTabClick]);
+
   // Save current session when messages change
   useEffect(() => {
     if (currentSessionId && messages.length > 0) {
@@ -736,6 +1400,54 @@ export function ClaudeChat() {
       );
     }
   }, [messages, currentSessionId]);
+
+  // Auto-save session state when messages change and broadcast to other tabs
+  useEffect(() => {
+    if (currentSessionId && messages.length > 0) {
+      // Use executor's flat state for proper restoration
+      const executorState = flowExecutor?.getState() || flowState;
+      // Track highest step reached for forward navigation after going back
+      const prevHighest = sessionStateMap[currentSessionId]?.highestStepReached ?? 0;
+      const newHighest = Math.max(prevHighest, currentStepOrder);
+      const state: SessionState = {
+        messages,
+        flowState: executorState,
+        currentStepOrder,
+        filteredSteps,
+        itemNumber: currentItemNumber || '',
+        validationErrors,
+        activeFormData: activeFormDataMap[currentSessionId] || {}, // Include unsaved form data
+        completedFormIds: sessionStateMap[currentSessionId]?.completedFormIds || [],
+        tableSelections: sessionStateMap[currentSessionId]?.tableSelections || {},
+        highestStepReached: newHighest,
+        lastAccessedAt: Date.now(),
+      };
+
+      setSessionStateMap(prev => ({
+        ...prev,
+        [currentSessionId]: state,
+      }));
+
+      // Broadcast to other tabs (they won't update if this is their active session)
+      broadcastSessionUpdated(currentSessionId, state);
+    }
+  }, [messages, currentSessionId, flowState, flowExecutor, currentStepOrder, filteredSteps, currentItemNumber, validationErrors, activeFormDataMap, broadcastSessionUpdated]);
+
+  // Rebuild sessions from MongoDB when project is recalled and cache is empty
+  useEffect(() => {
+    // Only trigger if:
+    // 1. Project metadata exists with a salesOrderNumber
+    // 2. Project header is completed (so we know it's an existing project)
+    // 3. No sessions are cached for this project
+    if (
+      metadata?.salesOrderNumber &&
+      metadata?.projectHeaderCompleted &&
+      !isCacheValidForProject(chatSessions, metadata.salesOrderNumber)
+    ) {
+      console.log('[ClaudeChat] Project has no cached sessions, attempting rebuild from DB');
+      loadExistingProjectFromDB(metadata.salesOrderNumber);
+    }
+  }, [metadata?.salesOrderNumber, metadata?.projectHeaderCompleted, chatSessions.length]);
 
   const generateSessionTitle = (msgs: Message[]): string => {
     const firstUserMsg = msgs.find((m) => m.sender === "user");
@@ -770,11 +1482,56 @@ export function ClaudeChat() {
 
   const deleteSession = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setChatSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    if (currentSessionId === sessionId) {
-      setCurrentSessionId(null);
-      setMessages([]);
+
+    if (!confirm('Delete this item session? This cannot be undone.')) {
+      return;
     }
+
+    // 1. Find session to get itemNumber
+    const session = chatSessions.find(s => s.id === sessionId);
+
+    // 2. Remove from sessions list and broadcast to other tabs
+    setChatSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    broadcastSessionDeleted(sessionId);
+
+    // 3. Remove from sessionStateMap
+    setSessionStateMap(prev => {
+      const newMap = { ...prev };
+      delete newMap[sessionId];
+      return newMap;
+    });
+
+    // 4. Remove from activeFormDataMap (cleanup unsaved form data)
+    setActiveFormDataMap(prev => {
+      const newMap = { ...prev };
+      delete newMap[sessionId];
+      return newMap;
+    });
+
+    // 4. Remove from itemSessions map in metadata
+    if (session?.itemNumber && metadata?.itemSessions) {
+      const updatedItemSessions = { ...metadata.itemSessions };
+      delete updatedItemSessions[session.itemNumber];
+
+      setProjectMetadata({
+        ...metadata,
+        itemSessions: updatedItemSessions,
+      });
+    }
+
+    // 5. If deleting current session, switch to another or clear
+    if (sessionId === currentSessionId) {
+      const remaining = chatSessions.filter(s => s.id !== sessionId);
+      if (remaining.length > 0) {
+        switchToSession(remaining[0].id);
+      } else {
+        setCurrentSessionId(null);
+        setMessages([]);
+        setCurrentItemNumber(null);
+      }
+    }
+
+    console.log(`Deleted session ${sessionId} (Item ${session?.itemNumber || 'N/A'})`);
   };
 
   const handleSubmit = async (message: PromptInputMessage) => {
@@ -891,31 +1648,39 @@ export function ClaudeChat() {
     }
   };
 
+  // Memoize initialFormData to prevent unnecessary form resets on re-render
+  // Priority: activeFormData (unsaved) > flowState (submitted) > formSpec.defaultValue
+  const initialFormData = useMemo(() => ({
+    ...flowState,
+    ...(activeFormDataMap[currentSessionId || ''] || {}),
+  }), [flowState, activeFormDataMap, currentSessionId]);
+
   return (
     <div className="flex h-full w-full relative gap-4 lg:gap-6">
       {/* Left Sidebar */}
       <LeftSidebar
-        chatSessions={chatSessions}
+        chatSessions={[...chatSessions].sort((a, b) => {
+          // Sort by itemNumber numerically (e.g., "001" < "002" < "010")
+          const aNum = parseInt(a.itemNumber || '999', 10);
+          const bNum = parseInt(b.itemNumber || '999', 10);
+          return aNum - bNum;
+        })}
         currentSessionId={currentSessionId}
-        onNewChat={startNewChat}
-        onSelectSession={selectSession}
+        onNewChat={handleCreateFirstItem}
+        onSelectSession={switchToSession}
         onDeleteSession={deleteSession}
+        formNavigationState={currentSessionId ? {
+          currentStepIndex: currentStepOrder,
+          totalSteps: filteredSteps.length,
+          completedFormIds: sessionStateMap[currentSessionId]?.completedFormIds || [],
+          highestStepReached: sessionStateMap[currentSessionId]?.highestStepReached ?? 0,
+        } : undefined}
+        onNavigatePrev={handleNavigatePrev}
+        onNavigateNext={handleNavigateNext}
       />
 
       {/* Main Chat Area */}
       <div className="flex flex-1 flex-col items-center w-full">
-        {/* CircleStepIndicator - Show when SDI flow is active */}
-        {stepperDef && totalSteps > 0 && (
-          <div className="w-full border-b border-border bg-background/50 backdrop-blur-sm px-6 py-4 flex items-center justify-center">
-            <CircleStepIndicator
-              currentStep={currentStepOrder + 1}
-              totalSteps={totalSteps}
-              size={60}
-              strokeWidth={5}
-            />
-          </div>
-        )}
-
         {/* Messages Area */}
         <div className="w-full flex-1 overflow-y-auto px-3 py-3 sm:px-6 sm:py-4 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {messages.length === 0 ? (
@@ -927,7 +1692,29 @@ export function ClaudeChat() {
           ) : (
             <div className="flex w-full flex-col gap-4 sm:gap-6 px-2 sm:px-4 lg:px-8">
               {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} onFormSubmit={handleFormSubmit} validationErrors={validationErrors} />
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  sessionId={currentSessionId || 'default'}
+                  onFormSubmit={handleFormSubmit}
+                  onFormDataChange={handleFormDataChange}
+                  validationErrors={validationErrors}
+                  initialFormData={initialFormData}
+                  selectedTableRows={sessionStateMap[currentSessionId || '']?.tableSelections || {}}
+                  onTableRowSelect={(fieldName, rowIndex, rowData) => {
+                    if (!currentSessionId) return;
+                    setSessionStateMap(prev => ({
+                      ...prev,
+                      [currentSessionId]: {
+                        ...(prev[currentSessionId] || createFreshSessionState()),
+                        tableSelections: {
+                          ...(prev[currentSessionId]?.tableSelections || {}),
+                          [fieldName]: rowIndex
+                        }
+                      }
+                    }));
+                  }}
+                />
               ))}
               {isLoading && <TypingIndicator />}
               <div ref={messagesEndRef} />
@@ -950,6 +1737,21 @@ export function ClaudeChat() {
             >
               <X className="h-4 w-4" />
             </button>
+          </div>
+        )}
+
+        {/* Add New Item Button - Always visible when project header is completed */}
+        {metadata?.projectHeaderCompleted && (
+          <div className="w-full px-4 pb-2">
+            <Button
+              onClick={startNewItemChat}
+              variant="outline"
+              className="w-full border-dashed border-2 hover:border-solid hover:bg-accent/50"
+              disabled={isLoading}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
+            </Button>
           </div>
         )}
 
@@ -1160,7 +1962,7 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
   );
 }
 
-function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { message: Message; onFormSubmit?: (data: Record<string, any>) => void; validationErrors?: Record<string, string> }) {
+function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, validationErrors = {}, initialFormData = {}, selectedTableRows = {}, onTableRowSelect }: { message: Message; sessionId: string; onFormSubmit?: (data: Record<string, any>) => void; onFormDataChange?: (formId: string, data: Record<string, any>) => void; validationErrors?: Record<string, string>; initialFormData?: Record<string, any>; selectedTableRows?: Record<string, number>; onTableRowSelect?: (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => void }) {
   const isUser = message.sender === "user";
   const role = isUser ? "user" : "assistant";
   const hasForm = !isUser && message.formSpec;
@@ -1208,12 +2010,18 @@ function MessageBubble({ message, onFormSubmit, validationErrors = {} }: { messa
           )}
 
           {/* Dynamic Form */}
-          {hasForm && onFormSubmit && (
+          {hasForm && onFormSubmit && message.formSpec?.formId && (
             <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4 w-full">
               <DynamicFormRenderer
+                key={`${sessionId}-${message.id}-${message.formSpec.formId}`}
                 formSpec={message.formSpec}
+                sessionId={sessionId}
+                initialData={initialFormData}
                 onSubmit={onFormSubmit}
+                onFormDataChange={onFormDataChange}
                 validationErrors={validationErrors}
+                selectedTableRows={selectedTableRows}
+                onTableRowSelect={onTableRowSelect}
               />
             </div>
           )}

@@ -1,0 +1,61 @@
+{
+  "_metadata": {
+    "itemNumber": "001",
+    "lastUpdated": "2025-11-30T21:31:51.596Z",
+    "formIds": [
+      "options",
+      "door-info"
+    ]
+  },
+  "options": {
+    "FLUSH_BOLT_CENTER_TOP": null,
+    "FLUSH_BOLT_CENTER_BOTTOM": null,
+    "SILENCER_HOLE_DIA": null,
+    "HASP_CENTER": null,
+    "TUFLOCK_CENTER": null,
+    "PEEP_CL": null,
+    "PEEP_DIA": null,
+    "HINGES": true,
+    "CLOSER": false,
+    "WELDED_PREPS": false,
+    "PRIMARY_LOCK": false,
+    "SECONDARY_LOCK": false,
+    "DUMMY_TRIM": false,
+    "PRIMARY_STRIKE": false,
+    "SECONDARY_STRIKE": false,
+    "PUSH_PULL": false,
+    "HOLDER_STOP": false,
+    "AUTO_OPERATOR": false,
+    "COORDINATOR": false,
+    "MAG_LOCK_SINGLE": false,
+    "EPT_SINGLE": false,
+    "DPS_SINGLE": false,
+    "ASTRAGAL": false,
+    "ASTRAGAL_INSTALLED": false,
+    "HEAD_STRIKE": false,
+    "SILENCERS": false,
+    "DOOR_EDGE_REINFORCEMENT": false,
+    "KICK_PLATE": false
+  },
+  "door-info": {
+    "UNDERCUT": 1,
+    "DOOR_GAUGE": 1,
+    "DOOR_GRADE": "1",
+    "BODY_SIDE_FINISH": "1",
+    "COVER_SIDE_FINISH": "1",
+    "DOOR_THICKNESS": 1,
+    "TOP_CHANNEL_DEPTH": 1,
+    "BOTTOM_CHANNEL_DEPTH": 1,
+    "STRIKE_GAP": 1,
+    "HINGE_GAP": 1,
+    "DOOR_WIDTH_ADJUSTMENT": 1,
+    "CLOSURE_CHANNEL_CLEARANCE": null,
+    "ACTIVE_LEAF": null,
+    "WEEP_HOLES": false,
+    "WEEP_HOLES_ALT": false,
+    "EQUAL_ELEVATIONS": false,
+    "ASTRAGAL": false,
+    "ASTRAGAL_INSTALLED": false,
+    "ADD_BOTTOM_CHANNEL": false
+  }
+}

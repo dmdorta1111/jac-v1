@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, GitBranch, MessageSquare, Plus, Sliders, Trash2 } from "lucide-react";
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
@@ -14,6 +14,12 @@ export interface ChatSession {
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
+  itemNumber?: string;
+  projectMetadata?: any;
+  flowState?: Record<string, any>;
+  flowComplete?: boolean;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
 export interface Message {
@@ -48,12 +54,22 @@ export interface TaskStep {
   items?: string[];
 }
 
+interface FormNavigationState {
+  currentStepIndex: number;
+  totalSteps: number;
+  completedFormIds: string[];
+  highestStepReached: number;
+}
+
 interface LeftSidebarProps {
   chatSessions: ChatSession[];
   currentSessionId: string | null;
   onNewChat: () => void;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string, e: React.MouseEvent) => void;
+  formNavigationState?: FormNavigationState;
+  onNavigatePrev?: () => void;
+  onNavigateNext?: () => void;
 }
 
 export function LeftSidebar({
@@ -62,6 +78,9 @@ export function LeftSidebar({
   onNewChat,
   onSelectSession,
   onDeleteSession,
+  formNavigationState,
+  onNavigatePrev,
+  onNavigateNext,
 }: LeftSidebarProps) {
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
   const { open: openModelModal } = useModelModal();
@@ -116,13 +135,13 @@ export function LeftSidebar({
       <aside
         id="chat-sidebar"
         role="navigation"
-        aria-label="Chat sessions"
+        aria-label=''
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
       >
-        {/* New Chat Button */}
-        <div className="shrink-0 pb-3">
+
+        {/* <div className="shrink-0 pb-3">
           <Button
             onClick={onNewChat}
             className="flex w-full items-center justify-center gap-2.5 border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -130,7 +149,7 @@ export function LeftSidebar({
             <Plus className="size-5" />
             New Item
           </Button>
-        </div>
+        </div> */}
         {/* Workflow Viewer Button
         <div className="mb-4">
           <button
@@ -151,10 +170,7 @@ export function LeftSidebar({
 
         {/* Chat Sessions List */}
         <div className="flex-1 min-h-0 overflow-y-auto py-2 pb-2">
-          <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Recent Chats
-          </p>
-          <div className="space-y-1.5 pb-2" role="listbox" aria-label="Chat sessions">
+          <div className="space-y-1.5 pb-2" role="listbox" aria-label="">
             {chatSessions.length === 0 ? (
               <EmptyState />
             ) : (
@@ -165,6 +181,9 @@ export function LeftSidebar({
                   isSelected={currentSessionId === session.id}
                   onSelect={() => handleSelectSession(session.id)}
                   onDelete={(e) => onDeleteSession(session.id, e)}
+                  formNavigationState={currentSessionId === session.id ? formNavigationState : undefined}
+                  onNavigatePrev={currentSessionId === session.id ? onNavigatePrev : undefined}
+                  onNavigateNext={currentSessionId === session.id ? onNavigateNext : undefined}
                 />
               ))
             )}
@@ -210,12 +229,8 @@ export function LeftSidebar({
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center px-3 py-8 text-center">
-      <MessageSquare className="size-8 text-muted-foreground/50 mb-2" />
       <p className="text-sm font-medium text-muted-foreground">
-        No chat history yet
-      </p>
-      <p className="text-xs text-muted-foreground/70 mt-1">
-        Start a conversation to see it here
+        No Items Yet
       </p>
     </div>
   );
@@ -226,9 +241,34 @@ interface SessionItemProps {
   isSelected: boolean;
   onSelect: () => void;
   onDelete: (e: React.MouseEvent) => void;
+  formNavigationState?: FormNavigationState;
+  onNavigatePrev?: () => void;
+  onNavigateNext?: () => void;
 }
 
-function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemProps) {
+function SessionItem({ session, isSelected, onSelect, onDelete, formNavigationState, onNavigatePrev, onNavigateNext }: SessionItemProps) {
+  // Determine status icon
+  const StatusIcon = session.flowComplete ? CheckCircle2 : Clock;
+  const statusColor = session.flowComplete ? "text-green-500" : "text-yellow-500";
+  const statusLabel = session.flowComplete ? "Completed" : "In Progress";
+
+  // Calculate progress percentage if available
+  const progressText = session.currentStep !== undefined && session.totalSteps
+    ? `${Math.round((session.currentStep / session.totalSteps) * 100)}%`
+    : null;
+
+  // Display title: prefer itemNumber-based title, fallback to session title
+  const displayTitle = session.itemNumber
+    ? `Item ${session.itemNumber}`
+    : (session.title || 'New Item');
+
+  // Form navigation controls - only show for selected session with multiple forms
+  const showFormNav = isSelected && formNavigationState && formNavigationState.totalSteps > 1;
+  const canGoPrev = showFormNav && formNavigationState.currentStepIndex > 0;
+  // Can go forward to any step up to the highest previously reached
+  const canGoNext = showFormNav && formNavigationState.currentStepIndex < formNavigationState.totalSteps - 1
+    && formNavigationState.currentStepIndex < formNavigationState.highestStepReached;
+
   return (
     <div
       role="option"
@@ -241,28 +281,77 @@ function SessionItem({ session, isSelected, onSelect, onDelete }: SessionItemPro
           onSelect();
         }
       }}
-      className={`group flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+      className={`group flex w-full cursor-pointer flex-col gap-1.5 rounded-xl px-3 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
         isSelected
           ? "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 shadow-sm"
           : "text-foreground hover:bg-accent"
       }`}
     >
-      <MessageSquare className="size-4 shrink-0" aria-hidden="true" />
-      <span className="flex-1 truncate text-sm font-medium">
-        {session.title || 'New Item'}
-      </span>
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(e);
-        }}
-        aria-label={`Delete chat: ${session.title}`}
-        className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-zinc-500/10 hover:text-zinc-600 dark:hover:text-zinc-400 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <Trash2 className="size-4" aria-hidden="true" />
-      </Button>
+      {/* Main row with status, title, progress, and delete */}
+      <div className="flex w-full items-center gap-2.5">
+        {/* Status Icon */}
+        <StatusIcon
+          className={`size-4 shrink-0 ${statusColor}`}
+          aria-label={statusLabel}
+        />
+        <span className="flex-1 truncate text-sm font-medium">
+          {displayTitle}
+        </span>
+        {/* Progress indicator */}
+        {progressText && (
+          <span className="text-xs text-muted-foreground shrink-0">
+            {progressText}
+          </span>
+        )}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(e);
+          }}
+          aria-label={`Delete chat: ${session.title}`}
+          className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-zinc-500/10 hover:text-zinc-600 dark:hover:text-zinc-400 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Trash2 className="size-4" aria-hidden="true" />
+        </Button>
+      </div>
+
+      {/* Form navigation row - only show for selected session with forms */}
+      {showFormNav && (
+        <div className="flex items-center justify-between mt-1 pt-1.5 border-t border-border/50">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigatePrev?.();
+            }}
+            disabled={!canGoPrev}
+            aria-label="Previous form"
+            className="h-7 px-2 text-xs gap-1 disabled:opacity-30"
+          >
+            <ChevronLeft className="size-3.5" />
+            Prev
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigateNext?.();
+            }}
+            disabled={!canGoNext}
+            aria-label="Next form"
+            className="h-7 px-2 text-xs gap-1 disabled:opacity-30"
+          >
+            Next
+            <ChevronRight className="size-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

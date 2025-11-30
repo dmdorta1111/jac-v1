@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useMemo, ReactNode } from 'react';
 
 interface ProjectMetadata {
   SO_NUM: string;
@@ -10,6 +10,14 @@ interface ProjectMetadata {
   salesOrderNumber?: string;
   folderPath?: string;
   isRevision?: boolean;
+  currentSessionId?: string;
+  projectHeaderCompleted?: boolean;
+  itemSessions?: Record<string, {
+    sessionId: string;
+    itemNumber: string;
+    createdAt: number;
+    title: string;
+  }>;
 }
 
 interface ProjectContextType {
@@ -25,8 +33,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const clearMetadata = () => setMetadata(null);
 
+  const value = useMemo(() => ({
+    metadata,
+    setMetadata,
+    clearMetadata
+  }), [metadata]);
+
   return (
-    <ProjectContext.Provider value={{ metadata, setMetadata, clearMetadata }}>
+    <ProjectContext.Provider value={value}>
       {children}
     </ProjectContext.Provider>
   );
