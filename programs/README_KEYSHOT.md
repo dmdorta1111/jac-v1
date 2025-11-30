@@ -50,6 +50,22 @@ python keyshot_convert.py --batch ./creo_parts ./gltf_output
 # The script will find all .prt and .asm files automatically
 ```
 
+### Apply Material to All Geometry
+
+```bash
+# Apply a specific material before conversion (bakes material into textures)
+python keyshot_convert.py model.prt output.glb --material "Stainless Steel Brushed Fine 90°"
+
+# Apply material with batch conversion
+python keyshot_convert.py --batch ./creo_parts ./gltf_output --material "Steel"
+
+# Combine with quality settings
+python keyshot_convert.py model.prt output.glb \
+  --material "Stainless Steel Brushed Fine 90°" \
+  --dpi 300 \
+  --samples 64
+```
+
 ### Quality Settings
 
 ```bash
@@ -84,10 +100,22 @@ python keyshot_convert.py model.prt output.glb \
 
 | Option | Default | Description |
 |--------|---------|-------------|
+| `--material NAME` | None | Material name to apply to all geometry before export |
 | `--dpi N` | 150 | Texture resolution in DPI. Higher = better quality but larger files |
 | `--samples N` | 32 | Number of samples for material baking. Higher = better quality but slower |
 | `--no-occlusion` | Enabled | Disable ambient occlusion in exported textures |
 | `--no-compression` | Enabled | Disable Draco geometry compression (larger files) |
+
+### Material Examples
+Common KeyShot material names:
+- `"Stainless Steel Brushed Fine 90°"`
+- `"Steel"`
+- `"Aluminum Brushed"`
+- `"Chrome"`
+- `"Plastic Glossy"`
+- `"Rubber"`
+
+Note: Material names must match exactly as they appear in the KeyShot Material Library.
 
 ### DPI Guidelines
 - **100-150 DPI**: Fast exports, suitable for previews
