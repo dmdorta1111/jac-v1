@@ -14,7 +14,7 @@
           "label": "Hs Offset",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "rixon-hs-degree",
@@ -22,7 +22,7 @@
           "label": "Hs Degree",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "rixon-select-device",

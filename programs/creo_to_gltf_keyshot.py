@@ -15,14 +15,64 @@ import sys
 import os
 from pathlib import Path
 
-def convert_creo_to_gltf(input_file, output_file, export_options=None):
+
+def apply_material_to_all_geometry(material_name):
+    """
+    Apply a material to all geometry in the scene before export.
+
+    Args:
+        material_name: Name of the material to apply (e.g., "Stainless Steel Brushed Fine 90°")
+
+    Returns:
+        bool: True if material was applied successfully, False otherwise
+    """
+    print(f"Applying material '{material_name}' to all geometry...")
+
+    try:
+        # Method 1: Use scene tree to apply material to root (applies to all children)
+        scene_tree = lux.getSceneTree()
+        if scene_tree:
+            scene_tree.setMaterial(material_name, link=False)
+            print(f"✓ Material '{material_name}' applied via scene tree")
+            return True
+    except Exception as e:
+        print(f"Scene tree method failed: {e}")
+
+    try:
+        # Method 2: Get all objects and apply via mapping
+        objects = lux.getObjects()
+        if objects:
+            material_mapping = {obj: material_name for obj in objects}
+            lux.applyMaterialMapping(material_mapping, link=False)
+            print(f"✓ Material '{material_name}' applied to {len(objects)} objects via mapping")
+            return True
+    except Exception as e:
+        print(f"Object mapping method failed: {e}")
+
+    try:
+        # Method 3: Direct object material assignment
+        objects = lux.getObjects()
+        if objects:
+            for obj in objects:
+                lux.setObjectMaterial(material_name, obj, link=False)
+            print(f"✓ Material '{material_name}' applied to {len(objects)} objects directly")
+            return True
+    except Exception as e:
+        print(f"Direct assignment method failed: {e}")
+
+    print(f"✗ Failed to apply material '{material_name}'")
+    return False
+
+
+def convert_creo_to_gltf(input_file, output_file, export_options=None, material_name=None):
     """
     Convert a Creo file to glTF using KeyShot
-    
+
     Args:
         input_file: Path to Creo .prt or .asm file
         output_file: Path to output .glb or .gltf file
         export_options: Dictionary of export options
+        material_name: Optional material name to apply to all geometry before export
     """
     input_path = str(Path(input_file).resolve())
     output_path = str(Path(output_file).resolve())
@@ -50,7 +100,12 @@ def convert_creo_to_gltf(input_file, output_file, export_options=None):
     except Exception as e:
         print(f"✗ Import failed: {e}")
         sys.exit(1)
-    
+
+    # Apply material to all geometry if specified
+    if material_name:
+        if not apply_material_to_all_geometry(material_name):
+            print(f"WARNING: Could not apply material '{material_name}', continuing with default materials")
+
     # Set default export options
     default_export_options = {
         "mode": lux.EXPORT_BAKING,
@@ -84,14 +139,15 @@ def convert_creo_to_gltf(input_file, output_file, export_options=None):
         print(f"✗ Export failed: {e}")
         return False
 
-def batch_convert(input_dir, output_dir, export_options=None):
+def batch_convert(input_dir, output_dir, export_options=None, material_name=None):
     """
     Batch convert all Creo files in a directory
-    
+
     Args:
         input_dir: Directory containing Creo files
         output_dir: Output directory for glTF files
         export_options: Dictionary of export options
+        material_name: Optional material name to apply to all geometry before export
     """
     input_path = Path(input_dir).resolve()
     output_path = Path(output_dir).resolve()
@@ -124,7 +180,7 @@ def batch_convert(input_dir, output_dir, export_options=None):
         print(f"Converting: {creo_file.name}")
         
         try:
-            if convert_creo_to_gltf(str(creo_file), str(output_file), export_options):
+            if convert_creo_to_gltf(str(creo_file), str(output_file), export_options, material_name):
                 success_count += 1
             else:
                 failed_count += 1
@@ -140,14 +196,16 @@ def batch_convert(input_dir, output_dir, export_options=None):
 
 def main():
     """Main entry point for the script"""
-    
+
     # Parse command line arguments
     if len(sys.argv) < 3:
         print("Usage:")
-        print("  Single file: <input.prt> <output.glb> [--dpi N] [--samples N]")
-        print("  Batch:       --batch <input_dir> <output_dir> [--dpi N] [--samples N]")
+        print("  Single file: <input.prt> <output.glb> [options]")
+        print("  Batch:       --batch <input_dir> <output_dir> [options]")
         print()
         print("Options:")
+        print("  --material NAME  Material to apply to all geometry before export")
+        print("                   Example: --material \"Stainless Steel Brushed Fine 90°\"")
         print("  --dpi N          Texture resolution (default: 150)")
         print("  --samples N      Baking samples for quality (default: 32)")
         print("  --no-occlusion   Disable ambient occlusion")
@@ -155,7 +213,8 @@ def main():
         print()
         print("Examples:")
         print("  Single:  mypart.prt output.glb")
-        print("  Batch:   --batch ./creo_files ./gltf_output")
+        print("  Material: mypart.prt output.glb --material \"Stainless Steel Brushed Fine 90°\"")
+        print("  Batch:   --batch ./creo_files ./gltf_output --material \"Steel\"")
         print("  Quality: mypart.prt output.glb --dpi 300 --samples 64")
         sys.exit(1)
     
@@ -174,11 +233,15 @@ def main():
         output_file = args[1]
         args = args[2:]
     
-    # Parse export options
+    # Parse export options and material
     export_options = {}
+    material_name = None
     i = 0
     while i < len(args):
-        if args[i] == "--dpi" and i + 1 < len(args):
+        if args[i] == "--material" and i + 1 < len(args):
+            material_name = args[i + 1]
+            i += 2
+        elif args[i] == "--dpi" and i + 1 < len(args):
             export_options["dpi"] = int(args[i + 1])
             i += 2
         elif args[i] == "--samples" and i + 1 < len(args):
@@ -192,12 +255,12 @@ def main():
             i += 1
         else:
             i += 1
-    
+
     # Run conversion
     if batch_mode:
-        batch_convert(input_path, output_path, export_options)
+        batch_convert(input_path, output_path, export_options, material_name)
     else:
-        if not convert_creo_to_gltf(input_file, output_file, export_options):
+        if not convert_creo_to_gltf(input_file, output_file, export_options, material_name):
             sys.exit(1)
 
 if __name__ == "__main__":

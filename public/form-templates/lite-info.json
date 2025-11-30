@@ -30,7 +30,7 @@
           "label": "Jd",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-frame-gauge",
@@ -64,7 +64,7 @@
           "label": "Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-rabbet",
@@ -72,7 +72,7 @@
           "label": "Rabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-xrabbet",
@@ -80,7 +80,7 @@
           "label": "Xrabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-return",
@@ -88,7 +88,7 @@
           "label": "Return",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-xreturn",
@@ -96,7 +96,7 @@
           "label": "Xreturn",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-facee",
@@ -104,7 +104,7 @@
           "label": "Facee",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-xfacee",
@@ -112,7 +112,7 @@
           "label": "Xfacee",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-head",
@@ -120,7 +120,7 @@
           "label": "Head",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-xhead",
@@ -128,7 +128,7 @@
           "label": "Xhead",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-head-stopp",
@@ -136,7 +136,7 @@
           "label": "Head Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-sill",
@@ -144,7 +144,7 @@
           "label": "Sill",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-xsill",
@@ -152,7 +152,7 @@
           "label": "Xsill",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-sill-stopp",
@@ -160,7 +160,7 @@
           "label": "Sill Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "lite-info-construction",

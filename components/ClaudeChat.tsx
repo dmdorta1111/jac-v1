@@ -50,7 +50,7 @@ import {
   type ChatSession,
   type Message,
   type UploadedFile,
-} from "@/components/leftsidebar";
+} from "@/components/LeftSidebar";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
@@ -171,6 +171,9 @@ export function ClaudeChat() {
    * Load existing project state from JSON files
    * @param folderPath - Project folder path (e.g., "project-docs/SDI/SO123")
    * @returns Merged state from project-header.json and any item files
+   *
+   * IMPORTANT: This also merges project standards from the `standards` key
+   * into the flat state, enabling autofill of matching fields across all forms.
    */
   const loadExistingProjectState = async (folderPath: string): Promise<Record<string, any>> => {
     const state: Record<string, any> = {};
@@ -181,7 +184,18 @@ export function ClaudeChat() {
       if (headerRes.ok) {
         const headerData = await headerRes.json();
         if (headerData.success && headerData.data) {
-          Object.assign(state, headerData.data);
+          // First, merge the header data (excluding standards to avoid nesting)
+          const { standards, ...headerFields } = headerData.data;
+          Object.assign(state, headerFields);
+
+          // Merge project standards into flat state for autofill
+          // Standards are saved by stds-form-modal and contain field values like HINGE_GAP, DOOR_THICKNESS, etc.
+          // These will be picked up by flowExecutor.getContextValues() to prefill matching fields in other forms
+          if (standards && typeof standards === 'object') {
+            Object.assign(state, standards);
+            console.log('Loaded project standards for autofill:', Object.keys(standards).length, 'fields');
+          }
+
           console.log('Loaded project header state:', Object.keys(headerData.data));
         }
       }

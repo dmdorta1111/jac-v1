@@ -927,6 +927,44 @@ WHILE i >= 1
 END_WHILE
 ```
 
+## Trail File Debugging Workflow
+
+After running scripts in Creo, check trail files for errors:
+
+**1. Find latest trail file:**
+```powershell
+Get-ChildItem 'C:\Users\waveg\VsCodeProjects\jac-v1\SmartAssembly\trail_files\trail.txt.*' |
+  Sort-Object {[int]($_.Name -replace 'trail.txt.','')} -Descending |
+  Select-Object -First 1 -ExpandProperty FullName
+```
+
+**2. Parse errors** - Look for `!%CEERROR` lines:
+```
+!%CEERROR in Line lib:\PATH\file.tab (LINE_NUM): ERROR_MESSAGE
+```
+
+**3. Extract:** File path, line number (in parentheses), error message
+
+**4. Fix source** at identified line, using error-solutions.md for patterns
+
+**5. Re-run** and repeat until no errors
+
+→ See **trail-file-debugging.md** for full parsing details
+→ See **error-solutions.md** for fix patterns
+
+## Self-Learning
+
+When discovering new error patterns or solutions:
+
+1. **Update error-solutions.md** with:
+   - Error pattern (exact text)
+   - Cause
+   - Solution with before/after code
+
+2. **Update relevant reference files** if discovering new command patterns
+
+This ensures the skill improves over time.
+
 ## Reference Files
 
 **Core Language:**
@@ -942,6 +980,10 @@ END_WHILE
 - **powershell-integration.md** - PowerShell-Creo COM API, SQL Server, PDF merge
 - **manufacturing-workflows.md** - 4-stage manufacturing pipeline (Model→Drawing→Export→PDF)
 - **path-system.md** - SA_Paths.txt configuration, lib: prefix resolution
+
+**Debugging & Learning:**
+- **trail-file-debugging.md** - Trail file parsing, error extraction, debug workflow
+- **error-solutions.md** - Error patterns and fixes (self-updateable knowledge base)
 
 **Product & Patterns:**
 - **product-patterns.md** - Product modules (Counters, WorkTables, Tops, etc.), architecture patterns

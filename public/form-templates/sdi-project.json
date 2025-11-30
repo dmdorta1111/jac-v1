@@ -31,7 +31,7 @@
           "label": "Jow",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "SDI-Project-joh",
@@ -39,7 +39,7 @@
           "label": "Joh",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "SDI-Project-jd",
@@ -47,7 +47,7 @@
           "label": "Jd",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "SDI-Project-fire-rating",

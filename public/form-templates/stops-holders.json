@@ -1,0 +1,169 @@
+{
+  "sheetName": "STOPS - HOLDERS",
+  "description": "Door Stops and Holders Specifications",
+  "sourceFile": "SO_TEMPLATE.xls",
+  "extractedAt": "2025-11-29T16:01:15.269Z",
+  "totalEntries": 17,
+  "entries": [
+    {
+      "id": 3,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "101",
+      "doorOpening": "18 - 23",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 1,
+      "frameCutLength": 3.5,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+    },
+    {
+      "id": 4,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "102",
+      "doorOpening": "23-1/16 - 27",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 1,
+      "frameCutLength": 3.5,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+    },
+    {
+      "id": 5,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "103",
+      "doorOpening": "27-1/16 - 33",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 1,
+      "frameCutLength": 3.5,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+    },
+    {
+      "id": 6,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "104",
+      "doorOpening": "33-1 /16 - 39",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 1,
+      "frameCutLength": 3.5,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+    },
+    {
+      "id": 7,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "105",
+      "doorOpening": "39-1/16 - 45 ",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 1,
+      "frameCutLength": 3.5,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+    },
+    {
+      "id": 8,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "106",
+      "doorOpening": "45-1/16 - 54 ",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 1,
+      "frameCutLength": 3.5,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_100.PRT"
+    },
+    {
+      "id": 9,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "411",
+      "doorOpening": "18 - 23",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 2.875,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+    },
+    {
+      "id": 10,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "412",
+      "doorOpening": "23-1/16 - 27",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 2.875,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+    },
+    {
+      "id": 11,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "413",
+      "doorOpening": "27-1/16 - 33",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 2.875,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+    },
+    {
+      "id": 12,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "414",
+      "doorOpening": "33-1 /16 - 39",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 2.875,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+    },
+    {
+      "id": 13,
+      "manufacturer": "GLYNN-JOHNSON",
+      "modelNumber": "415",
+      "doorOpening": "39-1/16 - 45 ",
+      "doorUdf": "udf\\glynn-johnson_door",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 2.875,
+      "frameReinforcementModel": "GLYNN-JOHNSON_FRAME_410.ASM"
+    },
+    {
+      "id": 16,
+      "manufacturer": "DEVICE NUMBER",
+      "doorOpening": "DEGREE"
+    },
+    {
+      "id": 18,
+      "manufacturer": "RIXSON",
+      "modelNumber": "2-136",
+      "doorOpening": "18 - 24",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 3,
+      "frameReinforcementModel": "RIXSON-2.ASM"
+    },
+    {
+      "id": 19,
+      "manufacturer": "RIXSON",
+      "modelNumber": "2-236",
+      "doorOpening": "24-1/16 - 30",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 3,
+      "frameReinforcementModel": "RIXSON-2.ASM"
+    },
+    {
+      "id": 20,
+      "manufacturer": "RIXSON",
+      "modelNumber": "2-336",
+      "doorOpening": "30-1/16 - 36",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 3,
+      "frameReinforcementModel": "RIXSON-2.ASM"
+    },
+    {
+      "id": 21,
+      "manufacturer": "RIXSON",
+      "modelNumber": "2-436",
+      "doorOpening": "36-1 /16 - 42",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 3,
+      "frameReinforcementModel": "RIXSON-2.ASM"
+    },
+    {
+      "id": 23,
+      "manufacturer": "RIXSON",
+      "modelNumber": "2-536",
+      "doorOpening": "42-1/16 - 48",
+      "frameCutWidth": 0.75,
+      "frameCutLength": 3,
+      "frameReinforcementModel": "RIXSON-2.ASM"
+    }
+  ]
+}

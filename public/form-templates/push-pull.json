@@ -14,7 +14,7 @@
           "label": "Push Plate Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -32,7 +32,7 @@
           "label": "Pull Plate Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -50,7 +50,7 @@
           "label": "Pull Plate Height",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -68,7 +68,7 @@
           "label": "Push Pull Width",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -86,7 +86,7 @@
           "label": "Push Bar Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -104,7 +104,7 @@
           "label": "Pull Bar Hole Centers",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -122,7 +122,7 @@
           "label": "Pull Bar Backset",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -140,7 +140,7 @@
           "label": "Pull Bar Screw Size",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

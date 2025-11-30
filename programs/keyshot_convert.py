@@ -79,16 +79,19 @@ def main():
 Examples:
   # Convert single file
   python keyshot_convert.py model.prt output.glb
-  
+
+  # Convert with material applied to all geometry
+  python keyshot_convert.py model.prt output.glb --material "Stainless Steel Brushed Fine 90°"
+
   # Convert with high quality settings
   python keyshot_convert.py model.prt output.glb --dpi 300 --samples 64
-  
-  # Batch convert directory
-  python keyshot_convert.py --batch ./creo_files ./gltf_output
-  
+
+  # Batch convert directory with material
+  python keyshot_convert.py --batch ./creo_files ./gltf_output --material "Steel"
+
   # Specify KeyShot path
   python keyshot_convert.py model.prt output.glb --keyshot /path/to/keyshot
-  
+
   # Custom quality settings
   python keyshot_convert.py model.prt output.glb --dpi 200 --samples 48 --no-compression
 
@@ -116,7 +119,9 @@ Requirements:
                        help='Disable ambient occlusion')
     parser.add_argument('--no-compression', action='store_true',
                        help='Disable Draco geometry compression')
-    
+    parser.add_argument('--material',
+                       help='Material name to apply to all geometry before export (e.g., "Stainless Steel Brushed Fine 90°")')
+
     args = parser.parse_args()
     
     # Find KeyShot
@@ -162,6 +167,8 @@ Requirements:
         script_args.extend([args.input, args.output])
     
     # Add optional arguments
+    if args.material:
+        script_args.extend(['--material', args.material])
     if args.dpi:
         script_args.extend(['--dpi', str(args.dpi)])
     if args.samples:

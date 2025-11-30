@@ -14,7 +14,7 @@
           "label": "Flush Bolt Center Top",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -37,7 +37,7 @@
           "label": "Flush Bolt Center Bottom",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -79,7 +79,7 @@
           "label": "Silencer Hole Dia",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -97,7 +97,7 @@
           "label": "Hasp Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -115,7 +115,7 @@
           "label": "Tuflock Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -133,7 +133,7 @@
           "label": "Peep Cl",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -151,7 +151,7 @@
           "label": "Peep Dia",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

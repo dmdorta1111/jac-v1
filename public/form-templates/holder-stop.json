@@ -33,7 +33,7 @@
           "label": "Hs Length",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -51,7 +51,7 @@
           "label": "Hs Offset",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -74,7 +74,7 @@
           "label": "Hs Degree",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -97,7 +97,7 @@
           "label": "Hs A",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -120,7 +120,7 @@
           "label": "Hs B",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -143,7 +143,7 @@
           "label": "Hs C",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -166,7 +166,7 @@
           "label": "Hs D",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

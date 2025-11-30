@@ -14,11 +14,11 @@
           "label": "Anchor Ctr",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "validation": {
-            "decimalPlaces": 4
+            "decimalPlaces": 5
           },
-          "helperText": "Precision: 4 decimal places",
+          "helperText": "Precision: 5 decimal places",
           "conditional": {
             "conditions": [
               {
@@ -65,7 +65,7 @@
           "label": "Grout Hole Dia",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -83,7 +83,7 @@
           "label": "Transom Anchor Center",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -101,7 +101,7 @@
           "label": "Anchor Recess",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-drywall-allowance",
@@ -109,7 +109,7 @@
           "label": "Drywall Allowance",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -142,7 +142,7 @@
           "label": "Anchor Jt Dist",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-anchor-jb-dist",
@@ -150,7 +150,7 @@
           "label": "Anchor Jb Dist",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-anchor-hdj-dist",
@@ -158,7 +158,7 @@
           "label": "Anchor Hdj Dist",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-anchor-hmax",
@@ -166,7 +166,7 @@
           "label": "Anchor Hmax",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "anchors-anchor-qty",
@@ -197,7 +197,7 @@
           "label": "Anchor Jmax",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

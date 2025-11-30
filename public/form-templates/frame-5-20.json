@@ -14,7 +14,7 @@
           "label": "Transom Head",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-transom-heightmm",
@@ -22,7 +22,7 @@
           "label": "Transom Heightmm",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-transom-section",
@@ -64,7 +64,7 @@
           "label": "Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-rabbet",
@@ -72,7 +72,7 @@
           "label": "Rabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-xrabbet",
@@ -80,7 +80,7 @@
           "label": "Xrabbet",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-return",
@@ -88,7 +88,7 @@
           "label": "Return",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-xreturn",
@@ -96,7 +96,7 @@
           "label": "Xreturn",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-xfacee",
@@ -104,7 +104,7 @@
           "label": "Xfacee",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-xhead",
@@ -112,7 +112,7 @@
           "label": "Xhead",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-head-stopp",
@@ -120,7 +120,7 @@
           "label": "Head Stopp",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-head-grain",
@@ -137,7 +137,7 @@
           "label": "Active Leaf",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-transom-panel-height",
@@ -145,7 +145,7 @@
           "label": "Transom Panel Height",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-transom-stopp",
@@ -153,7 +153,7 @@
           "label": "Transom Stopp",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-transom-anchor-center",
@@ -161,7 +161,7 @@
           "label": "Transom Anchor Center",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "frame-5-20-construction",

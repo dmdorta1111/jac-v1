@@ -14,7 +14,7 @@
           "label": "Strike Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "strikes-strike-model",
@@ -46,7 +46,7 @@
           "label": "Strike Plate Thickness",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -64,7 +64,7 @@
           "label": "Elec Strike Lip Thickness",
           "required": true,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {

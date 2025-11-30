@@ -81,6 +81,7 @@
     "eslint-config-next": "16.0.3",
     "shadcn": "^3.5.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "xlsx": "^0.18.5"
   }
 }

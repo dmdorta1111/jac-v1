@@ -14,7 +14,7 @@
           "label": "Strike Center",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -32,7 +32,7 @@
           "label": "Mullion Add Per Door",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -50,7 +50,7 @@
           "label": "Mortise Box Depth",
           "required": false,
           "type": "float",
-          "placeholder": "0.00",
+          "placeholder": "0.00000",
           "conditional": {
             "conditions": [
               {
@@ -145,7 +145,76 @@
           "label": "Select Lock",
           "type": "switch",
           "defaultValue": false,
-          "helperText": "Toggle to enable"
+          "helperText": "Toggle to select a lock from the database"
+        },
+        {
+          "id": "lock-options-lock-table",
+          "name": "SELECTED_LOCK",
+          "label": "Available Locks and Exit Devices",
+          "type": "table",
+          "required": false,
+          "helperText": "Select a lock or exit device from the list",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SELECT_LOCK",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "logic": "AND"
+          },
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "lockType", "label": "Lock Type" },
+            { "key": "manufacturer", "label": "Manufacturer" },
+            { "key": "modelNumber", "label": "Model" },
+            { "key": "drawingDescription", "label": "Description" },
+            { "key": "template", "label": "Template" },
+            { "key": "backset", "label": "Backset" },
+            { "key": "offset", "label": "Offset" }
+          ],
+          "tableData": [
+            { "__id": "lock-2", "id": 2, "lockType": "CYLINDER LOCK", "manufacturer": "GENERIC", "modelNumber": "2-1/8\" BORE", "drawingDescription": "CYLINDER LOCK", "template": "NA", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-3", "id": 3, "lockType": "CYLINDER LOCK", "manufacturer": "GENERIC", "modelNumber": "161", "drawingDescription": "161 CYLINDER LOCK", "template": "NA", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-4", "id": 4, "lockType": "CYLINDER LOCK", "manufacturer": "HAGER", "modelNumber": "3400", "drawingDescription": "HAGER 3400 SERIES CYLINDER LOCK", "template": "T-LS00183 (REV 03)", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-5", "id": 5, "lockType": "CYLINDER LOCK", "manufacturer": "BEST", "modelNumber": "9K", "drawingDescription": "BEST ACCESS 9K CYLINDER LOCK", "template": "K09", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-6", "id": 6, "lockType": "CYLINDER LOCK", "manufacturer": "SCHLAGE", "modelNumber": "ND SERIES", "drawingDescription": "SCHLAGE ND SERIES CYLINDER LOCK", "template": "N/A", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-7", "id": 7, "lockType": "CYLINDER LOCK", "manufacturer": "SCHLAGE", "modelNumber": "ND80PD", "drawingDescription": "SCHLAGE ND80PD SERIES CYLINDER LOCK", "template": "N/A", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-8", "id": 8, "lockType": "CYLINDER LOCK", "manufacturer": "SCHLAGE", "modelNumber": "A SERIES", "drawingDescription": "SCHLAGE A SERIES CYLINDER LOCK", "template": "N/A", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-9", "id": 9, "lockType": "CYLINDER LOCK", "manufacturer": "SARGENT", "modelNumber": "10 LINE", "drawingDescription": "SARGENT 10 LINE CYLINDER LOCK", "template": "4375-1B", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-10", "id": 10, "lockType": "CYLINDER LOCK", "manufacturer": "KABA", "modelNumber": "5066", "drawingDescription": "KABA 5066 CYLINDER LOCK", "template": "N/A", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-11", "id": 11, "lockType": "CYLINDER LOCK", "manufacturer": "ALLEGION", "modelNumber": "HOSP", "drawingDescription": "ALLEGION - HOSPITAL LATCH - VERTICAL MOUNT", "template": "829694-00", "backset": 2.75, "offset": 0 },
+            { "__id": "lock-19", "id": 19, "lockType": "MORTISE LOCK", "manufacturer": "BEST", "modelNumber": "45H", "drawingDescription": "BEST - 45H - 7D14H - MORTISE LOCK", "template": "H16", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-20", "id": 20, "lockType": "MORTISE LOCK", "manufacturer": "SECURITECH", "modelNumber": "81T-USA3", "drawingDescription": "SECURTITECH - 817USA3 - MORTISED EXIT", "template": "TMP8xUSA V3", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-21", "id": 21, "lockType": "MORTISE LOCK", "manufacturer": "SARGENT", "modelNumber": "8204", "drawingDescription": "SARGENT 70-8204 LNW", "template": "7057 R", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-22", "id": 22, "lockType": "MORTISE LOCK", "manufacturer": "YALE", "modelNumber": "8805", "drawingDescription": "YALE 8805 - MORTISE LOCK", "template": "7086-1201", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-23", "id": 23, "lockType": "MORTISE LOCK", "manufacturer": "SCHLAGE", "modelNumber": "AD-200", "drawingDescription": "SCHLAGE AD-200-MS-MTK-TLR", "template": "L906", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-26", "id": 26, "lockType": "MORTISE LOCK", "manufacturer": "SCHLAGE", "modelNumber": "L9010", "drawingDescription": "SCHLAGE - L9010 - MORTISE LOCK", "template": "L893", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-27", "id": 27, "lockType": "MORTISE LOCK", "manufacturer": "SCHLAGE", "modelNumber": "L9040", "drawingDescription": "SCHLAGE - L9040 - MORTISE LOCK", "template": "L895", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-28", "id": 28, "lockType": "MORTISE LOCK", "manufacturer": "SCHLAGE", "modelNumber": "L9050", "drawingDescription": "SCHLAGE - L9050 - MORTISE LOCK", "template": "L987", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-29", "id": 29, "lockType": "MORTISE LOCK", "manufacturer": "SCHLAGE", "modelNumber": "L9070", "drawingDescription": "SCHLAGE - L9070 - MORTISE LOCK", "template": "L893", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-30", "id": 30, "lockType": "MORTISE LOCK", "manufacturer": "SCHLAGE", "modelNumber": "L9080", "drawingDescription": "SCHLAGE - L9080 - MORTISE LOCK", "template": "L906", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-33", "id": 33, "lockType": "MORTISE LOCK", "manufacturer": "FALCON", "modelNumber": "MA101", "drawingDescription": "FALCON - MA101 MORTISE LOCK", "template": "Q005-083", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-34", "id": 34, "lockType": "MORTISE LOCK", "manufacturer": "FALCON", "modelNumber": "MA521", "drawingDescription": "FALCON - MA521 MORTISE LOCK", "template": "Q005-083", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-35", "id": 35, "lockType": "MORTISE LOCK", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "ML2053", "drawingDescription": "CORBIN RUSSWIN ML2053", "template": "T30600-3", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-36", "id": 36, "lockType": "MORTISE LOCK", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "ML2059", "drawingDescription": "CORBIN RUSSWIN ML2059", "template": "T30600-10", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-37", "id": 37, "lockType": "MORTISE LOCK", "manufacturer": "PDQ", "modelNumber": "PDQ MR 126", "drawingDescription": "PDQ MR 126 MORTISE LOCK", "template": "W53504, REV.3", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-38", "id": 38, "lockType": "MORTISE LOCK", "manufacturer": "SARGENT", "modelNumber": "RX 8270", "drawingDescription": "SARGENT 70 RX-8270-24V LNW", "template": "7057 R", "backset": 2.75, "offset": -0.375 },
+            { "__id": "lock-57", "id": 57, "lockType": "EXIT DEVICE", "manufacturer": "GENERIC", "modelNumber": "GENERIC", "drawingDescription": "GENERIC RIM EXIT DEVICE", "template": "N/A", "backset": 2.375, "offset": 0 },
+            { "__id": "lock-58", "id": 58, "lockType": "EXIT DEVICE", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "ED5200", "drawingDescription": "CORBIN RUSSWIN - ED5200 EXIT DEVICE", "template": "T30819-4", "backset": 2.3125, "offset": 0 },
+            { "__id": "lock-59", "id": 59, "lockType": "EXIT DEVICE", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "ED5200A", "drawingDescription": "CORBIN RUSSWIN - ED5200A EXIT ONLY", "template": "T30802-2", "backset": 0, "offset": 0 },
+            { "__id": "lock-60", "id": 60, "lockType": "EXIT DEVICE", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "ED8200", "drawingDescription": "CORBIN RUSSWIN - ED8200 EXIT DEVICE", "template": "T30436-2", "backset": 2.3125, "offset": 0 },
+            { "__id": "lock-61", "id": 61, "lockType": "EXIT DEVICE", "manufacturer": "DESIGN HARDWARE", "modelNumber": "2000", "drawingDescription": "DESIGN HARDWARE 2000 SERIES X LE08 EXIT DEVICE & TRIM", "template": "2012.3", "backset": 2.4375, "offset": 0 },
+            { "__id": "lock-62", "id": 62, "lockType": "EXIT DEVICE", "manufacturer": "DORMA", "modelNumber": "9300", "drawingDescription": "DORMA - 9300 EXIT DEVICE", "template": "T9305-9", "backset": 2.3125, "offset": 0 },
+            { "__id": "lock-65", "id": 65, "lockType": "EXIT DEVICE", "manufacturer": "SARGENT", "modelNumber": "8804", "drawingDescription": "SARGENT - 8804 EXIT DEVICE", "template": "4415H", "backset": 2.25, "offset": 0 },
+            { "__id": "lock-66", "id": 66, "lockType": "EXIT DEVICE", "manufacturer": "SARGENT", "modelNumber": "8813", "drawingDescription": "SARGENT - 8813 EXIT DEVICE", "template": "4415H", "backset": 2.25, "offset": 0 },
+            { "__id": "lock-67", "id": 67, "lockType": "EXIT DEVICE", "manufacturer": "YALE", "modelNumber": "626F", "drawingDescription": "YALE 7100 X 626F EXIT DEVICE", "template": "7400-0622", "backset": 2.3125, "offset": 0 },
+            { "__id": "lock-69", "id": 69, "lockType": "EXIT DEVICE", "manufacturer": "VON DUPRIN", "modelNumber": "98/99", "drawingDescription": "VON DUPRIN - 98/99 SERIES EXIT DEVICE", "template": "10302_a", "backset": 2.375, "offset": 0 },
+            { "__id": "lock-70", "id": 70, "lockType": "EXIT DEVICE", "manufacturer": "VON DUPRIN", "modelNumber": "9875", "drawingDescription": "VON DUPRIN - 9875L", "template": "10305_a", "backset": 2.75, "offset": -0.34375 },
+            { "__id": "lock-71", "id": 71, "lockType": "EXIT DEVICE", "manufacturer": "VON DUPRIN", "modelNumber": "98L", "drawingDescription": "VON DUPRIN - 98L SERIES EXIT DEVICE", "template": "10300_a", "backset": 2.375, "offset": 0 },
+            { "__id": "lock-80", "id": 80, "lockType": "EXIT DEVICE", "manufacturer": "YALE", "modelNumber": "7110", "drawingDescription": "YALE 7110 EXIT DEVICE", "template": "NA", "backset": 2.75, "offset": 0 }
+          ]
         },
         {
           "id": "lock-options-select-trim",
@@ -153,7 +222,54 @@
           "label": "Select Trim",
           "type": "switch",
           "defaultValue": false,
-          "helperText": "Toggle to enable"
+          "helperText": "Toggle to select a trim from the database"
+        },
+        {
+          "id": "lock-options-trim-table",
+          "name": "SELECTED_TRIM",
+          "label": "Available Trims",
+          "type": "table",
+          "required": false,
+          "helperText": "Select a trim from the list",
+          "conditional": {
+            "conditions": [
+              {
+                "field": "SELECT_TRIM",
+                "operator": "equals",
+                "value": true
+              }
+            ],
+            "logic": "AND"
+          },
+          "columns": [
+            { "key": "id", "label": "ID" },
+            { "key": "lockType", "label": "Trim Type" },
+            { "key": "manufacturer", "label": "Manufacturer" },
+            { "key": "modelNumber", "label": "Model" },
+            { "key": "drawingDescription", "label": "Description" },
+            { "key": "template", "label": "Template" }
+          ],
+          "tableData": [
+            { "__id": "trim-46", "id": 46, "lockType": "MORTISE TRIM", "manufacturer": "SCHLAGE", "modelNumber": "AD-400", "drawingDescription": "SCHLAGE - AD-400 TRIM", "template": "AD108" },
+            { "__id": "trim-47", "id": 47, "lockType": "MORTISE TRIM", "manufacturer": "SARGENT", "modelNumber": "ET", "drawingDescription": "SARGENT - ET TRIM", "template": "4414H" },
+            { "__id": "trim-48", "id": 48, "lockType": "MORTISE TRIM", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "NSM", "drawingDescription": "NSM - TRIM", "template": "T30453-5" },
+            { "__id": "trim-49", "id": 49, "lockType": "MORTISE TRIM", "manufacturer": "SCHLAGE", "modelNumber": "06N", "drawingDescription": "06N - TRIM", "template": "NA" },
+            { "__id": "trim-50", "id": 50, "lockType": "MORTISE TRIM", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "LSB", "drawingDescription": "LSB - TRIM", "template": "T30546-4" },
+            { "__id": "trim-85", "id": 85, "lockType": "EXIT TRIM", "manufacturer": "DORMA", "modelNumber": "PTT03", "drawingDescription": "DORMA - PTT03 TRIM", "template": "T-9004-6" },
+            { "__id": "trim-86", "id": 86, "lockType": "EXIT TRIM", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "955", "drawingDescription": "955 TRIM", "template": "T30819-4" },
+            { "__id": "trim-87", "id": 87, "lockType": "EXIT TRIM", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "N655", "drawingDescription": "CORBIN RUSSWIN - N655 TRIM", "template": "T30949-1" },
+            { "__id": "trim-88", "id": 88, "lockType": "EXIT TRIM", "manufacturer": "CORBIN RUSSWIN", "modelNumber": "NONE", "drawingDescription": "NO TRIM", "template": "NONE" },
+            { "__id": "trim-89", "id": 89, "lockType": "EXIT TRIM", "manufacturer": "PRECISION HARDWARE", "modelNumber": "4908B", "drawingDescription": "PRECISION HARDWARE - 4908B - TRIM", "template": "HM-2100A" },
+            { "__id": "trim-90", "id": 90, "lockType": "EXIT TRIM", "manufacturer": "SARGENT", "modelNumber": "ET", "drawingDescription": "SARGENT - ET TRIM", "template": "4414H" },
+            { "__id": "trim-91", "id": 91, "lockType": "EXIT TRIM", "manufacturer": "SARGENT", "modelNumber": "ET 13", "drawingDescription": "SARGENT - ET 13 TRIM", "template": "4414H" },
+            { "__id": "trim-92", "id": 92, "lockType": "EXIT TRIM", "manufacturer": "VON DUPRIN", "modelNumber": "996L", "drawingDescription": "VON DUPRIN - 996L TRIM", "template": "20003_e" },
+            { "__id": "trim-93", "id": 93, "lockType": "EXIT TRIM", "manufacturer": "VON DUPRIN", "modelNumber": "996L", "drawingDescription": "VON DUPRIN - 996L TRIM", "template": "20006_b" },
+            { "__id": "trim-94", "id": 94, "lockType": "EXIT TRIM", "manufacturer": "VON DUPRIN", "modelNumber": "996L-DT", "drawingDescription": "VON DUPRIN - 996L-DT (DUMMY TRIM)", "template": "20004_d" },
+            { "__id": "trim-95", "id": 95, "lockType": "EXIT TRIM", "manufacturer": "VON DUPRIN", "modelNumber": "990 NL", "drawingDescription": "VON DUPRIN - 990 NL TRIM", "template": "20267_c" },
+            { "__id": "trim-96", "id": 96, "lockType": "EXIT TRIM", "manufacturer": "VON DUPRIN", "modelNumber": "996L-RIGID-R/V", "drawingDescription": "VON DUPRIN - 996L-NL TRIM", "template": "20005_d" },
+            { "__id": "trim-97", "id": 97, "lockType": "EXIT TRIM", "manufacturer": "YALE", "modelNumber": "626F", "drawingDescription": "YALE 626F TRIM", "template": "7400-0622" },
+            { "__id": "trim-106", "id": 106, "lockType": "DUMMY TRIM", "manufacturer": "BEST", "modelNumber": "45H", "drawingDescription": "BEST - 45H - 02DT14H - DUMMY TRIM", "template": "H16" }
+          ]
         },
         {
           "id": "lock-options-lock-electrified",

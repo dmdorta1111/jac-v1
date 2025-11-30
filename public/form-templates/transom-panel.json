@@ -14,7 +14,7 @@
           "label": "Transom Panel Height",
           "required": true,
           "type": "float",
-          "placeholder": "0.00"
+          "placeholder": "0.00000"
         },
         {
           "id": "transom-panel-transom-panel-gauge",
