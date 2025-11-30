@@ -55,7 +55,11 @@
       "Bash(tasklist:*)",
       "Bash(timeout /t 5)",
       "Bash(del C:UserswavegVsCodeProjectsjac-v1convert-stops-holders.js)",
-      "Bash(del \"C:\\Users\\waveg\\VsCodeProjects\\jac-v1\\update-placeholders.js\")"
+      "Bash(del \"C:\\Users\\waveg\\VsCodeProjects\\jac-v1\\update-placeholders.js\")",
+      "Skill(smartassembly)",
+      "Bash(copy \"C:\\Users\\waveg\\VsCodeProjects\\jac-v1\\SmartAssembly\\json_to_tab.ps1\" \"C:\\000_SDI\\test\\json_to_tab.ps1\")",
+      "WebFetch(domain:media.keyshot.com)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
