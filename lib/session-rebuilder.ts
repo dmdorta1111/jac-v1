@@ -149,6 +149,10 @@ export async function rebuildSessionsFromDB(
         filteredSteps: flowSteps, // Will be recalculated if needed
         itemNumber,
         validationErrors: {},
+        activeFormData: {}, // No unsaved form data when rebuilding from DB
+        completedFormIds: Array.from(completedSteps), // Populate from submitted form steps
+        tableSelections: {}, // Reset table selections on rebuild
+        highestStepReached: currentStepOrder, // Set to current step when rebuilding from DB
         lastAccessedAt: Date.now(),
       };
 

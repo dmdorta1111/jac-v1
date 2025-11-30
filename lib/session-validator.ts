@@ -13,6 +13,10 @@ export interface SessionState {
   filteredSteps: any[];
   itemNumber: string;
   validationErrors: Record<string, string>;
+  activeFormData: Record<string, any>; // Unsaved form data for session persistence
+  completedFormIds: string[]; // Track completed form steps for tab navigation
+  tableSelections: Record<string, number>; // Session-scoped table row selections (fieldName -> rowIndex)
+  highestStepReached: number; // Track furthest step visited for forward navigation
   lastAccessedAt?: number;
 }
 
@@ -69,6 +73,10 @@ export function createFreshSessionState(itemNumber: string = ''): SessionState {
     filteredSteps: [],
     itemNumber,
     validationErrors: {},
+    activeFormData: {},
+    completedFormIds: [],
+    tableSelections: {},
+    highestStepReached: 0,
     lastAccessedAt: Date.now(),
   };
 }
@@ -89,9 +97,23 @@ export function validateSessionStateMap(
 
   Object.entries(parsed as Record<string, unknown>).forEach(([id, state]) => {
     if (validateSessionState(state)) {
-      // Add lastAccessedAt if missing (migration from older format)
+      // Add missing fields (migration from older format)
+      const completedIds = state.completedFormIds ?? [];
+      // Migration fallback chain for highestStepReached:
+      // 1. Use existing value if set
+      // 2. Fall back to completedFormIds length if available
+      // 3. Fall back to currentStepOrder (the step they're currently on)
+      // 4. Default to 0 for completely new sessions
+      const migratedHighestStep = state.highestStepReached
+        ?? (completedIds.length > 0 ? completedIds.length : state.currentStepOrder)
+        ?? 0;
+
       validated[id] = {
         ...state,
+        activeFormData: state.activeFormData ?? {},
+        completedFormIds: completedIds,
+        tableSelections: state.tableSelections ?? {},
+        highestStepReached: migratedHighestStep,
         lastAccessedAt: state.lastAccessedAt ?? Date.now(),
       };
     } else {

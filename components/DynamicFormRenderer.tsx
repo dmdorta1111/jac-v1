@@ -165,24 +165,35 @@ interface DynamicFormSpec {
 interface DynamicFormRendererProps {
   formSpec: DynamicFormSpec;
   sessionId: string; // Unique session identifier for multi-session support
+  initialData?: Record<string, FormFieldValue>; // External data to restore form state (e.g., from session switch)
   onSubmit: (data: Record<string, FormFieldValue>) => void;
   onCancel?: () => void;
+  onFormDataChange?: (formId: string, data: Record<string, FormFieldValue>) => void; // Sync unsaved form data to parent
   validationErrors?: Record<string, string>;
+  selectedTableRows?: Record<string, number>; // Session-scoped table row selections (fieldName -> rowIndex)
+  onTableRowSelect?: (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => void; // Callback for table row selection
 }
 
 export default function DynamicFormRenderer({
   formSpec,
   sessionId,
+  initialData,
   onSubmit,
   onCancel,
+  onFormDataChange,
   validationErrors = {},
+  selectedTableRows = {},
+  onTableRowSelect,
 }: DynamicFormRendererProps) {
-  const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => buildInitialFormData(formSpec));
+  // Merge formSpec defaults with initialData (external restored state takes priority)
+  const [formData, setFormData] = useState<Record<string, FormFieldValue>>(() => {
+    const defaults = buildInitialFormData(formSpec);
+    return { ...defaults, ...(initialData || {}) };
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Merge external validation errors with internal errors
   const allErrors = { ...errors, ...validationErrors };
-  const [selectedTableRows, setSelectedTableRows] = useState<Record<string, number>>({});
   const hasInitialFocused = useRef(false);
   const previousFormId = useRef(formSpec.formId);
 
@@ -194,10 +205,37 @@ export default function DynamicFormRenderer({
     }
   }, [formSpec.formId]);
 
-  // Clear table selections when session changes to prevent state bleeding
+  // Reset form data when session or form step changes to pick up restored/new form values
+  // Merges formSpec defaults with initialData (restored state takes priority)
   useEffect(() => {
-    setSelectedTableRows({});
-  }, [sessionId]);
+    const defaults = buildInitialFormData(formSpec);
+    const merged = { ...defaults, ...(initialData || {}) };
+
+    // Only reset formData if:
+    // 1. initialData has content (explicit restore) OR
+    // 2. formData is empty (first render)
+    // This preserves unsaved changes when session switches without initialData
+    const shouldReset =
+      Object.keys(initialData || {}).length > 0 ||
+      Object.keys(formData).length === 0;
+
+    if (shouldReset) {
+      setFormData(merged);
+    }
+  }, [sessionId, formSpec.formId, initialData]);
+
+  // Sync form data to parent on mount and when formSpec changes
+  // This ensures parent has visibility into pre-filled form data
+  // Deferred to next tick to avoid "setState during render" error
+  useEffect(() => {
+    const initialData = buildInitialFormData(formSpec);
+    if (Object.keys(initialData).length > 0) {
+      // Use queueMicrotask to defer callback after render completes
+      queueMicrotask(() => {
+        onFormDataChange?.(formSpec.formId, initialData);
+      });
+    }
+  }, [formSpec.formId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helper to check if a field is empty
   const isFieldEmpty = (field: FormField, value: FormFieldValue): boolean => {
@@ -263,14 +301,19 @@ export default function DynamicFormRenderer({
     }
   }, [errors, validationErrors]);
 
-  // Helper to create session-scoped state keys for table selections
-  const getTableStateKey = (fieldName: string) => `${sessionId}__${formSpec.formId}__${fieldName}`;
-
   // Helper to create session-scoped field IDs for HTML id attribute
   const getFieldId = (field: FormField) => `${sessionId}-${formSpec.formId}-${field.id}`;
 
   const handleFieldChange = (name: string, value: FormFieldValue) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value };
+      // Defer parent callback to avoid "setState during render" error
+      // Must be outside setFormData updater to prevent synchronous parent update
+      queueMicrotask(() => {
+        onFormDataChange?.(formSpec.formId, newData);
+      });
+      return newData;
+    });
     // Clear error when field is modified
     if (allErrors[name]) {
       setErrors((prev) => {
@@ -403,13 +446,14 @@ export default function DynamicFormRenderer({
     const value = formData[field.name];
     const error = allErrors[field.name];
 
-    // Handler for table row selection
+    // Handler for table row selection - delegates to parent via prop
     const handleTableRowSelect = (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => {
-      // Use prefixed state key for defensive collision prevention
-      const stateKey = getTableStateKey(fieldName);
-      setSelectedTableRows(prev => ({ ...prev, [stateKey]: rowIndex }));
+      // Defer parent callback to avoid "setState during render" error
+      queueMicrotask(() => {
+        onTableRowSelect?.(fieldName, rowIndex, rowData);
+      });
 
-      // Store actual row data in form state (not prefixed, just fieldName)
+      // Store actual row data in form state
       handleFieldChange(fieldName, rowData);
     };
 
@@ -751,9 +795,8 @@ export default function DynamicFormRenderer({
         );
 
       case 'table': {
-        // Use prefixed state key to get selected row index
-        const stateKey = getTableStateKey(field.name);
-        const selectedRowIndex = selectedTableRows[stateKey];
+        // Get selected row index from session-scoped prop
+        const selectedRowIndex = selectedTableRows?.[field.name];
 
         return (
           <Field key={getFieldId(field)} data-invalid={!!error}>
@@ -781,7 +824,8 @@ export default function DynamicFormRenderer({
                   {field.tableData && field.tableData.length > 0 ? (
                     field.tableData.map((row, rowIndex) => {
                       const isSelected = selectedRowIndex === rowIndex;
-                      const rowId = (row as Record<string, unknown>).__id as string || `row-${field.name}-${rowIndex}`;
+                      // Session-scoped row ID to prevent collisions across multiple sessions
+                      const rowId = (row as Record<string, unknown>).__id as string || `${sessionId}-${formSpec.formId}-row-${field.name}-${rowIndex}`;
 
                       return (
                         <TableRow
@@ -864,8 +908,9 @@ export default function DynamicFormRenderer({
           </FieldSet>
 
           {/* Form Sections */}
+          {/* Session-scoped section keys to prevent collisions across multiple sessions */}
           {formSpec.sections.map((section) => (
-            <FieldSet key={`${formSpec.formId}-${section.id}`} name={section.id}>
+            <FieldSet key={`${sessionId}-${formSpec.formId}-${section.id}`} name={section.id}>
               <FieldContent>
                 <FieldLegend variant="label">{section.title}</FieldLegend>
                 {section.description && (
@@ -892,7 +937,7 @@ export default function DynamicFormRenderer({
 
                   return (
                     <div
-                      key={`${formSpec.formId}-${field.id}`}
+                      key={`${sessionId}-${formSpec.formId}-${field.id}`}
                       className={spanClass}
                     >
                       {renderedField}

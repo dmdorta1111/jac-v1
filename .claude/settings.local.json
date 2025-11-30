@@ -19,7 +19,17 @@
       "Bash(powershell -Command:*)",
       "Bash(if not exist \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\" mkdir \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\")",
       "Bash(if not exist \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\\form-state-persistence-fix\" mkdir \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\\form-state-persistence-fix\")",
-      "Bash(if not exist \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\\form-state-persistence-fix\\reports\" mkdir \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\\form-state-persistence-fix\\reports\")"
+      "Bash(if not exist \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\\form-state-persistence-fix\\reports\" mkdir \"C:\\Users\\dmdor\\VsCode\\jac-v1\\plans\\form-state-persistence-fix\\reports\")",
+      "Skill(research)",
+      "Bash(claude mcp add-json gsap-master '{\"\"command\"\":\"\"npx\"\",\"\"args\"\":[\"\"bruzethegreat-gsap-master-mcp-server@latest\"\"]}')",
+      "WebFetch(domain:api.ref.tools)",
+      "Bash(claude mcp add:*)",
+      "mcp__figma__get_screenshot",
+      "mcp__exa__get_code_context_exa",
+      "mcp__exa__web_search_exa",
+      "mcp__Ref__ref_search_documentation",
+      "mcp__Ref__ref_read_url",
+      "Bash(dir C:UsersdmdorVsCodejac-v1.claudeplansunique-id-systems-research)"
     ],
     "deny": [],
     "ask": []
