@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, GitBranch, MessageSquare, Plus, Trash2 } from "lucide-react";
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Sliders, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";

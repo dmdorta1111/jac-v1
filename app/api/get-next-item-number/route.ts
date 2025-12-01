@@ -1,78 +1,23 @@
 import { NextRequest } from 'next/server';
 import fs from 'fs/promises';
-import { existsSync, writeFileSync, unlinkSync, readFileSync } from 'fs';
+import { existsSync } from 'fs';
 import path from 'path';
-
-// Lock configuration
-const LOCK_TIMEOUT_MS = 5000;  // Max wait for lock
-const LOCK_RETRY_MS = 50;      // Retry interval
+import { connectToDatabase, getProjectsCollection } from '@/lib/mongodb';
 
 /**
- * Acquire exclusive lock for item number generation.
- * Uses file-based locking with timeout and stale lock detection.
+ * GET /api/get-next-item-number
+ * Returns the next available item number for a project
+ *
+ * CRITICAL: Uses atomic MongoDB increment to prevent race conditions
+ * Two concurrent requests will always get different numbers
+ *
+ * Query params:
+ * - folderPath: Project folder path (e.g., "project-docs/SDI/SO12345")
+ * - salesOrderNumber: (optional) Explicit SO# for DB lookup
  */
-async function acquireLock(lockPath: string): Promise<boolean> {
-  const start = Date.now();
-
-  while (existsSync(lockPath)) {
-    // Check if lock is stale (process died or timeout exceeded)
-    try {
-      const lockContent = readFileSync(lockPath, 'utf-8');
-      const lockTime = parseInt(lockContent.split(':')[1] || '0', 10);
-
-      if (Date.now() - lockTime > LOCK_TIMEOUT_MS) {
-        // Stale lock, force remove
-        console.warn('[Lock] Removing stale lock');
-        unlinkSync(lockPath);
-        break;
-      }
-    } catch {
-      // Lock file unreadable, try to remove
-      try { unlinkSync(lockPath); } catch { /* ignore */ }
-      break;
-    }
-
-    // Check timeout
-    if (Date.now() - start > LOCK_TIMEOUT_MS) {
-      console.error('[Lock] Timeout waiting for lock');
-      return false;
-    }
-
-    // Wait and retry
-    await new Promise(r => setTimeout(r, LOCK_RETRY_MS));
-  }
-
-  // Try to create lock file
-  try {
-    // Ensure directory exists
-    const lockDir = path.dirname(lockPath);
-    if (!existsSync(lockDir)) {
-      await fs.mkdir(lockDir, { recursive: true });
-    }
-
-    writeFileSync(lockPath, `${process.pid}:${Date.now()}`);
-    return true;
-  } catch (e) {
-    console.error('[Lock] Failed to acquire:', e);
-    return false;
-  }
-}
-
-/**
- * Release the lock file.
- */
-function releaseLock(lockPath: string): void {
-  try {
-    if (existsSync(lockPath)) {
-      unlinkSync(lockPath);
-    }
-  } catch (e) {
-    console.error('[Lock] Failed to release:', e);
-  }
-}
-
 export async function GET(req: NextRequest) {
   const folderPath = req.nextUrl.searchParams.get('folderPath');
+  const explicitSO = req.nextUrl.searchParams.get('salesOrderNumber');
 
   if (!folderPath) {
     return Response.json({ success: false, error: 'Missing folderPath' }, { status: 400 });
@@ -83,26 +28,54 @@ export async function GET(req: NextRequest) {
     return Response.json({ success: false, error: 'Invalid project path' }, { status: 400 });
   }
 
-  const projectRoot = process.cwd();
-  const itemsDir = path.join(projectRoot, folderPath, 'items');
-  const lockPath = path.join(itemsDir, '.item-lock');
+  // Extract salesOrderNumber from folderPath (last segment)
+  // Format: project-docs/{productType}/{salesOrderNumber}
+  const pathParts = folderPath.split('/');
+  const salesOrderNumber = explicitSO || pathParts[pathParts.length - 1];
 
-  // ACQUIRE LOCK
-  const locked = await acquireLock(lockPath);
-  if (!locked) {
-    return Response.json(
-      { success: false, error: 'Could not acquire lock, please try again' },
-      { status: 503 }
-    );
+  if (!salesOrderNumber) {
+    return Response.json({ success: false, error: 'Could not extract sales order number' }, { status: 400 });
   }
 
   try {
+    // PRIMARY: Use atomic MongoDB counter (race-condition-safe)
+    const db = await connectToDatabase();
+    const projects = getProjectsCollection(db);
+
+    // Atomically increment and return the new value
+    // findOneAndUpdate is atomic - two concurrent requests will NEVER get same number
+    const result = await projects.findOneAndUpdate(
+      { salesOrderNumber, isDeleted: { $ne: true } },
+      {
+        $inc: { nextItemNumber: 1 },
+        $set: { updatedAt: new Date() }
+      },
+      { returnDocument: 'after' }
+    );
+
+    if (result) {
+      // Project found in DB - use atomic counter
+      const nextNumber = (result.nextItemNumber || 1).toString().padStart(3, '0');
+      return Response.json({
+        success: true,
+        nextItemNumber: nextNumber,
+        source: 'database'
+      });
+    }
+
+    // FALLBACK: Project not in MongoDB yet - use file system
+    // This handles projects created before DB migration
+    console.log(`[get-next-item-number] Project ${salesOrderNumber} not in DB, using file system fallback`);
+
+    const projectRoot = process.cwd();
+    const itemsDir = path.join(projectRoot, folderPath, 'items');
+
     // Read directory to find existing item files
     let files: string[] = [];
     try {
       files = await fs.readdir(itemsDir);
     } catch {
-      // Directory might not exist yet, will be created for reservation
+      // Directory might not exist yet - first item
     }
 
     // Filter for item-XXX.json files
@@ -122,31 +95,31 @@ export async function GET(req: NextRequest) {
       nextNumber = (maxNumber + 1).toString().padStart(3, '0');
     }
 
-    // RESERVATION: Create placeholder file immediately
-    // This prevents race conditions even if lock mechanism fails
-    const itemFile = path.join(itemsDir, `item-${nextNumber}.json`);
-
-    // Ensure items directory exists
-    if (!existsSync(itemsDir)) {
-      await fs.mkdir(itemsDir, { recursive: true });
+    // For file-based fallback, create reservation file to prevent race conditions
+    // This is less robust than DB atomic counter but better than nothing
+    const reservationDir = path.join(itemsDir);
+    if (!existsSync(reservationDir)) {
+      await fs.mkdir(reservationDir, { recursive: true });
     }
 
-    // Create reservation file
-    writeFileSync(itemFile, JSON.stringify({
-      _metadata: {
-        itemNumber: nextNumber,
-        reserved: true,
-        reservedAt: new Date().toISOString(),
-      }
-    }, null, 2));
+    // Write a minimal reservation file
+    const reservationFile = path.join(reservationDir, `item-${nextNumber}.json`);
+    if (!existsSync(reservationFile)) {
+      await fs.writeFile(reservationFile, JSON.stringify({
+        _reserved: true,
+        _reservedAt: new Date().toISOString(),
+        _note: 'Placeholder - will be replaced when form is submitted'
+      }, null, 2));
+    }
 
-    return Response.json({ success: true, nextItemNumber: nextNumber });
+    return Response.json({
+      success: true,
+      nextItemNumber: nextNumber,
+      source: 'filesystem'
+    });
 
   } catch (error) {
     console.error('Failed to get next item number:', error);
     return Response.json({ success: false, error: String(error) }, { status: 500 });
-  } finally {
-    // ALWAYS RELEASE LOCK
-    releaseLock(lockPath);
   }
 }

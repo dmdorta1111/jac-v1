@@ -41,21 +41,25 @@ export async function POST(request: NextRequest) {
     const customerDrawingsDir = join(orderDir, 'Customer Drawings');
     const proeModelsDir = join(orderDir, 'ProE Models');
 
-    // Check if folder exists
+    // Check if folder exists - if so, return success with exists flag
+    // This allows reopening existing projects
     if (existsSync(orderDir)) {
-      return NextResponse.json(
-        { success: false, error: 'Project folder already exists' },
-        { status: 409 }
-      );
+      return NextResponse.json({
+        success: true,
+        exists: true,
+        path: `project-docs/${folderName}/${sanitizedSO}`,
+        folderName: sanitizedSO,
+      }, { status: 200 });
     }
 
-    // Create folders
+    // Create folders for new project
     await mkdir(orderDir, { recursive: true });
     await mkdir(customerDrawingsDir, { recursive: true });
     await mkdir(proeModelsDir, { recursive: true });
 
     return NextResponse.json({
       success: true,
+      exists: false,
       path: `project-docs/${folderName}/${sanitizedSO}`,
       folderName: sanitizedSO,
     }, { status: 201 });

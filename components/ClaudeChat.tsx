@@ -9,15 +9,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { NewProjectDialog } from "@/components/new-project-dialog";
 import {
   PromptInput,
   PromptInputTextarea,
@@ -50,13 +42,15 @@ import {
   type ChatSession,
   type Message,
   type UploadedFile,
-} from "@/components/LeftSidebar";
+} from "@/components/LeftSideBar";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
 import { usePersistedProject } from "@/lib/hooks/usePersistedProject";
 import { usePersistedSession } from "@/lib/hooks/usePersistedSession";
 import { useSessionSync } from "@/lib/hooks/useSessionSync";
+import { useStandards } from "@/components/providers/standards-provider";
+import { applyStandardsToForm } from "@/lib/standards/service";
 import {
   validateSessionState,
   createFreshSessionState,
@@ -69,6 +63,7 @@ import {
 import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
+import { cleanProjectScopedStorage } from "@/lib/storage-utils";
 
 // Project context for tracking active project
 interface ProjectContext {
@@ -139,6 +134,11 @@ export function ClaudeChat() {
   // Store active (unsaved) form data per session - synced from DynamicFormRenderer
   const [activeFormDataMap, setActiveFormDataMap] = useState<Record<string, Record<string, any>>>({});
 
+  // Project loading key - increments on each project load to force memo invalidation
+  // This fixes the race condition where async state clearing hasn't completed
+  // when the initialFormData memo runs, causing stale data to persist
+  const [projectLoadingKey, setProjectLoadingKey] = useState(0);
+
   // Access global project metadata context for header display
   const { metadata, setMetadata: setProjectMetadata } = useProject();
 
@@ -156,6 +156,9 @@ export function ClaudeChat() {
     currentSessionId
   );
 
+  // Project standards context for autofill
+  const { standards, refresh: refreshStandards } = useStandards();
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Use crypto.randomUUID for collision-proof ID generation
@@ -166,6 +169,55 @@ export function ClaudeChat() {
     // Fallback: timestamp + high-entropy random
     return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   };
+
+  /**
+   * Clear all session state when switching to a new project.
+   * This ensures previous project's items don't persist in the new project.
+   *
+   * IMPORTANT: React 18+ automatically batches all state updates in this callback,
+   * meaning all setters execute atomically and trigger a single re-render.
+   * We clear all state FIRST, then increment projectLoadingKey LAST to ensure
+   * the final re-render sees fully cleared state.
+   */
+  const clearAllSessionState = useCallback(() => {
+    console.log('[ClearState] Clearing all session state for new project');
+
+    // React 18+ batches these updates atomically.
+    // Order: 1) Clear all data states, 2) Increment key LAST
+    // This ensures re-render sees completely cleared state.
+
+    // 1. Clear session lists
+    setChatSessions([]);
+    setSessionStateMap({});
+    setActiveFormDataMap({});
+
+    // 2. Clear current session
+    setCurrentSessionId(null);
+    setMessages([]);
+    setCurrentItemNumber(null);
+
+    // 3. Clear flow state (critical for project isolation)
+    setFlowState({});
+    setCurrentStepOrder(0);
+    setTotalSteps(0);
+    setFilteredSteps([]);
+    setFlowExecutor(null);
+    setValidationErrors({});
+
+    // 4. Clear localStorage cache to prevent stale data restoration
+    try {
+      localStorage.removeItem('sessions:list');
+      localStorage.removeItem('sessions:state');
+    } catch (e) {
+      console.warn('[ClearState] Failed to clear localStorage:', e);
+    }
+
+    // 5. Clean all project-scoped localStorage keys (pattern-based cleanup)
+    cleanProjectScopedStorage();
+
+    // 6. Increment loading key LAST - triggers re-render with all state cleared
+    setProjectLoadingKey(prev => prev + 1);
+  }, []);
 
   /**
    * Load existing project state from JSON files
@@ -229,6 +281,115 @@ export function ClaudeChat() {
   };
 
   /**
+   * Load an existing project when user enters a sales order that already exists.
+   * This loads project header, sets up metadata, and rebuilds sessions from MongoDB.
+   * @param productType - Product type (SDI, EMJAC, etc.)
+   * @param salesOrderNumber - The SO# to load
+   * @param folderPath - Path to project folder
+   */
+  const loadExistingProject = async (
+    productType: string,
+    salesOrderNumber: string,
+    folderPath: string
+  ): Promise<void> => {
+    console.log(`[LoadExisting] Loading existing project: ${folderPath}`);
+    setIsLoading(true);
+
+    try {
+      // CRITICAL: Clear all previous project state before loading new project
+      // This prevents items from previous project persisting in the new project
+      clearAllSessionState();
+
+      // CRITICAL: Reset project metadata IMMEDIATELY to prevent stale data in header
+      // Must happen BEFORE async operations to avoid race condition where old project
+      // info is displayed during loading. Will be updated with actual data once loaded.
+      setProjectMetadata({
+        SO_NUM: salesOrderNumber,
+        JOB_NAME: '',
+        CUSTOMER_NAME: '',
+        productType,
+        salesOrderNumber,
+        folderPath,
+        isRevision: false,
+        currentSessionId: undefined,
+        projectHeaderCompleted: false, // Will be set to true after loading
+        itemSessions: {},
+      });
+
+      // 1. Load project header data from JSON file
+      const existingState = await loadExistingProjectState(folderPath);
+
+      // 2. Update project metadata with loaded header data
+      const projectMetadataUpdate = {
+        SO_NUM: existingState.SO_NUM || salesOrderNumber,
+        JOB_NAME: existingState.JOB_NAME || '',
+        CUSTOMER_NAME: existingState.CUSTOMER_NAME || '',
+        productType,
+        salesOrderNumber,
+        folderPath,
+        isRevision: false,
+        currentSessionId: undefined,
+        projectHeaderCompleted: true, // Mark as completed since header exists
+        itemSessions: {} as Record<string, { sessionId: string; itemNumber: string; createdAt: number; title: string }>,
+      };
+      setProjectMetadata(projectMetadataUpdate);
+
+      // 3. Set project context for form submissions
+      setProjectContext({
+        productType,
+        salesOrderNumber,
+        folderPath,
+      });
+
+      // 4. Load the SDI flow
+      const flow = await loadFlow('SDI-form-flow');
+      if (!flow) {
+        throw new Error('SDI form flow not found');
+      }
+
+      // 5. Initialize flow with existing state (for item flow, skip project-header step)
+      const allSteps = filterSteps(flow, false);
+      const itemSteps = allSteps.slice(1); // Skip project-header for items
+      setFilteredSteps(itemSteps);
+      setTotalSteps(itemSteps.length);
+      setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
+
+      // 5b. Initialize FlowExecutor with project state (includes standards for autofill)
+      // This ensures standards like HINGE_GAP, DOOR_THICKNESS are available when creating new items
+      const executor = createFlowExecutor(flow, itemSteps, existingState);
+      setFlowExecutor(executor);
+      console.log('[LoadExisting] FlowExecutor initialized with standards:', Object.keys(existingState).length, 'fields');
+
+      // 6. Try to rebuild sessions from MongoDB
+      const hasSessionsInDB = await loadExistingProjectFromDB(salesOrderNumber);
+
+      if (!hasSessionsInDB) {
+        // No sessions in DB - show welcome message for existing project
+        const welcomeMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: `📁 **Project Loaded**\n\n**${existingState.JOB_NAME || 'Project'}** (SO# ${salesOrderNumber})\n\nNo item sessions found. Click "Create First Item" to add items to this project.`,
+          timestamp: new Date(),
+        };
+        setMessages([welcomeMessage]);
+      }
+
+      console.log(`[LoadExisting] Project loaded successfully: ${salesOrderNumber}`);
+    } catch (error) {
+      console.error('[LoadExisting] Error loading project:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Error loading project: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+      };
+      setMessages([errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
    * Rebuild sessions from MongoDB when opening an existing project.
    * This is called when cache is invalid or missing for a recalled project.
    * @param salesOrderNumber - The SO# to rebuild sessions for
@@ -280,9 +441,9 @@ export function ClaudeChat() {
         console.warn('[Rebuild] Failed to persist to localStorage:', e);
       }
 
-      // Switch to first session
+      // Switch to first session, passing the state directly since sessionStateMap hasn't updated yet
       if (sessions.length > 0) {
-        await switchToSession(sessions[0].id);
+        await switchToSession(sessions[0].id, stateMap[sessions[0].id] as SessionState);
       }
 
       console.log(`[Rebuild] Successfully rebuilt ${rebuilt.length} sessions`);
@@ -336,6 +497,26 @@ export function ClaudeChat() {
     folderPath: string
   ) => {
     try {
+      // CRITICAL: Clear all previous project state before setting up new project
+      // This prevents items from previous project persisting in the new project
+      clearAllSessionState();
+
+      // CRITICAL: Reset project metadata IMMEDIATELY to prevent stale data in header
+      // Must happen BEFORE async operations to avoid race condition where old project
+      // info is displayed during flow loading
+      setProjectMetadata({
+        SO_NUM: salesOrderNumber,
+        JOB_NAME: '',
+        CUSTOMER_NAME: '',
+        productType,
+        salesOrderNumber,
+        folderPath,
+        isRevision: false,
+        currentSessionId: undefined,
+        projectHeaderCompleted: false,
+        itemSessions: {},
+      });
+
       // For SDI product type, load flow and initialize form flow
       if (productType.toUpperCase() === 'SDI') {
         // Load SDI form flow
@@ -355,19 +536,8 @@ export function ClaudeChat() {
           throw new Error('Failed to initialize flow or no steps found');
         }
 
-        // Update project metadata with isRevision flag
-        setProjectMetadata({
-          SO_NUM: salesOrderNumber,
-          JOB_NAME: '',
-          CUSTOMER_NAME: '',
-          productType,
-          salesOrderNumber,
-          folderPath,
-          isRevision: false,
-          currentSessionId: undefined,
-          projectHeaderCompleted: false,
-          itemSessions: {},
-        });
+        // NOTE: Project metadata already set at function start (before async ops)
+        // No need to set again here - prevents race condition
 
         // Get first form from filtered steps (project-header is now step 0)
         const entryFormId = steps[0].formTemplate;
@@ -400,7 +570,8 @@ export function ClaudeChat() {
           formSpec: prefilledSpec,
         };
 
-        setMessages((prev) => [...prev, botMessage]);
+        // Set fresh messages (not append) since this is a new project
+        setMessages([botMessage]);
         return;
       }
 
@@ -434,7 +605,8 @@ export function ClaudeChat() {
         formSpec: prefilledSpec,
       };
 
-      setMessages((prev) => [...prev, botMessage]);
+      // Set fresh messages (not append) since this is a new project
+      setMessages([botMessage]);
     } catch (error) {
       console.error('Failed to load project header form:', error);
       const errorMessage: Message = {
@@ -443,7 +615,8 @@ export function ClaudeChat() {
         text: 'Project folder created, but I couldn\'t load the header form. Please try refreshing the page.',
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Set fresh message (not append) since this is a new project
+      setMessages([errorMessage]);
     }
   };
 
@@ -549,9 +722,24 @@ export function ClaudeChat() {
           : s
       ));
 
-      // Initialize FlowExecutor with project-header data as initial state
-      const projectHeaderState = flowExecutor?.getState()?.['project-header'] || {};
-      const executor = createFlowExecutor(flow, itemSteps, projectHeaderState);
+      // Initialize FlowExecutor with project-scoped state
+      // CRITICAL: Only reuse executor state if from SAME project to prevent state leakage
+      // between projects. Previous bug: old project's data persisted when creating new project.
+      const currentProjectPath = metadata?.folderPath || '';
+      const executorState = flowExecutor?.getState() || {};
+      const executorProjectPath = executorState._projectPath as string | undefined;
+
+      // Only reuse state if project paths match (same project)
+      const shouldReuseState = executorProjectPath && executorProjectPath === currentProjectPath;
+      const existingState = shouldReuseState ? executorState : {};
+
+      const executor = createFlowExecutor(flow, itemSteps, existingState);
+
+      // Store project context in executor state for future validation
+      if (currentProjectPath && !existingState._projectPath) {
+        executor.updateState('_projectContext', { _projectPath: currentProjectPath });
+      }
+
       setFlowExecutor(executor);
 
       // 6. Load sdi-project form template
@@ -560,10 +748,13 @@ export function ClaudeChat() {
         throw new Error('sdi-project template not found');
       }
 
+      // Apply project standards to form
+      const formWithStandards = applyStandardsToForm(formSpec, standards);
+
       // Pre-fill ITEM_NUM field (editable - user can change it)
       const prefilledSpec = {
-        ...formSpec,
-        sections: formSpec.sections.map(section => ({
+        ...formWithStandards,
+        sections: formWithStandards.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => {
             if (field.name === 'ITEM_NUM') {
@@ -604,7 +795,9 @@ export function ClaudeChat() {
   // Switch to existing session with state restoration
   // CRITICAL: All async operations must complete BEFORE any state updates
   // to prevent race conditions that cause data mix-matching between sessions
-  const switchToSession = async (sessionId: string) => {
+  // @param sessionId - Session ID to switch to
+  // @param providedState - Optional pre-fetched state (used when state isn't in sessionStateMap yet)
+  const switchToSession = async (sessionId: string, providedState?: SessionState) => {
     if (sessionId === currentSessionId) return; // Already on this session
 
     setIsLoading(true);
@@ -639,8 +832,9 @@ export function ClaudeChat() {
 
       // ============================================
       // PHASE 2: VALIDATE TARGET SESSION
+      // Use providedState if available (for cases where sessionStateMap hasn't updated yet)
       // ============================================
-      const sessionState = sessionStateMap[sessionId];
+      const sessionState = providedState || sessionStateMap[sessionId];
 
       if (!sessionState || !validateSessionState(sessionState)) {
         // Session missing or corrupted - create fresh state
@@ -665,7 +859,9 @@ export function ClaudeChat() {
       // PHASE 3: ASYNC DATA LOADING (complete ALL async before state updates)
       // ============================================
       const targetStep = sessionState.highestStepReached ?? sessionState.currentStepOrder;
-      let mergedFlowState = { ...sessionState.flowState };
+      // Start with project standards as base, then overlay session data
+      // This ensures standards are available for autofill across all forms
+      let mergedFlowState = { ...standards, ...sessionState.flowState };
 
       // 3a. Load disk data (async)
       if (metadata?.folderPath && sessionState.itemNumber) {
@@ -743,6 +939,58 @@ export function ClaudeChat() {
       // Update project metadata
       if (metadata) {
         setProjectMetadata({ ...metadata, currentSessionId: sessionId });
+      }
+
+      // CRITICAL: Ensure sessionStateMap has the session's state for navigation functions
+      // This is especially important when providedState is passed (sessionStateMap may not have it yet)
+      setSessionStateMap(prev => ({
+        ...prev,
+        [sessionId]: {
+          ...sessionState,
+          flowState: mergedFlowState,
+          currentStepOrder: targetStep,
+          highestStepReached: Math.max(sessionState.highestStepReached ?? 0, targetStep),
+        },
+      }));
+
+      // Load the current form if session has completed forms
+      // This ensures form is displayed when switching to a loaded session
+      if (sessionState.completedFormIds && sessionState.completedFormIds.length > 0) {
+        const currentFormId = sessionState.filteredSteps[targetStep]?.formTemplate;
+        if (currentFormId) {
+          // Load and display the current form
+          const formSpec = await loadFormTemplate(currentFormId);
+          if (formSpec) {
+            // Apply project standards to form
+            const formWithStandards = applyStandardsToForm(formSpec, standards);
+
+            const existingData = newExecutor.getState();
+            const prefilledSpec = {
+              ...formWithStandards,
+              sections: formWithStandards.sections.map(section => ({
+                ...section,
+                fields: section.fields.map(field => ({
+                  ...field,
+                  defaultValue: existingData[field.name] ?? field.defaultValue,
+                })),
+              })),
+            };
+
+            const formMessage: Message = {
+              id: generateId(),
+              sender: 'bot',
+              text: `📋 **${formSpec.title}** (Step ${targetStep + 1} of ${stepDefs.length})`,
+              timestamp: new Date(),
+              formSpec: prefilledSpec,
+            };
+
+            // Add form to messages
+            setMessages(prev => [
+              ...prev.filter(m => !m.formSpec),
+              formMessage,
+            ]);
+          }
+        }
       }
 
       console.log(`[Session Switch] Complete: ${sessionId} (Item ${sessionState.itemNumber})`);
@@ -920,17 +1168,23 @@ export function ClaudeChat() {
         }
 
         // 4. Update FlowExecutor state with validated data
-        flowExecutor.updateState(currentStepId, validationResult.data);
+        // Use CHOICE from form data (defaults to 1) when sdi-project form is submitted
+        const stateDataToUpdate = currentStepId === 'sdi-project'
+          ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
+          : validationResult.data;
+        flowExecutor.updateState(currentStepId, stateDataToUpdate);
         flowExecutor.setCurrentStepIndex(currentStepOrder);
 
         // 5. Store form data for current step (already in executor state)
         setFlowState(prev => ({
           ...prev,
-          [currentStepId]: validationResult.data,
+          [currentStepId]: stateDataToUpdate,
         }));
 
-        // Update project metadata with first form data (project-header)
-        if (currentStepOrder === 0) {
+        // Update project metadata with project-header form data
+        // NOTE: Check currentStepId, NOT currentStepOrder, because item sessions have
+        // different step indices (sdi-project is step 0 in item flow, but step 1 in project flow)
+        if (currentStepId === 'project-header') {
           setProjectMetadata({
             SO_NUM: String(validationResult.data.SO_NUM || projectContext.salesOrderNumber),
             JOB_NAME: String(validationResult.data.JOB_NAME || ''),
@@ -966,8 +1220,10 @@ export function ClaudeChat() {
           }
         }
 
-        // Save item data JSON for forms after project-header (step 1+)
-        if (currentStepOrder >= 1 && projectContext.folderPath) {
+        // Save item data JSON for item forms (sdi-project, door forms, etc.)
+        // NOTE: Check currentStepId to determine if this is item data, not currentStepOrder
+        const isItemForm = currentStepId !== 'project-header' && projectContext.folderPath;
+        if (isItemForm) {
           // Get the NEW item number from form data (user may have changed it)
           const newItemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
           // Original item number is tracked in session state (from when session was created)
@@ -978,6 +1234,11 @@ export function ClaudeChat() {
             const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
 
             try {
+              // Use CHOICE from form data (defaults to 1) when sdi-project form is submitted
+              const formDataToSave = currentStepId === 'sdi-project'
+                ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
+                : validationResult.data;
+
               const saveResponse = await fetch('/api/save-item-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -986,7 +1247,7 @@ export function ClaudeChat() {
                   itemNumber: paddedNewItemNumber,
                   originalItemNumber: paddedOriginalItemNumber,  // For rename detection
                   formId: currentStepId,
-                  formData: validationResult.data,
+                  formData: formDataToSave,
                   merge: true,
                   sessionId: currentSessionId,  // For MongoDB updates
                   salesOrderNumber: projectContext.salesOrderNumber,  // For MongoDB updates
@@ -1262,13 +1523,16 @@ export function ClaudeChat() {
         throw new Error(`Form template not found: ${formId}`);
       }
 
-      // 2. Get existing data from flowState
+      // 2. Apply project standards to form
+      const formWithStandards = applyStandardsToForm(formSpec, standards);
+
+      // 3. Get existing data from flowState
       const existingData = flowExecutor.getState();
 
-      // 3. Pre-fill form with existing data
+      // 4. Pre-fill form with existing data (user data takes priority over standards)
       const prefilledSpec = {
-        ...formSpec,
-        sections: formSpec.sections.map(section => ({
+        ...formWithStandards,
+        sections: formWithStandards.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => ({
             ...field,
@@ -1650,13 +1914,32 @@ export function ClaudeChat() {
 
   // Memoize initialFormData to prevent unnecessary form resets on re-render
   // Priority: activeFormData (unsaved) > flowState (submitted) > formSpec.defaultValue
-  const initialFormData = useMemo(() => ({
-    ...flowState,
-    ...(activeFormDataMap[currentSessionId || ''] || {}),
-  }), [flowState, activeFormDataMap, currentSessionId]);
+  //
+  // RACE CONDITION FIX: projectLoadingKey is incremented synchronously in clearAllSessionState()
+  // BEFORE the async state clears (setFlowState, etc.) are processed by React.
+  // When the key changes, we return empty object to prevent stale flowState from
+  // contaminating new project forms. The next render cycle will have cleared state.
+  const initialFormData = useMemo(() => {
+    // Return empty when no session is active (project transition state)
+    if (!currentSessionId) {
+      return {};
+    }
+    return {
+      ...flowState,
+      ...(activeFormDataMap[currentSessionId] || {}),
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowState, activeFormDataMap, currentSessionId, projectLoadingKey]);
 
   return (
     <div className="flex h-full w-full relative gap-4 lg:gap-6">
+      {/* New Project Dialog - triggered from header or welcome screen */}
+      <NewProjectDialog
+        onProjectCreated={loadAndDisplayProjectHeaderForm}
+        onExistingProjectLoad={loadExistingProject}
+        setProjectContext={setProjectContext}
+      />
+
       {/* Left Sidebar */}
       <LeftSidebar
         chatSessions={[...chatSessions].sort((a, b) => {
@@ -1687,6 +1970,7 @@ export function ClaudeChat() {
             <WelcomeScreen
               onSuggestionClick={(text) => handleSubmit({ text, files: [] })}
               onProjectCreated={loadAndDisplayProjectHeaderForm}
+              onExistingProjectLoad={loadExistingProject}
               setProjectContext={setProjectContext}
             />
           ) : (
@@ -1740,14 +2024,16 @@ export function ClaudeChat() {
           </div>
         )}
 
-        {/* Add New Item Button - Always visible when project header is completed */}
-        {metadata?.projectHeaderCompleted && (
+        {/* Add New Item Button - Visible when project is loaded (has salesOrderNumber) */}
+        {/* Disabled until project header is completed */}
+        {metadata?.salesOrderNumber && (
           <div className="w-full px-4 pb-2">
             <Button
               onClick={startNewItemChat}
               variant="outline"
               className="w-full border-dashed border-2 hover:border-solid hover:bg-accent/50"
-              disabled={isLoading}
+              disabled={isLoading || !metadata?.projectHeaderCompleted}
+              title={!metadata?.projectHeaderCompleted ? 'Complete project header first' : undefined}
             >
               <Plus className="w-4 h-4 mr-2" />
               {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
@@ -1810,79 +2096,12 @@ export function ClaudeChat() {
 interface WelcomeScreenProps {
   onSuggestionClick?: (text: string) => void;
   onProjectCreated?: (productType: string, salesOrderNumber: string, folderPath: string) => void;
+  onExistingProjectLoad?: (productType: string, salesOrderNumber: string, folderPath: string) => Promise<void>;
   setProjectContext?: (context: ProjectContext) => void;
 }
 
-function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext }: WelcomeScreenProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [salesOrder, setSalesOrder] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  const handleButtonClick = (product: string) => {
-    setSelectedProduct(product);
-    setSalesOrder("");
-    setFeedback(null);
-    setDialogOpen(true);
-  };
-
-  const handleSubmit = async () => {
-    if (!salesOrder.trim() || !selectedProduct) return;
-
-    setIsSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const response = await fetch('/api/create-project-folder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productType: selectedProduct,
-          salesOrderNumber: salesOrder.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setFeedback({ type: 'success', message: `Project folder created: ${data.path}` });
-
-        // Store project context for form submission
-        if (setProjectContext) {
-          setProjectContext({
-            productType: selectedProduct,
-            salesOrderNumber: salesOrder.trim(),
-            folderPath: data.path,
-          });
-        }
-
-        // Close dialog and trigger form display
-        setTimeout(() => {
-          setDialogOpen(false);
-          setFeedback(null);
-          setSalesOrder("");
-
-          // Load and display the project header form
-          if (onProjectCreated) {
-            onProjectCreated(selectedProduct, salesOrder.trim(), data.path);
-          }
-        }, 1500);
-      } else {
-        setFeedback({ type: 'error', message: data.error || 'Failed to create folder' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Network error. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isSubmitting && salesOrder.trim()) {
-      handleSubmit();
-    }
-  };
+function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
+  const { openNewProjectDialog } = useProject();
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
@@ -1894,70 +2113,24 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
         Ask about kitchen equipment, specifications, or engineering details.
       </p>
 
+      {/* Product Type Selection Buttons */}
       <div className="flex flex-wrap gap-4 justify-center">
         {suggestions.map((suggestion) => (
           <Button
             key={suggestion}
             variant="outline"
             size="lg"
-            onClick={() => handleButtonClick(suggestion)}
-            className="min-w-[120px] transition-all duration-200 hover:border-zinc-400 hover:bg-accent hover:shadow-md"
+            onClick={openNewProjectDialog}
+            className="min-w-[140px] h-14 text-lg font-medium transition-all duration-200 hover:border-primary hover:bg-accent hover:shadow-md"
           >
             {suggestion}
           </Button>
         ))}
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create {selectedProduct} Project</DialogTitle>
-            <DialogDescription>
-              Enter the sales order number to create a new project folder.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <Input
-              name="salesOrder"
-              placeholder="Enter sales order number"
-              value={salesOrder}
-              onChange={(e) => setSalesOrder(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isSubmitting}
-              autoFocus
-            />
-
-            {feedback && (
-              <div
-                className={`rounded-lg px-4 py-3 text-sm ${
-                  feedback.type === 'success'
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                    : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                }`}
-              >
-                {feedback.message}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !salesOrder.trim()}
-            >
-              {isSubmitting ? 'Creating...' : 'Create Project'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <p className="mt-8 text-sm text-muted-foreground">
+        Click any product type above to create a new project
+      </p>
     </div>
   );
 }

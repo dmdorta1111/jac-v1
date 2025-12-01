@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
+import {
+  connectToDatabase,
+  getProjectsCollection,
+  getItemsCollection,
+} from '@/lib/mongodb';
 import { FormSubmissionSchema } from '@/lib/schemas/form-submission';
 import { z } from 'zod';
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
@@ -21,6 +26,8 @@ import * as Sentry from '@sentry/nextjs';
  * Response:
  * - success: true if saved successfully
  * - submissionId: MongoDB document ID
+ * - projectId: Reference to projects collection (NEW)
+ * - itemId: Reference to items collection (NEW)
  */
 export async function POST(request: NextRequest) {
   // Apply rate limiting
@@ -30,19 +37,48 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Connect to MongoDB
+    const db = await connectToDatabase();
+
+    // Extract identifiers from metadata
+    const salesOrderNumber = body.metadata?.salesOrderNumber;
+    const itemNumber = body.metadata?.itemNumber;
+
+    // Lookup projectId from salesOrderNumber (NEW)
+    let projectId: ObjectId | undefined;
+    if (salesOrderNumber) {
+      const projects = getProjectsCollection(db);
+      const project = await projects.findOne({
+        salesOrderNumber,
+        isDeleted: { $ne: true },
+      });
+      projectId = project?._id;
+    }
+
+    // Lookup itemId from projectId + itemNumber (NEW)
+    let itemId: ObjectId | undefined;
+    if (projectId && itemNumber) {
+      const items = getItemsCollection(db);
+      const item = await items.findOne({
+        projectId,
+        itemNumber,
+        isDeleted: { $ne: true },
+      });
+      itemId = item?._id;
+    }
+
     // Server-side Zod validation
     const validData = FormSubmissionSchema.parse({
       ...body,
+      projectId,  // NEW: Add project reference
+      itemId,     // NEW: Add item reference
       metadata: {
         ...body.metadata,
         submittedAt: new Date(),
       },
     });
 
-    // Connect to MongoDB
-    const db = await connectToDatabase();
-
-    // Insert form submission
+    // Insert form submission with references
     const result = await db.collection('form_submissions').insertOne({
       ...validData,
       createdAt: new Date(),
@@ -52,6 +88,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       submissionId: result.insertedId.toString(),
+      projectId: projectId?.toString(),  // NEW
+      itemId: itemId?.toString(),        // NEW
     }, { status: 201 });
 
   } catch (error) {

@@ -145,8 +145,8 @@
           "name": "DOOR_WIDTH_ADJUSTMENT",
           "label": "Door Width Adjustment",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 0
         },
         {
@@ -154,9 +154,8 @@
           "name": "DOOR_GAUGE",
           "label": "Door Gauge",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
+          "type": "integer",
+          "placeholder": "0",
           "defaultValue": ""
         },
         {
@@ -204,9 +203,9 @@
           "name": "DOOR_EDGE_REINFORCEMENT",
           "label": "Door Edge Reinforcement",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
         }
       ]
     },
@@ -311,8 +310,8 @@
           "name": "FACEE",
           "label": "Facee",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -320,8 +319,8 @@
           "name": "XFACEE",
           "label": "Xfacee",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -329,8 +328,8 @@
           "name": "HEAD",
           "label": "Head",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -338,8 +337,8 @@
           "name": "XHEAD",
           "label": "Xhead",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -347,8 +346,8 @@
           "name": "SILL",
           "label": "Sill",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -356,8 +355,8 @@
           "name": "XSILL",
           "label": "Xsill",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -365,8 +364,8 @@
           "name": "TRANSOM_HEAD",
           "label": "Transom Head",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -374,9 +373,8 @@
           "name": "FRAME_GAUGE",
           "label": "Frame Gauge",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
+          "type": "integer",
+          "placeholder": "0",
           "defaultValue": ""
         },
         {
@@ -429,8 +427,8 @@
           "name": "MAXIMUM_HINGE_SPACING",
           "label": "Maximum Hinge Spacing",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 36
         },
         {
@@ -549,27 +547,40 @@
           "name": "CONTINUOUS_HINGE_REINFORCEMENT",
           "label": "Continuous Hinge Reinforcement",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "switch",
+          "defaultValue": true,
+          "helperText": "Toggle to enable"
         },
         {
           "id": "stds-hinge-settings-hinges",
           "name": "HINGES",
           "label": "Hinges",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "switch",
+          "defaultValue": true,
+          "helperText": "Toggle to enable"
         },
         {
           "id": "stds-hinge-settings-hinge-dimension-method",
           "name": "HINGE_DIMENSION_METHOD",
           "label": "Hinge Dimension Method",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "EQUAL SPACING"
+            },
+            {
+              "value": 1,
+              "label": "TOP-CENTER"
+            },
+            {
+              "value": 2,
+              "label": "TOP-TOP"
+            }
+          ]
         }
       ]
     },
@@ -607,9 +618,58 @@
           "name": "ANCHOR_TYPE",
           "label": "Anchor Type",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 3
+          "type": "select",
+          "defaultValue": 3,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "GALVANIZED WIRE"
+            },
+            {
+              "value": 2,
+              "label": "STAINLESS WIRE"
+            },
+            {
+              "value": 3,
+              "label": "LOOSE T"
+            },
+            {
+              "value": 4,
+              "label": "LOOSE STUD"
+            },
+            {
+              "value": 5,
+              "label": "WELDED STUD STRAP"
+            },
+            {
+              "value": 6,
+              "label": "HD WELDED STUD"
+            },
+            {
+              "value": 7,
+              "label": "WELDED STUD"
+            },
+            {
+              "value": 8,
+              "label": "P&D EWA"
+            },
+            {
+              "value": 9,
+              "label": "CONCEALED EWA"
+            },
+            {
+              "value": 10,
+              "label": "ADJUSTABLE MASONARY"
+            },
+            {
+              "value": 11,
+              "label": "COMPRESSION"
+            }
+          ]
         },
         {
           "id": "stds-anchor-settings-anchor-jb-dist",
@@ -634,8 +694,8 @@
           "name": "ANCHOR_JMAX",
           "label": "Anchor Jmax",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 24
         },
         {
@@ -643,8 +703,8 @@
           "name": "ANCHOR_HDJ_DIST",
           "label": "Anchor Hdj Dist",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 6
         },
         {
@@ -652,8 +712,8 @@
           "name": "ANCHOR_HMAX",
           "label": "Anchor Hmax",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 15
         },
         {
@@ -661,8 +721,8 @@
           "name": "ANCHOR_RECESS",
           "label": "Anchor Recess",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 0
         },
         {
@@ -680,9 +740,30 @@
           "name": "BASE_CLIPS",
           "label": "Base Clips",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "BASE CLIPS"
+            },
+            {
+              "value": 2,
+              "label": "CEWA"
+            },
+            {
+              "value": 3,
+              "label": "P&D EWA"
+            },
+            {
+              "value": 4,
+              "label": "FACE HOLES"
+            }
+          ]
         }
       ]
     },
@@ -695,26 +776,39 @@
           "name": "CLOSER",
           "label": "Closer",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "switch",
+          "defaultValue": true,
+          "helperText": "Toggle to enable"
         },
         {
           "id": "stds-closer-settings-closer-type",
           "name": "CLOSER_TYPE",
           "label": "Closer Type",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "select",
+          "defaultValue": 1,
+          "options": [
+            {
+              "value": 0,
+              "label": "NONE"
+            },
+            {
+              "value": 1,
+              "label": "SURFACE"
+            },
+            {
+              "value": 2,
+              "label": "CONCEALED"
+            }
+          ]
         },
         {
           "id": "stds-closer-settings-surface-closer-length",
           "name": "SURFACE_CLOSER_LENGTH",
           "label": "Surface Closer Length",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 21
         },
         {
@@ -722,8 +816,8 @@
           "name": "SURFACE_CLOSER_WIDTH",
           "label": "Surface Closer Width",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 5
         },
         {
@@ -749,8 +843,8 @@
           "name": "HS_LENGTH",
           "label": "Hs Length",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 21
         },
         {
@@ -767,9 +861,9 @@
           "name": "EQUAL_CLOSERS",
           "label": "Equal Closers",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "switch",
+          "defaultValue": true,
+          "helperText": "Toggle to enable"
         }
       ]
     },
@@ -782,8 +876,8 @@
           "name": "FLUSH_BOLT_CENTER_TOP",
           "label": "Flush Bolt Center Top",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 12
         },
         {
@@ -791,8 +885,8 @@
           "name": "FLUSH_BOLT_CENTER_BOTTOM",
           "label": "Flush Bolt Center Bottom",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 12
         },
         {
@@ -800,8 +894,8 @@
           "name": "FLUSH_PULL_CENTER",
           "label": "Flush Pull Center",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 50
         },
         {
@@ -824,8 +918,8 @@
           "name": "PUSH_PULL_WIDTH",
           "label": "Push Pull Width",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 5
         },
         {
@@ -842,8 +936,8 @@
           "name": "PUSH_PLATE_CENTER",
           "label": "Push Plate Center",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 45
         },
         {
@@ -851,8 +945,8 @@
           "name": "PUSH_BAR_CENTER",
           "label": "Push Bar Center",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 45
         },
         {
@@ -860,8 +954,8 @@
           "name": "PULL_PLATE_CENTER",
           "label": "Pull Plate Center",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 45
         },
         {
@@ -869,8 +963,8 @@
           "name": "PULL_PLATE_HEIGHT",
           "label": "Pull Plate Height",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 16
         },
         {
@@ -893,8 +987,8 @@
           "name": "KICK_PLATE_WIDTH",
           "label": "Kick Plate Width",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 99
         },
         {
@@ -926,18 +1020,27 @@
           "name": "DPS_POSITION",
           "label": "Dps Position",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "HEAD"
+            },
+            {
+              "value": 1,
+              "label": "JAMB"
+            }
+          ]
         },
         {
           "id": "stds-dps-settings-equal-dps",
           "name": "EQUAL_DPS",
           "label": "Equal Dps",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "switch",
+          "defaultValue": true,
+          "helperText": "Toggle to enable"
         }
       ]
     },
@@ -979,8 +1082,8 @@
           "name": "MAX_GLAZING_HOLE_SPACE",
           "label": "Max Glazing Hole Space",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 8
         },
         {
@@ -1013,9 +1116,18 @@
           "name": "STEEL_STIFFENER_MATERIAL",
           "label": "Steel Stiffener Material",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "SS"
+            },
+            {
+              "value": 1,
+              "label": "GALV"
+            }
+          ]
         },
         {
           "id": "stds-steel-stiffener-steel-stiffener-gauge",
@@ -1031,17 +1143,38 @@
           "name": "STEEL_STIFFENER_INSULATION",
           "label": "Steel Stiffener Insulation",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "STYRENE"
+            },
+            {
+              "value": 1,
+              "label": "URETHANE"
+            },
+            {
+              "value": 2,
+              "label": "MINERAL WOOL"
+            },
+            {
+              "value": 3,
+              "label": "FIBERGLASS"
+            },
+            {
+              "value": 4,
+              "label": "BULLET"
+            }
+          ]
         },
         {
           "id": "stds-steel-stiffener-steel-stiffener-width",
           "name": "STEEL_STIFFENER_WIDTH",
           "label": "Steel Stiffener Width",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 2
         },
         {
@@ -1049,8 +1182,8 @@
           "name": "MAXIMUM_STIFFENER_CTR",
           "label": "Maximum Stiffener Ctr",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 8
         }
       ]
@@ -1162,8 +1295,8 @@
           "name": "ACTIVE_LEAF",
           "label": "Active Leaf",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
+          "type": "float",
+          "placeholder": "0.00000",
           "defaultValue": 99
         },
         {
@@ -1180,27 +1313,27 @@
           "name": "EQUAL_ELEVATIONS",
           "label": "Equal Elevations",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 1
+          "type": "switch",
+          "defaultValue": true,
+          "helperText": "Toggle to enable"
         },
         {
           "id": "stds-misc-closed-back",
           "name": "CLOSED_BACK",
           "label": "Closed Back",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
         },
         {
           "id": "stds-misc-weep-holes",
           "name": "WEEP_HOLES",
           "label": "Weep Holes",
           "required": false,
-          "type": "integer",
-          "placeholder": "0",
-          "defaultValue": 0
+          "type": "switch",
+          "defaultValue": false,
+          "helperText": "Toggle to enable"
         }
       ]
     }

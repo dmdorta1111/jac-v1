@@ -1,4 +1,6 @@
 import type { FormSpec, TemplateManifest } from './types';
+import type { ProjectStandards } from '../standards/types';
+import { applyStandardsToForm } from '../standards/service';
 
 // In-memory cache for runtime-loaded templates
 const runtimeCache = new Map<string, FormSpec>();
@@ -80,4 +82,25 @@ export async function getAllTemplateIds(): Promise<string[]> {
 export function clearTemplateCache(): void {
   runtimeCache.clear();
   manifestCache = null;
+}
+
+/**
+ * Load form template with standards pre-applied
+ * @param templateId - Form template identifier (e.g., 'door-info')
+ * @param standards - Standards values to apply to form defaults
+ * @returns Form specification with standards applied, or null if not found
+ */
+export async function loadFormTemplateWithStandards(
+  templateId: string,
+  standards: ProjectStandards
+): Promise<FormSpec | null> {
+  // Load base template
+  const template = await loadFormTemplate(templateId);
+
+  if (!template) {
+    return null;
+  }
+
+  // Apply standards to template
+  return applyStandardsToForm(template, standards);
 }
