@@ -170,7 +170,7 @@ async function migrateItems(db: Db, projectMap: Map<string, ObjectId>): Promise<
       if (projectId) {
         await db.collection('projects').updateOne(
           { _id: projectId },
-          { $set: { itemCount: count } }
+          { $set: { itemCount: count, nextItemNumber: count } }
         );
       }
     }
@@ -312,9 +312,10 @@ async function createIndexes(db: Db): Promise<void> {
     { isDeleted: 1, createdAt: -1 }
   );
 
-  // Items collection
+  // Items collection - unique constraint prevents duplicate item numbers per project
   await db.collection('items').createIndex(
-    { projectId: 1, itemNumber: 1 }
+    { projectId: 1, itemNumber: 1 },
+    { unique: true }
   );
   await db.collection('items').createIndex(
     { projectId: 1, createdAt: -1 }
