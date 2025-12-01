@@ -78,9 +78,12 @@ function extractVariableNames(expression: string): string[] {
  * Convert SmartAssembly syntax to JavaScript operators
  * - AND → &&
  * - OR → ||
- * - == → ===
  * - <> → !==
+ * - Keep == as == (loose equality for boolean/number compatibility)
  * - Preserve ==, !=, <, >, <=, >=
+ *
+ * Note: SmartAssembly uses 1/0 for boolean flags, but JavaScript form switches
+ * return true/false. Loose equality (==) allows true == 1 to work correctly.
  */
 function convertToJavaScript(expression: string): string {
   return expression
@@ -91,7 +94,8 @@ function convertToJavaScript(expression: string): string {
 
     // Replace comparison operators
     .replace(/<>/g, '!==')  // Not equal (SmartAssembly)
-    .replace(/(?<![!<>=])={2}(?!=)/g, '===')  // == → === (but not === or !== or <==)
+    // Keep == as == (loose equality) for boolean/number compatibility
+    // true == 1 returns true, false == 0 returns true
 
     // Preserve other operators: <=, >=, <, >, !==, !=
     .trim();

@@ -63,6 +63,7 @@ import {
 import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
+import { cleanProjectScopedStorage } from "@/lib/storage-utils";
 
 // Project context for tracking active project
 interface ProjectContext {
@@ -133,6 +134,11 @@ export function ClaudeChat() {
   // Store active (unsaved) form data per session - synced from DynamicFormRenderer
   const [activeFormDataMap, setActiveFormDataMap] = useState<Record<string, Record<string, any>>>({});
 
+  // Project loading key - increments on each project load to force memo invalidation
+  // This fixes the race condition where async state clearing hasn't completed
+  // when the initialFormData memo runs, causing stale data to persist
+  const [projectLoadingKey, setProjectLoadingKey] = useState(0);
+
   // Access global project metadata context for header display
   const { metadata, setMetadata: setProjectMetadata } = useProject();
 
@@ -163,6 +169,55 @@ export function ClaudeChat() {
     // Fallback: timestamp + high-entropy random
     return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   };
+
+  /**
+   * Clear all session state when switching to a new project.
+   * This ensures previous project's items don't persist in the new project.
+   *
+   * IMPORTANT: React 18+ automatically batches all state updates in this callback,
+   * meaning all setters execute atomically and trigger a single re-render.
+   * We clear all state FIRST, then increment projectLoadingKey LAST to ensure
+   * the final re-render sees fully cleared state.
+   */
+  const clearAllSessionState = useCallback(() => {
+    console.log('[ClearState] Clearing all session state for new project');
+
+    // React 18+ batches these updates atomically.
+    // Order: 1) Clear all data states, 2) Increment key LAST
+    // This ensures re-render sees completely cleared state.
+
+    // 1. Clear session lists
+    setChatSessions([]);
+    setSessionStateMap({});
+    setActiveFormDataMap({});
+
+    // 2. Clear current session
+    setCurrentSessionId(null);
+    setMessages([]);
+    setCurrentItemNumber(null);
+
+    // 3. Clear flow state (critical for project isolation)
+    setFlowState({});
+    setCurrentStepOrder(0);
+    setTotalSteps(0);
+    setFilteredSteps([]);
+    setFlowExecutor(null);
+    setValidationErrors({});
+
+    // 4. Clear localStorage cache to prevent stale data restoration
+    try {
+      localStorage.removeItem('sessions:list');
+      localStorage.removeItem('sessions:state');
+    } catch (e) {
+      console.warn('[ClearState] Failed to clear localStorage:', e);
+    }
+
+    // 5. Clean all project-scoped localStorage keys (pattern-based cleanup)
+    cleanProjectScopedStorage();
+
+    // 6. Increment loading key LAST - triggers re-render with all state cleared
+    setProjectLoadingKey(prev => prev + 1);
+  }, []);
 
   /**
    * Load existing project state from JSON files
@@ -241,10 +296,30 @@ export function ClaudeChat() {
     setIsLoading(true);
 
     try {
+      // CRITICAL: Clear all previous project state before loading new project
+      // This prevents items from previous project persisting in the new project
+      clearAllSessionState();
+
+      // CRITICAL: Reset project metadata IMMEDIATELY to prevent stale data in header
+      // Must happen BEFORE async operations to avoid race condition where old project
+      // info is displayed during loading. Will be updated with actual data once loaded.
+      setProjectMetadata({
+        SO_NUM: salesOrderNumber,
+        JOB_NAME: '',
+        CUSTOMER_NAME: '',
+        productType,
+        salesOrderNumber,
+        folderPath,
+        isRevision: false,
+        currentSessionId: undefined,
+        projectHeaderCompleted: false, // Will be set to true after loading
+        itemSessions: {},
+      });
+
       // 1. Load project header data from JSON file
       const existingState = await loadExistingProjectState(folderPath);
 
-      // 2. Set project metadata from header
+      // 2. Update project metadata with loaded header data
       const projectMetadataUpdate = {
         SO_NUM: existingState.SO_NUM || salesOrderNumber,
         JOB_NAME: existingState.JOB_NAME || '',
@@ -278,6 +353,12 @@ export function ClaudeChat() {
       setFilteredSteps(itemSteps);
       setTotalSteps(itemSteps.length);
       setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
+
+      // 5b. Initialize FlowExecutor with project state (includes standards for autofill)
+      // This ensures standards like HINGE_GAP, DOOR_THICKNESS are available when creating new items
+      const executor = createFlowExecutor(flow, itemSteps, existingState);
+      setFlowExecutor(executor);
+      console.log('[LoadExisting] FlowExecutor initialized with standards:', Object.keys(existingState).length, 'fields');
 
       // 6. Try to rebuild sessions from MongoDB
       const hasSessionsInDB = await loadExistingProjectFromDB(salesOrderNumber);
@@ -416,6 +497,26 @@ export function ClaudeChat() {
     folderPath: string
   ) => {
     try {
+      // CRITICAL: Clear all previous project state before setting up new project
+      // This prevents items from previous project persisting in the new project
+      clearAllSessionState();
+
+      // CRITICAL: Reset project metadata IMMEDIATELY to prevent stale data in header
+      // Must happen BEFORE async operations to avoid race condition where old project
+      // info is displayed during flow loading
+      setProjectMetadata({
+        SO_NUM: salesOrderNumber,
+        JOB_NAME: '',
+        CUSTOMER_NAME: '',
+        productType,
+        salesOrderNumber,
+        folderPath,
+        isRevision: false,
+        currentSessionId: undefined,
+        projectHeaderCompleted: false,
+        itemSessions: {},
+      });
+
       // For SDI product type, load flow and initialize form flow
       if (productType.toUpperCase() === 'SDI') {
         // Load SDI form flow
@@ -435,19 +536,8 @@ export function ClaudeChat() {
           throw new Error('Failed to initialize flow or no steps found');
         }
 
-        // Update project metadata with isRevision flag
-        setProjectMetadata({
-          SO_NUM: salesOrderNumber,
-          JOB_NAME: '',
-          CUSTOMER_NAME: '',
-          productType,
-          salesOrderNumber,
-          folderPath,
-          isRevision: false,
-          currentSessionId: undefined,
-          projectHeaderCompleted: false,
-          itemSessions: {},
-        });
+        // NOTE: Project metadata already set at function start (before async ops)
+        // No need to set again here - prevents race condition
 
         // Get first form from filtered steps (project-header is now step 0)
         const entryFormId = steps[0].formTemplate;
@@ -480,7 +570,8 @@ export function ClaudeChat() {
           formSpec: prefilledSpec,
         };
 
-        setMessages((prev) => [...prev, botMessage]);
+        // Set fresh messages (not append) since this is a new project
+        setMessages([botMessage]);
         return;
       }
 
@@ -514,7 +605,8 @@ export function ClaudeChat() {
         formSpec: prefilledSpec,
       };
 
-      setMessages((prev) => [...prev, botMessage]);
+      // Set fresh messages (not append) since this is a new project
+      setMessages([botMessage]);
     } catch (error) {
       console.error('Failed to load project header form:', error);
       const errorMessage: Message = {
@@ -523,7 +615,8 @@ export function ClaudeChat() {
         text: 'Project folder created, but I couldn\'t load the header form. Please try refreshing the page.',
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Set fresh message (not append) since this is a new project
+      setMessages([errorMessage]);
     }
   };
 
@@ -629,9 +722,24 @@ export function ClaudeChat() {
           : s
       ));
 
-      // Initialize FlowExecutor with project-header data as initial state
-      const projectHeaderState = flowExecutor?.getState()?.['project-header'] || {};
-      const executor = createFlowExecutor(flow, itemSteps, projectHeaderState);
+      // Initialize FlowExecutor with project-scoped state
+      // CRITICAL: Only reuse executor state if from SAME project to prevent state leakage
+      // between projects. Previous bug: old project's data persisted when creating new project.
+      const currentProjectPath = metadata?.folderPath || '';
+      const executorState = flowExecutor?.getState() || {};
+      const executorProjectPath = executorState._projectPath as string | undefined;
+
+      // Only reuse state if project paths match (same project)
+      const shouldReuseState = executorProjectPath && executorProjectPath === currentProjectPath;
+      const existingState = shouldReuseState ? executorState : {};
+
+      const executor = createFlowExecutor(flow, itemSteps, existingState);
+
+      // Store project context in executor state for future validation
+      if (currentProjectPath && !existingState._projectPath) {
+        executor.updateState('_projectContext', { _projectPath: currentProjectPath });
+      }
+
       setFlowExecutor(executor);
 
       // 6. Load sdi-project form template
@@ -751,7 +859,9 @@ export function ClaudeChat() {
       // PHASE 3: ASYNC DATA LOADING (complete ALL async before state updates)
       // ============================================
       const targetStep = sessionState.highestStepReached ?? sessionState.currentStepOrder;
-      let mergedFlowState = { ...sessionState.flowState };
+      // Start with project standards as base, then overlay session data
+      // This ensures standards are available for autofill across all forms
+      let mergedFlowState = { ...standards, ...sessionState.flowState };
 
       // 3a. Load disk data (async)
       if (metadata?.folderPath && sessionState.itemNumber) {
@@ -1058,9 +1168,9 @@ export function ClaudeChat() {
         }
 
         // 4. Update FlowExecutor state with validated data
-        // Add CHOICE=1 when sdi-project form is submitted (indicates "New item" mode)
+        // Use CHOICE from form data (defaults to 1) when sdi-project form is submitted
         const stateDataToUpdate = currentStepId === 'sdi-project'
-          ? { ...validationResult.data, CHOICE: 1 }
+          ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
           : validationResult.data;
         flowExecutor.updateState(currentStepId, stateDataToUpdate);
         flowExecutor.setCurrentStepIndex(currentStepOrder);
@@ -1071,8 +1181,10 @@ export function ClaudeChat() {
           [currentStepId]: stateDataToUpdate,
         }));
 
-        // Update project metadata with first form data (project-header)
-        if (currentStepOrder === 0) {
+        // Update project metadata with project-header form data
+        // NOTE: Check currentStepId, NOT currentStepOrder, because item sessions have
+        // different step indices (sdi-project is step 0 in item flow, but step 1 in project flow)
+        if (currentStepId === 'project-header') {
           setProjectMetadata({
             SO_NUM: String(validationResult.data.SO_NUM || projectContext.salesOrderNumber),
             JOB_NAME: String(validationResult.data.JOB_NAME || ''),
@@ -1108,8 +1220,10 @@ export function ClaudeChat() {
           }
         }
 
-        // Save item data JSON for forms after project-header (step 1+)
-        if (currentStepOrder >= 1 && projectContext.folderPath) {
+        // Save item data JSON for item forms (sdi-project, door forms, etc.)
+        // NOTE: Check currentStepId to determine if this is item data, not currentStepOrder
+        const isItemForm = currentStepId !== 'project-header' && projectContext.folderPath;
+        if (isItemForm) {
           // Get the NEW item number from form data (user may have changed it)
           const newItemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
           // Original item number is tracked in session state (from when session was created)
@@ -1120,9 +1234,9 @@ export function ClaudeChat() {
             const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
 
             try {
-              // Add CHOICE=1 parameter when sdi-project form is submitted (indicates "New item" mode)
+              // Use CHOICE from form data (defaults to 1) when sdi-project form is submitted
               const formDataToSave = currentStepId === 'sdi-project'
-                ? { ...validationResult.data, CHOICE: 1 }
+                ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
                 : validationResult.data;
 
               const saveResponse = await fetch('/api/save-item-data', {
@@ -1800,10 +1914,22 @@ export function ClaudeChat() {
 
   // Memoize initialFormData to prevent unnecessary form resets on re-render
   // Priority: activeFormData (unsaved) > flowState (submitted) > formSpec.defaultValue
-  const initialFormData = useMemo(() => ({
-    ...flowState,
-    ...(activeFormDataMap[currentSessionId || ''] || {}),
-  }), [flowState, activeFormDataMap, currentSessionId]);
+  //
+  // RACE CONDITION FIX: projectLoadingKey is incremented synchronously in clearAllSessionState()
+  // BEFORE the async state clears (setFlowState, etc.) are processed by React.
+  // When the key changes, we return empty object to prevent stale flowState from
+  // contaminating new project forms. The next render cycle will have cleared state.
+  const initialFormData = useMemo(() => {
+    // Return empty when no session is active (project transition state)
+    if (!currentSessionId) {
+      return {};
+    }
+    return {
+      ...flowState,
+      ...(activeFormDataMap[currentSessionId] || {}),
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowState, activeFormDataMap, currentSessionId, projectLoadingKey]);
 
   return (
     <div className="flex h-full w-full relative gap-4 lg:gap-6">
@@ -1898,14 +2024,16 @@ export function ClaudeChat() {
           </div>
         )}
 
-        {/* Add New Item Button - Always visible when project header is completed */}
-        {metadata?.projectHeaderCompleted && (
+        {/* Add New Item Button - Visible when project is loaded (has salesOrderNumber) */}
+        {/* Disabled until project header is completed */}
+        {metadata?.salesOrderNumber && (
           <div className="w-full px-4 pb-2">
             <Button
               onClick={startNewItemChat}
               variant="outline"
               className="w-full border-dashed border-2 hover:border-solid hover:bg-accent/50"
-              disabled={isLoading}
+              disabled={isLoading || !metadata?.projectHeaderCompleted}
+              title={!metadata?.projectHeaderCompleted ? 'Complete project header first' : undefined}
             >
               <Plus className="w-4 h-4 mr-2" />
               {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
