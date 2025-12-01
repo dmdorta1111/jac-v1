@@ -9,15 +9,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { NewProjectDialog } from "@/components/new-project-dialog";
 import {
   PromptInput,
   PromptInputTextarea,
@@ -1066,13 +1058,17 @@ export function ClaudeChat() {
         }
 
         // 4. Update FlowExecutor state with validated data
-        flowExecutor.updateState(currentStepId, validationResult.data);
+        // Add CHOICE=1 when sdi-project form is submitted (indicates "New item" mode)
+        const stateDataToUpdate = currentStepId === 'sdi-project'
+          ? { ...validationResult.data, CHOICE: 1 }
+          : validationResult.data;
+        flowExecutor.updateState(currentStepId, stateDataToUpdate);
         flowExecutor.setCurrentStepIndex(currentStepOrder);
 
         // 5. Store form data for current step (already in executor state)
         setFlowState(prev => ({
           ...prev,
-          [currentStepId]: validationResult.data,
+          [currentStepId]: stateDataToUpdate,
         }));
 
         // Update project metadata with first form data (project-header)
@@ -1124,6 +1120,11 @@ export function ClaudeChat() {
             const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
 
             try {
+              // Add CHOICE=1 parameter when sdi-project form is submitted (indicates "New item" mode)
+              const formDataToSave = currentStepId === 'sdi-project'
+                ? { ...validationResult.data, CHOICE: 1 }
+                : validationResult.data;
+
               const saveResponse = await fetch('/api/save-item-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1132,7 +1133,7 @@ export function ClaudeChat() {
                   itemNumber: paddedNewItemNumber,
                   originalItemNumber: paddedOriginalItemNumber,  // For rename detection
                   formId: currentStepId,
-                  formData: validationResult.data,
+                  formData: formDataToSave,
                   merge: true,
                   sessionId: currentSessionId,  // For MongoDB updates
                   salesOrderNumber: projectContext.salesOrderNumber,  // For MongoDB updates
@@ -1806,6 +1807,13 @@ export function ClaudeChat() {
 
   return (
     <div className="flex h-full w-full relative gap-4 lg:gap-6">
+      {/* New Project Dialog - triggered from header or welcome screen */}
+      <NewProjectDialog
+        onProjectCreated={loadAndDisplayProjectHeaderForm}
+        onExistingProjectLoad={loadExistingProject}
+        setProjectContext={setProjectContext}
+      />
+
       {/* Left Sidebar */}
       <LeftSidebar
         chatSessions={[...chatSessions].sort((a, b) => {
@@ -1964,94 +1972,8 @@ interface WelcomeScreenProps {
   setProjectContext?: (context: ProjectContext) => void;
 }
 
-function WelcomeScreen({ onSuggestionClick, onProjectCreated, onExistingProjectLoad, setProjectContext }: WelcomeScreenProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [salesOrder, setSalesOrder] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  const handleButtonClick = (product: string) => {
-    setSelectedProduct(product);
-    setSalesOrder("");
-    setFeedback(null);
-    setDialogOpen(true);
-  };
-
-  const handleSubmit = async () => {
-    if (!salesOrder.trim() || !selectedProduct) return;
-
-    setIsSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const response = await fetch('/api/create-project-folder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productType: selectedProduct,
-          salesOrderNumber: salesOrder.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Store project context for form submission
-        if (setProjectContext) {
-          setProjectContext({
-            productType: selectedProduct,
-            salesOrderNumber: salesOrder.trim(),
-            folderPath: data.path,
-          });
-        }
-
-        if (data.exists) {
-          // Existing project - load and rebuild sessions
-          setFeedback({ type: 'success', message: `Loading existing project: ${data.path}` });
-
-          // Close dialog and trigger existing project load
-          setTimeout(async () => {
-            setDialogOpen(false);
-            setFeedback(null);
-            setSalesOrder("");
-
-            // Load existing project with session rebuild
-            if (onExistingProjectLoad) {
-              await onExistingProjectLoad(selectedProduct, salesOrder.trim(), data.path);
-            }
-          }, 1000);
-        } else {
-          // New project - show project header form
-          setFeedback({ type: 'success', message: `Project folder created: ${data.path}` });
-
-          // Close dialog and trigger form display
-          setTimeout(() => {
-            setDialogOpen(false);
-            setFeedback(null);
-            setSalesOrder("");
-
-            // Load and display the project header form
-            if (onProjectCreated) {
-              onProjectCreated(selectedProduct, salesOrder.trim(), data.path);
-            }
-          }, 1500);
-        }
-      } else {
-        setFeedback({ type: 'error', message: data.error || 'Failed to create folder' });
-      }
-    } catch {
-      setFeedback({ type: 'error', message: 'Network error. Please try again.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isSubmitting && salesOrder.trim()) {
-      handleSubmit();
-    }
-  };
+function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
+  const { openNewProjectDialog } = useProject();
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
@@ -2063,70 +1985,24 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, onExistingProjectL
         Ask about kitchen equipment, specifications, or engineering details.
       </p>
 
+      {/* Product Type Selection Buttons */}
       <div className="flex flex-wrap gap-4 justify-center">
         {suggestions.map((suggestion) => (
           <Button
             key={suggestion}
             variant="outline"
             size="lg"
-            onClick={() => handleButtonClick(suggestion)}
-            className="min-w-[120px] transition-all duration-200 hover:border-zinc-400 hover:bg-accent hover:shadow-md"
+            onClick={openNewProjectDialog}
+            className="min-w-[140px] h-14 text-lg font-medium transition-all duration-200 hover:border-primary hover:bg-accent hover:shadow-md"
           >
             {suggestion}
           </Button>
         ))}
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create {selectedProduct} Project</DialogTitle>
-            <DialogDescription>
-              Enter the sales order number to create a new project folder.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <Input
-              name="salesOrder"
-              placeholder="Enter sales order number"
-              value={salesOrder}
-              onChange={(e) => setSalesOrder(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isSubmitting}
-              autoFocus
-            />
-
-            {feedback && (
-              <div
-                className={`rounded-lg px-4 py-3 text-sm ${
-                  feedback.type === 'success'
-                    ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-                    : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                }`}
-              >
-                {feedback.message}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !salesOrder.trim()}
-            >
-              {isSubmitting ? 'Creating...' : 'Create Project'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <p className="mt-8 text-sm text-muted-foreground">
+        Click any product type above to create a new project
+      </p>
     </div>
   );
 }

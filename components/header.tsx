@@ -1,15 +1,16 @@
 "use client";
 
-import { Moon, Sun, Menu } from "lucide-react";
+import { Moon, Sun, Menu, Plus } from "lucide-react";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useProject } from "@/components/providers/project-context";
 import { Shimmer } from "./ai-elements/shimmer";
+import { Button } from "./ui/button";
 
 export function Header() {
   const { setTheme, resolvedTheme } = useTheme();
   const { isOpen: sidebarOpen, toggle: toggleSidebar } = useSidebar();
-  const { metadata } = useProject();
+  const { metadata, openNewProjectDialog } = useProject();
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -18,8 +19,20 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Mobile Menu Toggle - Left Side */}
-        <div className="flex items-center">
+        {/* Left Side - New Project Button + Mobile Menu Toggle */}
+        <div className="flex items-center gap-2">
+          {/* New Project Button - Always visible */}
+          <Button
+            onClick={openNewProjectDialog}
+            variant="ghost"
+            size="icon"
+            className="size-10 rounded-[10px] text-secondary-foreground hover:bg-accent/50 transition-all duration-200 active:scale-95"
+            aria-label="Create new project"
+          >
+            <Plus className="size-5" />
+          </Button>
+
+          {/* Mobile Menu Toggle */}
           <button
             onClick={toggleSidebar}
             aria-label="Toggle sidebar menu"
