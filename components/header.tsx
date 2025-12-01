@@ -5,6 +5,7 @@ import { useTheme } from "@/components/providers/theme-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useProject } from "@/components/providers/project-context";
 import { Shimmer } from "./ai-elements/shimmer";
+import { GlowingText } from "./ui/glowing-text";
 import { Button } from "./ui/button";
 
 export function Header() {
@@ -17,7 +18,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-0 bg-gradient-to-r from-zinc-100/80 to-zinc-400/80 dark:from-zinc-800 dark:to-[#0a0a0a] backdrop-blur-lg">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left Side - New Project Button + Mobile Menu Toggle */}
         <div className="flex items-center gap-2">
@@ -47,7 +48,7 @@ export function Header() {
           {metadata && (
             <div className="flex lg:hidden items-center ml-2">
               <span
-                className="text-sm font-semibold text-foreground/80 truncate max-w-[120px]"
+                className="text-xs font-semibold text-foreground/80 truncate max-w-[120px]"
                 title={`${metadata.SO_NUM} - ${metadata.JOB_NAME} - ${metadata.CUSTOMER_NAME}`}
               >
                 {metadata.SO_NUM}
@@ -59,34 +60,34 @@ export function Header() {
         {/* Project Metadata - Desktop View (Center-Left) */}
         {metadata && (
           <div className="hidden lg:flex items-start justify-start gap-0 flex-1 max-w-3xl ml-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">SO</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">SO</span>
               <h1
-                className="text-lg font-bold text-foreground truncate max-w-[180px]"
+                className="text-sm font-bold text-foreground truncate max-w-[180px]"
                 title={metadata.SO_NUM}
               >
                 {metadata.SO_NUM}
               </h1>
             </div>
 
-            <span className="mx-8 text-muted-foreground">•</span>
+            <span className="mx-4 text-muted-foreground text-xs">•</span>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">Job</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Job</span>
               <h1
-                className="text-lg font-semibold text-foreground/90 truncate max-w-[200px]"
+                className="text-sm font-semibold text-foreground/90 truncate max-w-[200px]"
                 title={metadata.JOB_NAME}
               >
                 {metadata.JOB_NAME}
               </h1>
             </div>
 
-            <span className="mx-8 text-muted-foreground">•</span>
+            <span className="mx-4 text-muted-foreground text-xs">•</span>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">Customer</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Customer</span>
               <h1
-                className="text-lg font-semibold text-foreground/80 truncate max-w-[200px]"
+                className="text-sm font-semibold text-foreground/80 truncate max-w-[200px]"
                 title={metadata.CUSTOMER_NAME}
               >
                 {metadata.CUSTOMER_NAME}
@@ -114,9 +115,15 @@ export function Header() {
 
           {/* EMJAC Logo */}
           <div className="flex items-center gap-1">
-            <Shimmer duration={4} spread={20} as="h1" className="font-bold text-3xl tracking-tight whitespace-nowrap">
-              JAC
-            </Shimmer>
+            <GlowingText
+              glowColor="rgba(160, 160, 170, 0.4)"
+              duration={2.5}
+              intensity={0.6}
+            >
+              <Shimmer duration={16} spread={5} as="h1" className="font-bold text-xl tracking-tight whitespace-nowrap [--color-muted-foreground:#27272a] dark:[--color-muted-foreground:#a1a1aa]">
+                JAC
+              </Shimmer>
+            </GlowingText>
           </div>
         </div>
       </div>

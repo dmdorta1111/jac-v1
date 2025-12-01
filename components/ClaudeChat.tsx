@@ -6,13 +6,11 @@ import {
   User,
   AlertCircle,
   X,
-  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NewProjectDialog } from "@/components/new-project-dialog";
 import {
   PromptInput,
-  PromptInputTextarea,
   PromptInputAttachments,
   PromptInputAttachment,
   PromptInputFooter,
@@ -22,6 +20,7 @@ import {
   usePromptInputAttachments,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
+import { TypingPlaceholderTextarea } from "@/components/ui/typing-placeholder-textarea";
 import { PaperclipIcon } from "lucide-react";
 import {
   Message as MessageComponent,
@@ -1834,6 +1833,8 @@ export function ClaudeChat() {
         } : undefined}
         onNavigatePrev={handleNavigatePrev}
         onNavigateNext={handleNavigateNext}
+        showNewItemButton={metadata?.projectHeaderCompleted || false}
+        isLoading={isLoading}
       />
 
       {/* Main Chat Area */}
@@ -1898,26 +1899,11 @@ export function ClaudeChat() {
           </div>
         )}
 
-        {/* Add New Item Button - Always visible when project header is completed */}
-        {metadata?.projectHeaderCompleted && (
-          <div className="w-full px-4 pb-2">
-            <Button
-              onClick={startNewItemChat}
-              variant="outline"
-              className="w-full border-dashed border-2 hover:border-solid hover:bg-accent/50"
-              disabled={isLoading}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
-            </Button>
-          </div>
-        )}
-
         {/* Input Area */}
-        <div className="justify-center w-full shrink-0 border-border backdrop-blur-sm dark:bg-background">
-          <div className="mx-auto w-full">
+        <div className="flex justify-center w-full shrink-0 border-border backdrop-blur-sm pb-6">
+          <div className="mx-auto w-full md:max-w-[50%]">
             {/* Input Container with Glow Effect */}
-            <div className="relative">
+            <div className="relative rounded-2xl bg-zinc-200/95 dark:bg-zinc-900/95 shadow-lg dark:shadow-xl dark:shadow-black/30">
               {/* Subtle Glow Behind */}
               <div
                 className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-zinc-500/20 via-zinc-400/20 to-zinc-600/20 blur-xl duration-500 ${
@@ -1928,7 +1914,7 @@ export function ClaudeChat() {
               {/* Main Input Container */}
               <PromptInput
                 onSubmit={handleSubmit}
-                className="relative bg-linear-to-b from-surface to-background p-1.5 shadow-lg transition-all duration-300 has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:ring-transparent has-[[data-slot=input-group-control]:focus-visible]:border-zinc-300 dark:bg-card dark:bg-none dark:shadow-xl dark:shadow-black/20 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-transparent dark:has-[[data-slot=input-group-control]:focus-visible]:border-zinc-700"
+                className="relative bg-transparent p-1.5 shadow-none transition-all duration-300 [&_[data-slot=input-group]]:rounded-xl [&_[data-slot=input-group]]:border-0 [&_[data-slot=input-group]]:shadow-none [&_[data-slot=input-group]]:!bg-transparent dark:[&_[data-slot=input-group]]:!bg-transparent [&_[data-slot=input-group-control]]:!ring-0 [&_[data-slot=input-group-control]]:!outline-none [&_[data-slot=input-group-control]]:![box-shadow:none] [&_[data-slot=input-group-control]:focus]:!ring-0 [&_[data-slot=input-group-control]:focus]:!outline-none [&_[data-slot=input-group-control]:focus]:![box-shadow:none] [&_[data-slot=input-group-control]:focus-visible]:!ring-0 [&_[data-slot=input-group-control]:focus-visible]:!outline-none [&_[data-slot=input-group-control]:focus-visible]:![box-shadow:none] [&_[data-slot=input-group]:focus-within]:border-0 [&_[data-slot=input-group]:focus-within]:ring-0 [&_[data-slot=input-group-addon]]:border-0 [&_[data-slot=input-group-control]]:border-0"
                 accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
                 multiple
                 globalDrop
@@ -1942,9 +1928,11 @@ export function ClaudeChat() {
                     />
                   )}
                 </PromptInputAttachments>
-                <PromptInputTextarea
-                  placeholder="Jac is Waiting..."
+                <TypingPlaceholderTextarea
+                  typingPlaceholder="Jac is Waiting..."
+                  typingSpeed={0.06}
                   disabled={isLoading}
+                  className="py-1.5 min-h-0"
                 />
                 <PromptInputFooter>
                   <PromptInputTools>
@@ -1953,7 +1941,7 @@ export function ClaudeChat() {
                   <PromptInputSubmit
                     disabled={isLoading}
                     status={isLoading ? "submitted" : "ready"}
-                    className="relative p-1.5 shadow-lg transition-all duration-300"
+                    className="relative p-1.5 bg-zinc-300/80 text-zinc-700 shadow-md hover:bg-zinc-400/80 dark:bg-zinc-800 dark:text-zinc-300 dark:shadow-lg dark:shadow-black/20 dark:hover:bg-zinc-700 transition-all duration-300"
                   />
                 </PromptInputFooter>
               </PromptInput>             
@@ -2133,7 +2121,7 @@ function AttachmentButton() {
     <PromptInputButton
       onClick={() => attachments.openFileDialog()}
       aria-label="Add attachment"
-      className="bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+      className="bg-zinc-300/80 text-zinc-700 shadow-md hover:bg-zinc-400/80 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:shadow-lg dark:shadow-black/20 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
     >
       <PaperclipIcon className="size-4" />
     </PromptInputButton>

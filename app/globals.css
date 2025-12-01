@@ -291,7 +291,6 @@
 
 * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
 }
 
@@ -481,6 +480,11 @@ body {
   to { transform: rotate(360deg); }
 }
 
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
 /* =============================================================================
    ANIMATION UTILITY CLASSES
    ============================================================================= */
@@ -526,6 +530,10 @@ body {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
 }
 
 /* =============================================================================

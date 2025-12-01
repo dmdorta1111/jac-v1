@@ -910,15 +910,15 @@ export default function DynamicFormRenderer({
           {/* Form Sections */}
           {/* Session-scoped section keys to prevent collisions across multiple sessions */}
           {formSpec.sections.map((section) => (
-            <FieldSet 
-            key={`${sessionId}-${formSpec.formId}-${section.id}`} 
+            <FieldSet
+            key={`${sessionId}-${formSpec.formId}-${section.id}`}
             name={section.id}
-            className="relative rounded-xl border-2 border-border bg-zinc-900/50 mb-8 shadow-sm overflow-hidden"
+            className="relative rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 mb-8 shadow-lg shadow-zinc-400/20 dark:shadow-zinc-950/40 overflow-hidden"
             >
-              <FieldContent className="border-b-2 border-amber-500/30" style={{ padding: '1.5rem', paddingBottom: '1rem' }}>
-                <FieldLegend 
+              <FieldContent style={{ padding: '1.5rem', paddingBottom: '1rem' }}>
+                <FieldLegend
                 variant="label"
-                className="text-2xl sm:text-3xl font-bold text-amber-400 tracking-tight"
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-400 tracking-tight"
                 >
                   {section.title}
                   </FieldLegend>
@@ -991,9 +991,11 @@ export default function DynamicFormRenderer({
 
           {/* Form Actions */}
           <div className="flex gap-3 pt-4 sm:pt-6 border-t border-border mt-4">
-            <Button type="submit" variant="secondary" className="flex-1">
-              {formSpec.submitButton.text}
-            </Button>
+            <div className="scale-75 origin-left">
+              <Button type="submit" variant="secondary">
+                {formSpec.submitButton.text}
+              </Button>
+            </div>
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel

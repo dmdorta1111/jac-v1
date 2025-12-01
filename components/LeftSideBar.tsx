@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Sliders, Trash2 } from "lucide-react";
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Plus, Sliders, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
@@ -70,6 +70,8 @@ interface LeftSidebarProps {
   formNavigationState?: FormNavigationState;
   onNavigatePrev?: () => void;
   onNavigateNext?: () => void;
+  showNewItemButton?: boolean;
+  isLoading?: boolean;
 }
 
 export function LeftSidebar({
@@ -81,6 +83,8 @@ export function LeftSidebar({
   formNavigationState,
   onNavigatePrev,
   onNavigateNext,
+  showNewItemButton = false,
+  isLoading = false,
 }: LeftSidebarProps) {
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
   const { open: openModelModal } = useModelModal();
@@ -138,18 +142,22 @@ export function LeftSidebar({
         aria-label=''
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col bg-zinc-200/95 dark:bg-zinc-900/95 backdrop-blur-sm transition-transform duration-300`}
       >
 
-        {/* <div className="shrink-0 pb-3">
-          <Button
-            onClick={onNewChat}
-            className="flex w-full items-center justify-center gap-2.5 border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            <Plus className="size-5" />
-            New Item
-          </Button>
-        </div> */}
+        {/* New Item Button - Above Session History */}
+        {showNewItemButton && (
+          <div className="shrink-0 pb-3">
+            <Button
+              onClick={onNewChat}
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-border bg-secondary/50 px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-solid hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="size-5" />
+              {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
+            </Button>
+          </div>
+        )}
         {/* Workflow Viewer Button
         <div className="mb-4">
           <button
@@ -190,7 +198,7 @@ export function LeftSidebar({
           </div>
         </div>
         {/* Footer Buttons: Project STDS & 3D Viewer */}
-        <div className="shrink-0 pt-3 sticky bottom-0 bg-background/95 backdrop-blur-sm pb-2 -mx-4 px-4 border-t border-border/50 mt-2 space-y-2">
+        <div className="shrink-0 pt-3 sticky bottom-0 bg-zinc-200/95 dark:bg-zinc-900/95 backdrop-blur-sm pb-2 -mx-4 px-4 mt-2 space-y-2">
           {/* Project STDS Button */}
           <Button
             onClick={() => {
@@ -199,7 +207,7 @@ export function LeftSidebar({
                 closeSidebar();
               }
             }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400 shadow-sm transition-all duration-200 hover:bg-amber-500/10 hover:border-amber-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400 shadow-sm transition-all duration-200 hover:bg-amber-500/15 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Open Project Standards"
           >
             <Sliders className="size-5" />
@@ -214,7 +222,7 @@ export function LeftSidebar({
                 closeSidebar();
               }
             }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-400/30 bg-zinc-500/5 px-4 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400 shadow-sm transition-all duration-200 hover:bg-zinc-500/10 hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-zinc-500/10 px-4 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400 shadow-sm transition-all duration-200 hover:bg-zinc-500/15 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Open 3D Model Viewer"
           >
             <Box className="size-5" />
