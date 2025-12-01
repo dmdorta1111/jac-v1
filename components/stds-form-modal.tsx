@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useStdsModal } from "@/components/providers/stds-modal-provider";
 import { useProject } from "@/components/providers/project-context";
+import { useStandards } from "@/components/providers/standards-provider";
 import { Button } from "@/components/ui/button";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 
@@ -41,6 +42,7 @@ interface FormSpec {
 export function StdsFormModal() {
   const { isOpen, close } = useStdsModal();
   const { metadata } = useProject();
+  const { refresh: refreshStandards } = useStandards();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [formSpec, setFormSpec] = React.useState<FormSpec | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -146,6 +148,7 @@ export function StdsFormModal() {
 
         if (response.ok) {
           setProjectStandards(formData);
+          await refreshStandards();
           toast.success("Project standards saved successfully");
           close();
         } else {
@@ -230,6 +233,7 @@ export function StdsFormModal() {
               </div>
             ) : formSpec ? (
               <DynamicFormRenderer
+                sessionId="stds-modal"
                 formSpec={formSpec as Parameters<typeof DynamicFormRenderer>[0]["formSpec"]}
                 onSubmit={handleSubmit}
               />

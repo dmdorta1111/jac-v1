@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useTabSync, type SyncEvent } from './useTabSync';
-import type { ChatSession } from '@/components/leftsidebar';
+import type { ChatSession } from '@/components/LeftSideBar';
 import type { SessionState } from '@/lib/session-validator';
 
 /**

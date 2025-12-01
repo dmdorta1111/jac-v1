@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChatSession } from '@/components/leftsidebar';
+import { ChatSession } from '@/components/LeftSideBar';
 import {
   type SessionState,
   validateSessionStateMap,

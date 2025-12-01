@@ -122,23 +122,9 @@ export async function GET(req: NextRequest) {
       nextNumber = (maxNumber + 1).toString().padStart(3, '0');
     }
 
-    // RESERVATION: Create placeholder file immediately
-    // This prevents race conditions even if lock mechanism fails
-    const itemFile = path.join(itemsDir, `item-${nextNumber}.json`);
-
-    // Ensure items directory exists
-    if (!existsSync(itemsDir)) {
-      await fs.mkdir(itemsDir, { recursive: true });
-    }
-
-    // Create reservation file
-    writeFileSync(itemFile, JSON.stringify({
-      _metadata: {
-        itemNumber: nextNumber,
-        reserved: true,
-        reservedAt: new Date().toISOString(),
-      }
-    }, null, 2));
+    // NOTE: We no longer create a reservation file here.
+    // The item file will be created when the form is actually submitted.
+    // This prevents empty/placeholder files from being created on "Create New Item" click.
 
     return Response.json({ success: true, nextItemNumber: nextNumber });
 

@@ -124,20 +124,73 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update MongoDB if session info provided
-    if (isRename && sessionId && salesOrderNumber) {
+    // Update MongoDB items collection (NEW normalized schema)
+    if (salesOrderNumber) {
       try {
-        // Dynamic import to avoid issues if MongoDB not configured
-        const { MongoClient } = await import('mongodb');
-        const uri = process.env.MONGODB_URI;
+        const { connectToDatabase, getProjectsCollection, getItemsCollection } = await import('@/lib/mongodb');
+        const db = await connectToDatabase();
+        const projects = getProjectsCollection(db);
+        const items = getItemsCollection(db);
 
-        if (uri) {
-          const client = new MongoClient(uri);
-          await client.connect();
-          const db = client.db('jac-forms');
+        // Get projectId
+        const project = await projects.findOne({
+          salesOrderNumber,
+          isDeleted: { $ne: true },
+        });
 
-          // Update all form submissions for this session with new item number
-          const result = await db.collection('form-submissions').updateMany(
+        if (project) {
+          const now = new Date();
+
+          // Upsert item in items collection
+          await items.updateOne(
+            {
+              projectId: project._id,
+              itemNumber: sanitizedItemNumber,
+            },
+            {
+              $set: {
+                productType: formData.PRODUCT_TYPE || formData.productType || '',
+                itemData: finalData,
+                updatedAt: now,
+                ...(isRename ? {
+                  renamedFrom: sanitizedOriginalItemNumber,
+                  renamedAt: now,
+                } : {}),
+              },
+              $addToSet: formId ? { formIds: formId } : {},
+              $setOnInsert: {
+                projectId: project._id,
+                itemNumber: sanitizedItemNumber,
+                isDeleted: false,
+                createdAt: now,
+              },
+            },
+            { upsert: true }
+          );
+
+          // If renamed, delete old item record
+          if (isRename && sanitizedOriginalItemNumber) {
+            await items.updateOne(
+              {
+                projectId: project._id,
+                itemNumber: sanitizedOriginalItemNumber,
+              },
+              {
+                $set: {
+                  isDeleted: true,
+                  deletedAt: now,
+                  updatedAt: now,
+                },
+              }
+            );
+          }
+
+          console.log(`Synced item ${sanitizedItemNumber} to MongoDB items collection`);
+        }
+
+        // Also update form_submissions for backward compatibility (rename tracking)
+        if (isRename && sessionId) {
+          await db.collection('form_submissions').updateMany(
             {
               sessionId,
               'metadata.salesOrderNumber': salesOrderNumber,
@@ -150,13 +203,10 @@ export async function POST(request: NextRequest) {
               }
             }
           );
-
-          console.log(`Updated ${result.modifiedCount} MongoDB records for item rename`);
-          await client.close();
         }
       } catch (dbError) {
         console.warn('MongoDB update failed (non-blocking):', dbError);
-        // Continue - file rename succeeded, DB update is best-effort
+        // Continue - file operations succeeded, DB update is best-effort
       }
     }
 

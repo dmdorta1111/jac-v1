@@ -200,8 +200,8 @@ export const MessageBranchContent = ({
   return childrenArray.map((branch, index) => (
     <div
       className={cn(
-        "grid gap-2 overflow-hidden [&>div]:pb-0",
-        index === currentBranch ? "block" : "hidden"
+        "gap-2 overflow-hidden [&>div]:pb-0",
+        index === currentBranch ? "grid" : "hidden"
       )}
       key={branch.key}
       {...props}

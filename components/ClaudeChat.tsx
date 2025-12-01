@@ -50,13 +50,15 @@ import {
   type ChatSession,
   type Message,
   type UploadedFile,
-} from "@/components/LeftSidebar";
+} from "@/components/LeftSideBar";
 import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
 import { usePersistedProject } from "@/lib/hooks/usePersistedProject";
 import { usePersistedSession } from "@/lib/hooks/usePersistedSession";
 import { useSessionSync } from "@/lib/hooks/useSessionSync";
+import { useStandards } from "@/components/providers/standards-provider";
+import { applyStandardsToForm } from "@/lib/standards/service";
 import {
   validateSessionState,
   createFreshSessionState,
@@ -156,6 +158,9 @@ export function ClaudeChat() {
     currentSessionId
   );
 
+  // Project standards context for autofill
+  const { standards, refresh: refreshStandards } = useStandards();
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Use crypto.randomUUID for collision-proof ID generation
@@ -229,6 +234,89 @@ export function ClaudeChat() {
   };
 
   /**
+   * Load an existing project when user enters a sales order that already exists.
+   * This loads project header, sets up metadata, and rebuilds sessions from MongoDB.
+   * @param productType - Product type (SDI, EMJAC, etc.)
+   * @param salesOrderNumber - The SO# to load
+   * @param folderPath - Path to project folder
+   */
+  const loadExistingProject = async (
+    productType: string,
+    salesOrderNumber: string,
+    folderPath: string
+  ): Promise<void> => {
+    console.log(`[LoadExisting] Loading existing project: ${folderPath}`);
+    setIsLoading(true);
+
+    try {
+      // 1. Load project header data from JSON file
+      const existingState = await loadExistingProjectState(folderPath);
+
+      // 2. Set project metadata from header
+      const projectMetadataUpdate = {
+        SO_NUM: existingState.SO_NUM || salesOrderNumber,
+        JOB_NAME: existingState.JOB_NAME || '',
+        CUSTOMER_NAME: existingState.CUSTOMER_NAME || '',
+        productType,
+        salesOrderNumber,
+        folderPath,
+        isRevision: false,
+        currentSessionId: undefined,
+        projectHeaderCompleted: true, // Mark as completed since header exists
+        itemSessions: {} as Record<string, { sessionId: string; itemNumber: string; createdAt: number; title: string }>,
+      };
+      setProjectMetadata(projectMetadataUpdate);
+
+      // 3. Set project context for form submissions
+      setProjectContext({
+        productType,
+        salesOrderNumber,
+        folderPath,
+      });
+
+      // 4. Load the SDI flow
+      const flow = await loadFlow('SDI-form-flow');
+      if (!flow) {
+        throw new Error('SDI form flow not found');
+      }
+
+      // 5. Initialize flow with existing state (for item flow, skip project-header step)
+      const allSteps = filterSteps(flow, false);
+      const itemSteps = allSteps.slice(1); // Skip project-header for items
+      setFilteredSteps(itemSteps);
+      setTotalSteps(itemSteps.length);
+      setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
+
+      // 6. Try to rebuild sessions from MongoDB
+      const hasSessionsInDB = await loadExistingProjectFromDB(salesOrderNumber);
+
+      if (!hasSessionsInDB) {
+        // No sessions in DB - show welcome message for existing project
+        const welcomeMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: `📁 **Project Loaded**\n\n**${existingState.JOB_NAME || 'Project'}** (SO# ${salesOrderNumber})\n\nNo item sessions found. Click "Create First Item" to add items to this project.`,
+          timestamp: new Date(),
+        };
+        setMessages([welcomeMessage]);
+      }
+
+      console.log(`[LoadExisting] Project loaded successfully: ${salesOrderNumber}`);
+    } catch (error) {
+      console.error('[LoadExisting] Error loading project:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Error loading project: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+      };
+      setMessages([errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
    * Rebuild sessions from MongoDB when opening an existing project.
    * This is called when cache is invalid or missing for a recalled project.
    * @param salesOrderNumber - The SO# to rebuild sessions for
@@ -280,9 +368,9 @@ export function ClaudeChat() {
         console.warn('[Rebuild] Failed to persist to localStorage:', e);
       }
 
-      // Switch to first session
+      // Switch to first session, passing the state directly since sessionStateMap hasn't updated yet
       if (sessions.length > 0) {
-        await switchToSession(sessions[0].id);
+        await switchToSession(sessions[0].id, stateMap[sessions[0].id] as SessionState);
       }
 
       console.log(`[Rebuild] Successfully rebuilt ${rebuilt.length} sessions`);
@@ -560,10 +648,13 @@ export function ClaudeChat() {
         throw new Error('sdi-project template not found');
       }
 
+      // Apply project standards to form
+      const formWithStandards = applyStandardsToForm(formSpec, standards);
+
       // Pre-fill ITEM_NUM field (editable - user can change it)
       const prefilledSpec = {
-        ...formSpec,
-        sections: formSpec.sections.map(section => ({
+        ...formWithStandards,
+        sections: formWithStandards.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => {
             if (field.name === 'ITEM_NUM') {
@@ -604,7 +695,9 @@ export function ClaudeChat() {
   // Switch to existing session with state restoration
   // CRITICAL: All async operations must complete BEFORE any state updates
   // to prevent race conditions that cause data mix-matching between sessions
-  const switchToSession = async (sessionId: string) => {
+  // @param sessionId - Session ID to switch to
+  // @param providedState - Optional pre-fetched state (used when state isn't in sessionStateMap yet)
+  const switchToSession = async (sessionId: string, providedState?: SessionState) => {
     if (sessionId === currentSessionId) return; // Already on this session
 
     setIsLoading(true);
@@ -639,8 +732,9 @@ export function ClaudeChat() {
 
       // ============================================
       // PHASE 2: VALIDATE TARGET SESSION
+      // Use providedState if available (for cases where sessionStateMap hasn't updated yet)
       // ============================================
-      const sessionState = sessionStateMap[sessionId];
+      const sessionState = providedState || sessionStateMap[sessionId];
 
       if (!sessionState || !validateSessionState(sessionState)) {
         // Session missing or corrupted - create fresh state
@@ -743,6 +837,58 @@ export function ClaudeChat() {
       // Update project metadata
       if (metadata) {
         setProjectMetadata({ ...metadata, currentSessionId: sessionId });
+      }
+
+      // CRITICAL: Ensure sessionStateMap has the session's state for navigation functions
+      // This is especially important when providedState is passed (sessionStateMap may not have it yet)
+      setSessionStateMap(prev => ({
+        ...prev,
+        [sessionId]: {
+          ...sessionState,
+          flowState: mergedFlowState,
+          currentStepOrder: targetStep,
+          highestStepReached: Math.max(sessionState.highestStepReached ?? 0, targetStep),
+        },
+      }));
+
+      // Load the current form if session has completed forms
+      // This ensures form is displayed when switching to a loaded session
+      if (sessionState.completedFormIds && sessionState.completedFormIds.length > 0) {
+        const currentFormId = sessionState.filteredSteps[targetStep]?.formTemplate;
+        if (currentFormId) {
+          // Load and display the current form
+          const formSpec = await loadFormTemplate(currentFormId);
+          if (formSpec) {
+            // Apply project standards to form
+            const formWithStandards = applyStandardsToForm(formSpec, standards);
+
+            const existingData = newExecutor.getState();
+            const prefilledSpec = {
+              ...formWithStandards,
+              sections: formWithStandards.sections.map(section => ({
+                ...section,
+                fields: section.fields.map(field => ({
+                  ...field,
+                  defaultValue: existingData[field.name] ?? field.defaultValue,
+                })),
+              })),
+            };
+
+            const formMessage: Message = {
+              id: generateId(),
+              sender: 'bot',
+              text: `📋 **${formSpec.title}** (Step ${targetStep + 1} of ${stepDefs.length})`,
+              timestamp: new Date(),
+              formSpec: prefilledSpec,
+            };
+
+            // Add form to messages
+            setMessages(prev => [
+              ...prev.filter(m => !m.formSpec),
+              formMessage,
+            ]);
+          }
+        }
       }
 
       console.log(`[Session Switch] Complete: ${sessionId} (Item ${sessionState.itemNumber})`);
@@ -1262,13 +1408,16 @@ export function ClaudeChat() {
         throw new Error(`Form template not found: ${formId}`);
       }
 
-      // 2. Get existing data from flowState
+      // 2. Apply project standards to form
+      const formWithStandards = applyStandardsToForm(formSpec, standards);
+
+      // 3. Get existing data from flowState
       const existingData = flowExecutor.getState();
 
-      // 3. Pre-fill form with existing data
+      // 4. Pre-fill form with existing data (user data takes priority over standards)
       const prefilledSpec = {
-        ...formSpec,
-        sections: formSpec.sections.map(section => ({
+        ...formWithStandards,
+        sections: formWithStandards.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => ({
             ...field,
@@ -1687,6 +1836,7 @@ export function ClaudeChat() {
             <WelcomeScreen
               onSuggestionClick={(text) => handleSubmit({ text, files: [] })}
               onProjectCreated={loadAndDisplayProjectHeaderForm}
+              onExistingProjectLoad={loadExistingProject}
               setProjectContext={setProjectContext}
             />
           ) : (
@@ -1810,10 +1960,11 @@ export function ClaudeChat() {
 interface WelcomeScreenProps {
   onSuggestionClick?: (text: string) => void;
   onProjectCreated?: (productType: string, salesOrderNumber: string, folderPath: string) => void;
+  onExistingProjectLoad?: (productType: string, salesOrderNumber: string, folderPath: string) => Promise<void>;
   setProjectContext?: (context: ProjectContext) => void;
 }
 
-function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext }: WelcomeScreenProps) {
+function WelcomeScreen({ onSuggestionClick, onProjectCreated, onExistingProjectLoad, setProjectContext }: WelcomeScreenProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [salesOrder, setSalesOrder] = useState("");
@@ -1846,8 +1997,6 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
       const data = await response.json();
 
       if (data.success) {
-        setFeedback({ type: 'success', message: `Project folder created: ${data.path}` });
-
         // Store project context for form submission
         if (setProjectContext) {
           setProjectContext({
@@ -1857,17 +2006,37 @@ function WelcomeScreen({ onSuggestionClick, onProjectCreated, setProjectContext 
           });
         }
 
-        // Close dialog and trigger form display
-        setTimeout(() => {
-          setDialogOpen(false);
-          setFeedback(null);
-          setSalesOrder("");
+        if (data.exists) {
+          // Existing project - load and rebuild sessions
+          setFeedback({ type: 'success', message: `Loading existing project: ${data.path}` });
 
-          // Load and display the project header form
-          if (onProjectCreated) {
-            onProjectCreated(selectedProduct, salesOrder.trim(), data.path);
-          }
-        }, 1500);
+          // Close dialog and trigger existing project load
+          setTimeout(async () => {
+            setDialogOpen(false);
+            setFeedback(null);
+            setSalesOrder("");
+
+            // Load existing project with session rebuild
+            if (onExistingProjectLoad) {
+              await onExistingProjectLoad(selectedProduct, salesOrder.trim(), data.path);
+            }
+          }, 1000);
+        } else {
+          // New project - show project header form
+          setFeedback({ type: 'success', message: `Project folder created: ${data.path}` });
+
+          // Close dialog and trigger form display
+          setTimeout(() => {
+            setDialogOpen(false);
+            setFeedback(null);
+            setSalesOrder("");
+
+            // Load and display the project header form
+            if (onProjectCreated) {
+              onProjectCreated(selectedProduct, salesOrder.trim(), data.path);
+            }
+          }, 1500);
+        }
       } else {
         setFeedback({ type: 'error', message: data.error || 'Failed to create folder' });
       }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ObjectId } from 'mongodb';
 
 /**
  * Schema for form submission metadata
@@ -8,18 +9,25 @@ export const FormSubmissionMetadataSchema = z.object({
   submittedAt: z.date(),
   formVersion: z.string().default('1.0.0'),
   userId: z.string().optional(),
+  // Keep old fields for backward compatibility during migration
   salesOrderNumber: z.string(),
   itemNumber: z.string().optional(),
   productType: z.string().optional(),
   isRevision: z.boolean().default(false),
+  // Rename tracking (if item was renamed)
+  renamedFrom: z.string().optional(),
+  renamedAt: z.string().optional(),
 });
 
 /**
  * Schema for complete form submission
  * Stores validated form data with context
+ * NEW: Includes projectId/itemId for normalized schema references
  */
 export const FormSubmissionSchema = z.object({
   sessionId: z.string().min(1, 'Session ID is required'),
+  projectId: z.custom<ObjectId>((val) => val instanceof ObjectId).optional(), // NEW: Reference to projects collection
+  itemId: z.custom<ObjectId>((val) => val instanceof ObjectId).optional(),    // NEW: Reference to items collection
   stepId: z.string().min(1, 'Step ID is required'),
   formId: z.string().min(1, 'Form ID is required'),
   formData: z.record(z.string(), z.any()), // Validated by step-specific schema before submission

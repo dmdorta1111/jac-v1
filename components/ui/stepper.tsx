@@ -34,7 +34,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
 
     return (
       <div
-        date-component="stepper"
+        data-component="stepper"
         className={cn("w-full", className)}
         {...props}
       >
@@ -78,13 +78,13 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         const { variant } = useStepperProvider();
         return (
           <nav
-            date-component="stepper-navigation"
+            data-component="stepper-navigation"
             aria-label={ariaLabel}
             role="tablist"
             {...props}
           >
             <ol
-              date-component="stepper-navigation-list"
+              data-component="stepper-navigation-list"
               className={classForNavigationList({ variant: variant })}
             >
               {children}
@@ -116,7 +116,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         if (variant === "circle") {
           return (
             <li
-              date-component="stepper-step"
+              data-component="stepper-step"
               className={cn(
                 "flex shrink-0 items-center gap-4 rounded-md transition-colors",
                 className
@@ -127,7 +127,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
                 totalSteps={steps.length}
               />
               <div
-                date-component="stepper-step-content"
+                data-component="stepper-step-content"
                 className="flex flex-col items-start gap-1"
               >
                 {title}
@@ -140,7 +140,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         return (
           <>
             <li
-              date-component="stepper-step"
+              data-component="stepper-step"
               className={cn([
                 "group peer relative flex items-center gap-2",
                 "data-[variant=vertical]:flex-row",
@@ -155,7 +155,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
             >
               <Button
                 id={`step-${step.id}`}
-                date-component="stepper-step-indicator"
+                data-component="stepper-step-indicator"
                 type="button"
                 role="tab"
                 tabIndex={dataState !== "inactive" ? 0 : -1}
@@ -188,7 +188,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
                 />
               )}
               <div
-                date-component="stepper-step-content"
+                data-component="stepper-step-content"
                 className="flex flex-col items-start"
               >
                 {title}
@@ -231,7 +231,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
 
         return (
           <Comp
-            date-component="stepper-step-panel"
+            data-component="stepper-step-panel"
             ref={(node) => scrollIntoStepperPanel(node, tracking)}
             {...props}
           >
@@ -243,7 +243,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         const Comp = asChild ? Slot : "div";
         return (
           <Comp
-            date-component="stepper-controls"
+            data-component="stepper-controls"
             className={cn("flex justify-end gap-4", className)}
             {...props}
           >
@@ -265,7 +265,7 @@ const Title = ({
 
   return (
     <Comp
-      date-component="stepper-step-title"
+      data-component="stepper-step-title"
       className={cn("text-base font-medium", className)}
       {...props}
     >
@@ -284,7 +284,7 @@ const Description = ({
 
   return (
     <Comp
-      date-component="stepper-step-description"
+      data-component="stepper-step-description"
       className={cn("text-sm text-muted-foreground", className)}
       {...props}
     >
@@ -309,7 +309,7 @@ const StepperSeparator = ({
   }
   return (
     <div
-      date-component="stepper-separator"
+      data-component="stepper-separator"
       data-orientation={orientation}
       data-state={state}
       data-disabled={disabled}
@@ -332,7 +332,7 @@ const CircleStepIndicator = ({
   const dashOffset = circumference - (circumference * fillPercentage) / 100;
   return (
     <div
-      date-component="stepper-step-indicator"
+      data-component="stepper-step-indicator"
       role="progressbar"
       aria-valuenow={currentStep}
       aria-valuemin={1}

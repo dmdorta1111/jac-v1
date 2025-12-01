@@ -1,4 +1,30 @@
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, Collection } from 'mongodb';
+import type { ProjectDocument } from './schemas/project';
+import type { ItemDocument } from './schemas/item';
+
+// Form submission document type for collection typing
+interface FormSubmissionDocument {
+  _id?: import('mongodb').ObjectId;
+  sessionId: string;
+  projectId?: import('mongodb').ObjectId;
+  itemId?: import('mongodb').ObjectId;
+  stepId: string;
+  formId: string;
+  formData: Record<string, unknown>;
+  metadata: {
+    submittedAt: Date;
+    formVersion: string;
+    userId?: string;
+    salesOrderNumber: string;
+    itemNumber?: string;
+    productType?: string;
+    isRevision: boolean;
+    renamedFrom?: string;
+    renamedAt?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
@@ -61,4 +87,36 @@ export async function closeDatabase(): Promise<void> {
     cachedDb = null;
     console.log('MongoDB connection closed');
   }
+}
+
+/**
+ * Get typed collection for projects
+ * @param db - Database instance from connectToDatabase()
+ */
+export function getProjectsCollection(db: Db): Collection<ProjectDocument> {
+  return db.collection<ProjectDocument>('projects');
+}
+
+/**
+ * Get typed collection for items
+ * @param db - Database instance from connectToDatabase()
+ */
+export function getItemsCollection(db: Db): Collection<ItemDocument> {
+  return db.collection<ItemDocument>('items');
+}
+
+/**
+ * Get typed collection for form submissions
+ * @param db - Database instance from connectToDatabase()
+ */
+export function getFormSubmissionsCollection(db: Db): Collection<FormSubmissionDocument> {
+  return db.collection<FormSubmissionDocument>('form_submissions');
+}
+
+/**
+ * Get cached MongoDB client (for transactions)
+ * @returns MongoDB client or null if not connected
+ */
+export function getClient(): MongoClient | null {
+  return cachedClient;
 }
