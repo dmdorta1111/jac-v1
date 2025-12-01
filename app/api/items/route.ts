@@ -107,7 +107,20 @@ export async function POST(request: NextRequest) {
 
       } catch (txError) {
         await session.endSession();
-        throw txError;
+        console.error('Transaction failed:', txError);
+
+        // Handle MongoDB duplicate key error (unique index violation)
+        if (txError && typeof txError === 'object' && 'code' in txError && (txError as { code: number }).code === 11000) {
+          return NextResponse.json(
+            { success: false, error: 'Item number already exists in this project (duplicate key)' },
+            { status: 409 }
+          );
+        }
+
+        return NextResponse.json(
+          { success: false, error: 'Transaction failed', details: txError instanceof Error ? txError.message : String(txError) },
+          { status: 500 }
+        );
       }
     } else {
       // Fallback without transaction (less safe but works)
@@ -142,6 +155,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Item creation error:', error);
 
+    // Handle Zod validation errors
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { success: false, error: 'Validation failed', details: error.issues },
@@ -149,8 +163,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Handle MongoDB duplicate key error (unique index violation)
+    if (error && typeof error === 'object' && 'code' in error && (error as { code: number }).code === 11000) {
+      return NextResponse.json(
+        { success: false, error: 'Item number already exists in this project (duplicate key)' },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
-      { success: false, error: 'Database error' },
+      { success: false, error: 'Database error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

@@ -11,6 +11,8 @@ export const ProjectSchema = z.object({
   description: z.string().default(''),
   metadata: z.record(z.string(), z.any()).default({}),
   itemCount: z.number().int().nonnegative().default(0),
+  // Atomic counter for item number generation (prevents race conditions)
+  nextItemNumber: z.number().int().nonnegative().default(0),
   isDeleted: z.boolean().default(false),
   deletedAt: z.date().optional(),
   deletedBy: z.string().optional(),

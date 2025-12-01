@@ -18,9 +18,10 @@ export async function createIndexes(db: Db): Promise<void> {
   );
 
   // Items collection indexes
+  // CRITICAL: unique constraint prevents duplicate item numbers per project
   await db.collection('items').createIndex(
     { projectId: 1, itemNumber: 1 },
-    { name: 'idx_items_project_itemNumber' }
+    { unique: true, name: 'idx_items_project_itemNumber' }
   );
   await db.collection('items').createIndex(
     { projectId: 1, createdAt: -1 },
