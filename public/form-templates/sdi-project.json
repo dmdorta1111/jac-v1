@@ -18,6 +18,15 @@
           "placeholder": ""
         },
         {
+          "id": "SDI-Project-choice",
+          "name": "CHOICE",
+          "label": "Choice",
+          "required": true,
+          "type": "integer",
+          "defaultValue": 1,
+          "placeholder": "1"
+        },
+        {
           "id": "SDI-Project-qty",
           "name": "QTY",
           "label": "Qty",

@@ -98,9 +98,9 @@ export async function GET(
       project: {
         ...project,
         _id: project._id.toString(),
-        items: project.items.map((item: any) => ({
-          ...item,
-          _id: item._id.toString(),
+        items: project.items.map((item: unknown) => ({
+          ...(item as Record<string, unknown>),
+          _id: (item as { _id: { toString(): string } })._id.toString(),
         })),
       },
     });

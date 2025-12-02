@@ -62,11 +62,13 @@ export interface RebuiltSession {
  *
  * @param salesOrderNumber - The SO# to query submissions for
  * @param flowSteps - Expected step order from flow definition
+ * @param projectPath - Optional project folder path for session isolation
  * @returns Array of rebuilt sessions with their states
  */
 export async function rebuildSessionsFromDB(
   salesOrderNumber: string,
-  flowSteps: FlowStep[]
+  flowSteps: FlowStep[],
+  projectPath?: string
 ): Promise<RebuiltSession[]> {
   console.log(`[Rebuild] Fetching data for SO#: ${salesOrderNumber}`);
 
@@ -91,7 +93,7 @@ export async function rebuildSessionsFromDB(
           const fullData = await fullResponse.json();
 
           if (fullData.success && fullData.project?.items?.length > 0) {
-            return await rebuildFromNormalizedSchema(fullData.project, flowSteps);
+            return await rebuildFromNormalizedSchema(fullData.project, flowSteps, projectPath);
           }
         }
       }
@@ -210,6 +212,8 @@ export async function rebuildSessionsFromDB(
         tableSelections: {}, // Reset table selections on rebuild
         highestStepReached: highestCompletedStep >= 0 ? highestCompletedStep : 0, // Enable navigation to all completed steps
         lastAccessedAt: Date.now(),
+        projectPath, // CRITICAL: Include project path for session isolation
+        executorState: flowState, // Per-session executor state from form submissions
       };
 
       rebuiltSessions.push({ session, state });
@@ -232,10 +236,14 @@ export async function rebuildSessionsFromDB(
 /**
  * Rebuild sessions from normalized schema (projects + items collections)
  * Falls back to fetching form_submissions if itemData is empty
+ * @param project - Project data with items
+ * @param flowSteps - Expected step order from flow definition
+ * @param projectPath - Optional project folder path for session isolation
  */
 async function rebuildFromNormalizedSchema(
   project: ProjectWithItems,
-  flowSteps: FlowStep[]
+  flowSteps: FlowStep[],
+  projectPath?: string
 ): Promise<RebuiltSession[]> {
   const rebuiltSessions: RebuiltSession[] = [];
   const stepIds = flowSteps.map(s => s.formTemplate);
@@ -245,7 +253,7 @@ async function rebuildFromNormalizedSchema(
     `/api/form-submission?salesOrderNumber=${encodeURIComponent(project.salesOrderNumber)}`
   );
 
-  let submissionsByItem: Map<string, FormSubmission[]> = new Map();
+  const submissionsByItem: Map<string, FormSubmission[]> = new Map();
 
   if (submissionsResponse.ok) {
     const subData = await submissionsResponse.json();
@@ -341,6 +349,8 @@ async function rebuildFromNormalizedSchema(
       tableSelections: {},
       highestStepReached: highestCompletedStep >= 0 ? highestCompletedStep : 0, // Enable navigation to all completed steps
       lastAccessedAt: Date.now(),
+      projectPath, // CRITICAL: Include project path for session isolation
+      executorState: flowState, // Per-session executor state from form submissions
     };
 
     rebuiltSessions.push({ session, state });

@@ -154,5 +154,5 @@ export function forceCleanup(): CleanupResult | null {
 
 // Expose forceCleanup in development for debugging
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).__forceSessionCleanup = forceCleanup;
+  (window as unknown as { __forceSessionCleanup: typeof forceCleanup }).__forceSessionCleanup = forceCleanup;
 }

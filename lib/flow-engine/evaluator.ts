@@ -12,7 +12,7 @@
  * @returns Boolean result of evaluation
  * @throws Error if expression contains invalid syntax
  */
-export function safeEval(expression: string, context: Record<string, any>): boolean {
+export function safeEval(expression: string, context: Record<string, unknown>): boolean {
   // Handle empty or null conditions (always true)
   if (!expression || expression.trim() === '') {
     return true;
@@ -27,7 +27,7 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   // Extract variable names from expression and ensure they exist in context
   // Default undefined variables to null to prevent ReferenceError
   const expressionVars = extractVariableNames(jsExpression);
-  const safeContext: Record<string, any> = { ...context };
+  const safeContext: Record<string, unknown> = { ...context };
 
   for (const varName of expressionVars) {
     if (!(varName in safeContext)) {
@@ -139,7 +139,7 @@ function validateExpression(expression: string): void {
 export function evaluateCompoundCondition(
   parentExpression: string | null,
   childExpression: string | null,
-  context: Record<string, any>
+  context: Record<string, unknown>
 ): boolean {
   // If parent exists, evaluate it first
   if (parentExpression && parentExpression.trim() !== '') {
@@ -162,7 +162,7 @@ export function evaluateCompoundCondition(
  * Test if a value matches expected type
  * Used for type checking before evaluation
  */
-export function checkType(value: any, expectedType: 'string' | 'number' | 'boolean'): boolean {
+export function checkType(value: unknown, expectedType: 'string' | 'number' | 'boolean'): boolean {
   switch (expectedType) {
     case 'string':
       return typeof value === 'string';

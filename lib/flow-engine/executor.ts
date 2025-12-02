@@ -12,11 +12,11 @@ import type { FormFlow, FlowStep } from './loader';
  */
 export class FlowExecutor {
   private flow: FormFlow;
-  private state: Record<string, any>;
+  private state: Record<string, unknown>;
   private currentStepIndex: number;
   private filteredSteps: FlowStep[];
 
-  constructor(flow: FormFlow, filteredSteps: FlowStep[], initialState: Record<string, any> = {}) {
+  constructor(flow: FormFlow, filteredSteps: FlowStep[], initialState: Record<string, unknown> = {}) {
     this.flow = flow;
     this.filteredSteps = filteredSteps;
     this.state = { ...initialState };
@@ -28,7 +28,7 @@ export class FlowExecutor {
    * @param stepId - Form template ID of completed step
    * @param data - Validated form data
    */
-  updateState(stepId: string, data: Record<string, any>): void {
+  updateState(stepId: string, data: Record<string, unknown>): void {
     // Merge new data into state (flat structure for condition evaluation)
     this.state = {
       ...this.state,
@@ -41,7 +41,7 @@ export class FlowExecutor {
   /**
    * Get current flow state
    */
-  getState(): Record<string, any> {
+  getState(): Record<string, unknown> {
     return { ...this.state };
   }
 
@@ -138,8 +138,8 @@ export class FlowExecutor {
    * @param fieldNames - Array of field names from form
    * @returns Object with pre-filled values
    */
-  getContextValues(fieldNames: string[]): Record<string, any> {
-    const values: Record<string, any> = {};
+  getContextValues(fieldNames: string[]): Record<string, unknown> {
+    const values: Record<string, unknown> = {};
 
     fieldNames.forEach(fieldName => {
       if (this.state[fieldName] !== undefined) {
@@ -195,7 +195,7 @@ export class FlowExecutor {
 export function createFlowExecutor(
   flow: FormFlow,
   filteredSteps: FlowStep[],
-  initialState: Record<string, any> = {}
+  initialState: Record<string, unknown> = {}
 ): FlowExecutor {
   return new FlowExecutor(flow, filteredSteps, initialState);
 }

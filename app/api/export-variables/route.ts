@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const mergedData = submissions.reduce((acc, sub) => ({
       ...acc,
       ...sub.formData,
-    }), {} as Record<string, any>);
+    }), {} as Record<string, unknown>);
 
     // Add metadata fields to exported variables
     const firstSubmission = submissions[0];
@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
         metadata: data._metadata,
       });
 
-    } catch (fileError) {
+    } catch (_fileError) {
       // File doesn't exist
       return NextResponse.json({
         success: true,

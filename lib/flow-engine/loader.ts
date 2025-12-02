@@ -8,7 +8,7 @@ export interface FlowStep {
   lineNumber?: number;
   condition?: {
     expression: string;
-    variables?: Record<string, any>;
+    variables?: Record<string, unknown>;
     parent?: string;
   } | null;
   description: string;
@@ -35,9 +35,9 @@ export interface FormFlow {
     description: string;
     steps: FlowStep[];
   };
-  conditionalGroups?: Record<string, any>;
-  fileRegistry?: Record<string, any>;
-  executionPhases?: Record<string, any>;
+  conditionalGroups?: Record<string, unknown>;
+  fileRegistry?: Record<string, unknown>;
+  executionPhases?: Record<string, unknown>;
 }
 
 export interface StepDefinition {
@@ -153,14 +153,14 @@ export function getNextStep(steps: FlowStep[], currentIndex: number): FlowStep |
  * @param flow - Flow to validate
  * @returns True if valid, false otherwise
  */
-export function validateFlow(flow: any): flow is FormFlow {
+export function validateFlow(flow: unknown): flow is FormFlow {
+  if (!flow || typeof flow !== 'object') return false;
+  const f = flow as Record<string, unknown>;
   return (
-    flow &&
-    typeof flow === 'object' &&
-    flow.metadata &&
-    typeof flow.metadata === 'object' &&
-    flow.mainFlow &&
-    typeof flow.mainFlow === 'object' &&
-    Array.isArray(flow.mainFlow.steps)
+    f.metadata !== undefined &&
+    typeof f.metadata === 'object' &&
+    f.mainFlow !== undefined &&
+    typeof f.mainFlow === 'object' &&
+    Array.isArray((f.mainFlow as Record<string, unknown>).steps)
   );
 }

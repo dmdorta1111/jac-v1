@@ -52,7 +52,7 @@ export function usePersistedSession(currentProjectPath?: string | null) {
     if (sessionsStored) {
       try {
         const parsed = JSON.parse(sessionsStored);
-        sessionsList = parsed.map((s: any) => ({
+        sessionsList = parsed.map((s: { id: string; name: string; createdAt: string; updatedAt: string }) => ({
           ...s,
           createdAt: new Date(s.createdAt),
           updatedAt: new Date(s.updatedAt),

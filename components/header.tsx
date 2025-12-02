@@ -48,7 +48,7 @@ export function Header() {
             <div className="flex lg:hidden items-center ml-2">
               <span
                 className="text-sm font-semibold text-foreground/80 truncate max-w-[120px]"
-                title={`${metadata.SO_NUM} - ${metadata.JOB_NAME} - ${metadata.CUSTOMER_NAME}`}
+                title={`${metadata.SO_NUM} - ${metadata.JOB_NAME || 'Not set'} - ${metadata.CUSTOMER_NAME || 'Not set'}`}
               >
                 {metadata.SO_NUM}
               </span>
@@ -75,9 +75,9 @@ export function Header() {
               <span className="text-xs text-muted-foreground uppercase tracking-wide">Job</span>
               <h1
                 className="text-lg font-semibold text-foreground/90 truncate max-w-[200px]"
-                title={metadata.JOB_NAME}
+                title={metadata.JOB_NAME || 'Not set'}
               >
-                {metadata.JOB_NAME}
+                {metadata.JOB_NAME || <span className="text-muted-foreground/60 italic">Not set</span>}
               </h1>
             </div>
 
@@ -87,9 +87,9 @@ export function Header() {
               <span className="text-xs text-muted-foreground uppercase tracking-wide">Customer</span>
               <h1
                 className="text-lg font-semibold text-foreground/80 truncate max-w-[200px]"
-                title={metadata.CUSTOMER_NAME}
+                title={metadata.CUSTOMER_NAME || 'Not set'}
               >
-                {metadata.CUSTOMER_NAME}
+                {metadata.CUSTOMER_NAME || <span className="text-muted-foreground/60 italic">Not set</span>}
               </h1>
             </div>
           </div>

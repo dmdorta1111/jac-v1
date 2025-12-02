@@ -49,7 +49,7 @@ const anthropic = new Anthropic({
 });
 
 interface GenerateDocRequest {
-  projectData: Record<string, any>;
+  projectData: Record<string, unknown>;
   action: 'initial_quote' | 'project_header' | 'quote';
   targetFolder?: string;
   output?: 'md' | 'json';  // Output format: markdown (default) or JSON
@@ -82,7 +82,7 @@ function validateFolderPath(folderPath: string): string | null {
 /**
  * Generate structured project header markdown from form data
  */
-function generateProjectHeaderMarkdown(data: Record<string, any>): string {
+function generateProjectHeaderMarkdown(data: Record<string, unknown>): string {
   const timestamp = new Date().toISOString();
   const dateStr = new Date().toLocaleDateString();
   const timeStr = new Date().toLocaleTimeString();
