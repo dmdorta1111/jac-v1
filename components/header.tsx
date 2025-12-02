@@ -4,6 +4,7 @@ import { Moon, Sun, Menu, Plus } from "lucide-react";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useProject } from "@/components/providers/project-context";
+import { useThemeTransition } from "./hooks/useThemeTransition";
 import { Shimmer } from "./ai-elements/shimmer";
 import { GlowingText } from "./ui/glowing-text";
 import { Button } from "./ui/button";
@@ -13,26 +14,19 @@ export function Header() {
   const { isOpen: sidebarOpen, toggle: toggleSidebar } = useSidebar();
   const { metadata, openNewProjectDialog } = useProject();
 
+  // Enable smooth theme transition animations
+  useThemeTransition();
+
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-0 bg-gradient-to-r from-zinc-100/80 to-zinc-400/80 dark:from-zinc-800 dark:to-[#0a0a0a] backdrop-blur-lg">
+    <header className="sticky top-0 z-40 w-full border-0 bg-gradient-to-r from-neutral-100/80 to-neutral-900/80 dark:from-neutral-700 dark:to-neutral-750 backdrop-blur-lg" data-theme-animated>
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left Side - New Project Button + Mobile Menu Toggle */}
-        <div className="flex items-center gap-2">
-          {/* New Project Button - Always visible */}
-          <Button
-            onClick={openNewProjectDialog}
-            variant="ghost"
-            size="icon"
-            className="size-10 rounded-[10px] text-secondary-foreground hover:bg-accent/50 transition-all duration-200 active:scale-95"
-            aria-label="Create new project"
-          >
-            <Plus className="size-5" />
-          </Button>
-
+        <div className="flex items-center gap-2" data-theme-animated>
+        
           {/* Mobile Menu Toggle */}
           <button
             onClick={toggleSidebar}
@@ -59,7 +53,7 @@ export function Header() {
 
         {/* Project Metadata - Desktop View (Center-Left) */}
         {metadata && (
-          <div className="hidden lg:flex items-start justify-start gap-0 flex-1 max-w-3xl ml-4">
+          <div className="hidden lg:flex items-start justify-start gap-0 flex-1 max-w-3xl ml-4" data-theme-animated>
             <div className="flex items-center gap-1">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide">SO</span>
               <h1
@@ -97,7 +91,7 @@ export function Header() {
         )}
 
         {/* EMJAC Logo and Theme Toggle - Right Side */}
-        <div className="flex items-center justify-end gap-3 mr-4 ml-auto">
+        <div className="flex items-center justify-end gap-3 mr-4 ml-auto" data-theme-animated>
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -120,7 +114,7 @@ export function Header() {
               duration={2.5}
               intensity={0.6}
             >
-              <Shimmer duration={16} spread={5} as="h1" className="font-bold text-xl tracking-tight whitespace-nowrap [--color-muted-foreground:#27272a] dark:[--color-muted-foreground:#a1a1aa]">
+              <Shimmer duration={16} spread={5} as="h1" className="font-bold text-3xl tracking-tight whitespace-nowrap [--color-muted-foreground:#27272a] dark:[--color-muted-foreground:#a1a1aa]">
                 JAC
               </Shimmer>
             </GlowingText>
