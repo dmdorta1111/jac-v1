@@ -125,6 +125,7 @@ export function NewProjectDialog({
       <DialogContent className="sm:max-w-[423px]">
         {step === 'select' ? (
           <>
+
             <DialogHeader>
               <DialogTitle>Create New Project</DialogTitle>
               <DialogDescription>
@@ -132,14 +133,14 @@ export function NewProjectDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col gap-3 py-4">
+            <div className="flex flex-col gap-3 px-6 py-8">
               {PRODUCT_TYPES.map((product) => (
                 <Button
                   key={product}
                   variant="outline"
                   size="lg"
                   onClick={() => handleProductSelect(product)}
-                  className="w-full h-12 text-base font-medium rounded-md transition-all duration-200 border-0 bg-[#3f3f42] hover:bg-[#4a4a4d] text-white"
+                  className="w-full h-12 text-base font-medium rounded-md transition-all duration-200 hover:border-primary hover:bg-accent"
                 >
                   {product}
                 </Button>
@@ -150,7 +151,7 @@ export function NewProjectDialog({
               <Button
                 variant="outline"
                 onClick={handleClose}
-                className="h-9 px-4 rounded-md border-0 bg-[#353538] hover:bg-[#404043] text-white"
+                className="h-9 px-4 rounded-md"
               >
                 Cancel
               </Button>
@@ -165,7 +166,7 @@ export function NewProjectDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-3 py-4">
+            <div className="space-y-3 px-6 py-8">
               <div className="space-y-2">
                 <label htmlFor="salesOrder" className="text-sm font-medium text-foreground">
                   Sales Order Number
@@ -179,7 +180,7 @@ export function NewProjectDialog({
                   onKeyDown={handleKeyDown}
                   disabled={isSubmitting}
                   autoFocus
-                  className="rounded-md bg-[#353538] shadow-none [outline:none!important] [border:none!important] focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus:ring-0"
+                  className="rounded-md"
                 />
               </div>
 
@@ -201,14 +202,14 @@ export function NewProjectDialog({
                 variant="outline"
                 onClick={handleBack}
                 disabled={isSubmitting}
-                className="h-9 px-4 rounded-md border-0 bg-[#353538] hover:bg-[#404043] text-white"
+                className="h-9 px-4 rounded-md"
               >
                 Back
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !salesOrder.trim()}
-                className="h-9 px-4 rounded-md border-0 shadow-2xs"
+                className="h-9 px-4 rounded-md shadow-2xs"
               >
                 {isSubmitting ? 'Creating...' : 'Create Project'}
               </Button>
