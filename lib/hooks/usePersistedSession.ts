@@ -14,11 +14,16 @@ import {
 
 export type { SessionState };
 
-export function usePersistedSession() {
+/**
+ * Hook for persisting session state with project isolation.
+ * @param currentProjectPath - Optional project folder path for filtering sessions
+ */
+export function usePersistedSession(currentProjectPath?: string | null) {
   const [sessionStateMap, setSessionStateMap] = useState<Record<string, SessionState>>({});
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
 
   // Load from localStorage on mount with validation and cleanup
+  // Re-run when currentProjectPath changes to filter sessions
   useEffect(() => {
     const stateStored = localStorage.getItem('sessions:state');
     const sessionsStored = localStorage.getItem('sessions:list');
@@ -26,16 +31,17 @@ export function usePersistedSession() {
     let validatedState: Record<string, SessionState> = {};
     let sessionsList: ChatSession[] = [];
 
-    // 1. Parse and validate session state
+    // 1. Parse and validate session state (with project filtering)
     if (stateStored) {
       try {
         const parsed = JSON.parse(stateStored);
-        validatedState = validateSessionStateMap(parsed);
+        // Pass currentProjectPath to filter sessions by project
+        validatedState = validateSessionStateMap(parsed, currentProjectPath);
 
         const totalCount = Object.keys(parsed).length;
         const validCount = Object.keys(validatedState).length;
         if (validCount < totalCount) {
-          console.warn(`[Session] Validated ${validCount}/${totalCount} sessions (${totalCount - validCount} corrupted)`);
+          console.warn(`[Session] Validated ${validCount}/${totalCount} sessions (${totalCount - validCount} filtered/corrupted)`);
         }
       } catch (e) {
         console.error('[Session] Failed to parse localStorage:', e);
@@ -92,7 +98,7 @@ export function usePersistedSession() {
       const sizeMB = (storageSize / 1024 / 1024).toFixed(2);
       console.warn(`[Storage] Total usage: ${sizeMB}MB (threshold: 4MB)`);
     }
-  }, []);
+  }, [currentProjectPath]); // Re-run when project changes
 
   // Auto-save state map (debounced)
   useEffect(() => {
