@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,11 +29,57 @@ export function NewProjectDialog({
   setProjectContext,
 }: NewProjectDialogProps) {
   const { showNewProjectDialog, closeNewProjectDialog } = useProject();
+  const dialogContentRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<'select' | 'enter-so'>('select');
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [salesOrder, setSalesOrder] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // GSAP animation for dialog entrance - centered and responsive
+  useGSAP(() => {
+    if (showNewProjectDialog) {
+      const timer = setTimeout(() => {
+        const content = document.querySelector('[data-slot="dialog-content"]');
+        const overlay = document.querySelector('[data-slot="dialog-overlay"]');
+
+        if (content && overlay) {
+          // Kill any existing animations
+          gsap.killTweensOf([content, overlay]);
+
+          // Add will-change for performance optimization
+          gsap.set([content, overlay], { willChange: "transform, opacity" });
+
+          // Set initial state - only scale and opacity, no position changes
+          gsap.set(content, {
+            scale: 0.85,
+            opacity: 0,
+            transformOrigin: "center center", // Scale from absolute center
+          });
+
+          // Animate overlay fade in
+          gsap.to(overlay, {
+            opacity: 1,
+            duration: 0.4,
+            ease: "power2.inOut",
+            force3D: true,
+          });
+
+          // Animate content entrance - scale and fade only
+          gsap.to(content, {
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            ease: "power3.out",
+            force3D: true,
+            clearProps: "transform,opacity,willChange",
+          });
+        }
+      }, 10);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showNewProjectDialog]);
 
   const handleProductSelect = (product: string) => {
     setSelectedProduct(product);
@@ -122,7 +170,10 @@ export function NewProjectDialog({
 
   return (
     <Dialog open={showNewProjectDialog} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[423px]">
+      <DialogContent
+        ref={dialogContentRef}
+        className="sm:max-w-[423px] !animate-none"
+      >
         {step === 'select' ? (
           <>
 

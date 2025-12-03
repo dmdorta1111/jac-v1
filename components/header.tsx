@@ -22,8 +22,8 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-0 bg-gradient-to-r from-neutral-100/80 to-neutral-900/80 dark:from-neutral-700 dark:to-neutral-750 backdrop-blur-lg" data-theme-animated>
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 left-0 right-0 z-40 w-screen border-0 dark:bg-neutral-800/95 backdrop-blur-lg" data-theme-animated>
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 w-full">
         {/* Left Side - New Project Button + Mobile Menu Toggle */}
         <div className="flex items-center gap-2" data-theme-animated>
         

@@ -578,7 +578,7 @@ export default function DynamicFormRenderer({
                       handleFieldChange(field.name, newValues);
                     }}
                     aria-invalid={!!error}
-                    className="border-muted-foreground/40 data-[state=checked]:bg-zinc-700 data-[state=checked]:border-zinc-700 data-[state=checked]:text-white dark:data-[state=checked]:bg-zinc-400 dark:data-[state=checked]:border-zinc-400"
+                    className="border-muted-foreground/40 data-[state=checked]:bg-neutral-700 data-[state=checked]:border-neutral-700 data-[state=checked]:text-white dark:data-[state=checked]:bg-neutral-400 dark:data-[state=checked]:border-neutral-400"
                   />
                   <FieldLabel htmlFor={`${getFieldId(field)}-${option.value}`} className="font-normal">
                     {option.label}
@@ -617,7 +617,7 @@ export default function DynamicFormRenderer({
                     <RadioGroupItem
                       value={String(option.value)}
                       id={`${getFieldId(field)}-${option.value}`}
-                      className="border-muted-foreground/40 text-zinc-700 data-[state=checked]:border-zinc-700 dark:text-zinc-400 dark:data-[state=checked]:border-zinc-400 [&_svg]:fill-zinc-700 dark:[&_svg]:fill-zinc-400"
+                      className="border-muted-foreground/40 text-neutral-700 data-[state=checked]:border-neutral-700 dark:text-neutral-400 dark:data-[state=checked]:border-neutral-400 [&_svg]:fill-neutral-700 dark:[&_svg]:fill-neutral-400"
                     />
                     <FieldLabel htmlFor={`${getFieldId(field)}-${option.value}`} className="font-normal">
                       {option.label}
@@ -654,7 +654,7 @@ export default function DynamicFormRenderer({
               step={field.step || 1}
               value={[toNumberValue(value, toNumberValue(field.defaultValue, field.min || 0))]}
               onValueChange={(vals) => handleFieldChange(field.name, vals[0])}
-              className="w-full *:first:bg-zinc-200 dark:*:first:bg-zinc-700 *:first:*:bg-zinc-500 dark:*:first:*:bg-zinc-400 *:last:border-zinc-400 dark:*:last:border-zinc-500"
+              className="w-full *:first:bg-neutral-200 dark:*:first:bg-neutral-700 *:first:*:bg-neutral-500 dark:*:first:*:bg-neutral-400 *:last:border-neutral-400 dark:*:last:border-neutral-500"
               aria-invalid={!!error}
             />
             {error && <FieldError>{error}</FieldError>}
@@ -720,7 +720,7 @@ export default function DynamicFormRenderer({
               checked={toBooleanValue(value)}
               onCheckedChange={(checked) => handleFieldChange(field.name, checked)}
               aria-invalid={!!error}
-              className="data-[state=checked]:bg-zinc-700 dark:data-[state=checked]:bg-zinc-400"
+              className="data-[state=checked]:bg-neutral-700 dark:data-[state=checked]:bg-neutral-400"
             />
             {error && <FieldError>{error}</FieldError>}
           </Field>
@@ -842,9 +842,9 @@ export default function DynamicFormRenderer({
                           aria-checked={isSelected}
                           className={`
                             cursor-pointer transition-colors
-                            hover:bg-zinc-50 dark:hover:bg-zinc-900
+                            hover:bg-neutral-50 dark:hover:bg-neutral-900
                             ${isSelected
-                              ? 'bg-zinc-100 dark:bg-zinc-800 border-l-4 border-l-zinc-700 dark:border-l-zinc-400'
+                              ? 'bg-neutral-100 dark:bg-neutral-800 border-l-4 border-l-neutral-700 dark:border-l-neutral-400'
                               : ''
                             }
                           `}
@@ -853,12 +853,12 @@ export default function DynamicFormRenderer({
                             <div className={`
                               w-4 h-4 rounded-full border-2 mx-auto
                               ${isSelected
-                                ? 'border-zinc-700 dark:border-zinc-400 bg-zinc-700 dark:bg-zinc-400'
+                                ? 'border-neutral-700 dark:border-neutral-400 bg-neutral-700 dark:bg-neutral-400'
                                 : 'border-muted-foreground/40'
                               }
                             `}>
                               {isSelected && (
-                                <div className="w-full h-full rounded-full bg-white dark:bg-zinc-900 scale-50" />
+                                <div className="w-full h-full rounded-full bg-white dark:bg-neutral-900 scale-50" />
                               )}
                             </div>
                           </TableCell>
@@ -913,9 +913,9 @@ export default function DynamicFormRenderer({
             <FieldSet
             key={`${sessionId}-${formSpec.formId}-${section.id}`}
             name={section.id}
-            className="relative rounded-xl bg-zinc-100/80 dark:bg-zinc-900/50 mb-8 shadow-lg shadow-zinc-400/20 dark:shadow-zinc-950/40 overflow-hidden"
+            className="relative rounded-xl bg-neutral-100/80 dark:bg-neutral-900/50 mb-8 shadow-lg shadow-neutral-400/20 dark:shadow-neutral-950/40 overflow-hidden"
             >
-              <FieldContent style={{ padding: '1.5rem', paddingBottom: '1rem' }}>
+              <FieldContent className="p-6 pb-4">
                 <FieldLegend
                 variant="label"
                 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-400 tracking-tight"
@@ -930,7 +930,7 @@ export default function DynamicFormRenderer({
               </FieldContent>
 
               {/* Inner container for field spacing from border - generous padding on all sides */}
-              <div className="p-6" style={{ padding: '1.5rem' }}>
+              <div className="p-6">
               {/* Grid layout: responsive 1→2→4→5 columns based on breakpoint */}
               <div className="compact-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4
                   [&_[data-slot=field]]:gap-1

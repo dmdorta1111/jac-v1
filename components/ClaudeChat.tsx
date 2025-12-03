@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   Bot,
   User,
@@ -62,7 +64,8 @@ import {
 import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
-
+import { Footer } from "./footer";
+import { PlasmaDot } from "./ai-elements/plasma-dot";
 // Project context for tracking active project
 interface ProjectContext {
   productType: string;
@@ -104,6 +107,9 @@ export function ClaudeChat() {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
+
+  // Access project context for button actions
+  const { openNewProjectDialog } = useProject();
 
   // Flow engine state
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
@@ -153,6 +159,57 @@ export function ClaudeChat() {
   const { standards, refresh: refreshStandards } = useStandards();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // GSAP hover animation for suggestion buttons
+  useGSAP(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
+
+      buttons.forEach((button) => {
+        const onMouseEnter = () => {
+          gsap.to(button, {
+            scale: 1.05,
+            y: -2,
+            duration: 0.3,
+            ease: "power2.out",
+            force3D: true,
+          });
+        };
+
+        const onMouseLeave = () => {
+          gsap.to(button, {
+            scale: 1,
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out",
+            force3D: true,
+          });
+        };
+
+        button.addEventListener('mouseenter', onMouseEnter);
+        button.addEventListener('mouseleave', onMouseLeave);
+
+        // Store handlers for cleanup
+        (button as any)._mouseEnterHandler = onMouseEnter;
+        (button as any)._mouseLeaveHandler = onMouseLeave;
+      });
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
+      buttons.forEach((button) => {
+        if ((button as any)._mouseEnterHandler) {
+          button.removeEventListener('mouseenter', (button as any)._mouseEnterHandler);
+        }
+        if ((button as any)._mouseLeaveHandler) {
+          button.removeEventListener('mouseleave', (button as any)._mouseLeaveHandler);
+        }
+        gsap.killTweensOf(button);
+      });
+    };
+  });
 
   // Use crypto.randomUUID for collision-proof ID generation
   const generateId = () => {
@@ -1901,54 +1958,70 @@ export function ClaudeChat() {
 
         {/* Input Area */}
         <div className="flex justify-center w-full shrink-0 border-border backdrop-blur-sm pb-6">
-          <div className="mx-auto w-full md:max-w-[50%]">
-            {/* Input Container with Glow Effect */}
-            <div className="relative rounded-2xl bg-zinc-200/95 dark:bg-zinc-900/95 shadow-lg dark:shadow-xl dark:shadow-black/30">
-              {/* Subtle Glow Behind */}
-              <div
-                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-zinc-500/20 via-zinc-400/20 to-zinc-600/20 blur-xl duration-500 ${
-                  isLoading ? "opacity-80" : "opacity-30"
-                }`}
-              />
+          <div className="mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 max-w-full sm:max-w-[90%] md:max-w-[85%] lg:max-w-[70%]">
+            {/* Product Type Selection Buttons - moved from WelcomeScreen */}
+            {messages.length === 0 && (
+              <div className="flex flex-wrap gap-6 justify-center">
+                {suggestions.map((suggestion) => (
+                  <Button
+                    key={suggestion}
+                    onClick={openNewProjectDialog}
+                    className="suggestion-button min-w-[78px] h-[31px] text-xs px-5 py-2.5 rounded-xl border-0 bg-neutral-200/95 dark:bg-neutral-700/95 text-muted-foreground shadow-inner transition-colors duration-200 hover:bg-neutral-300/95 dark:hover:bg-neutral-800/95 hover:text-neutral-900 dark:hover:text-neutral-100 hover:shadow-none"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            )}
 
-              {/* Main Input Container */}
-              <PromptInput
-                onSubmit={handleSubmit}
-                className="relative bg-transparent p-1.5 shadow-none transition-all duration-300 [&_[data-slot=input-group]]:rounded-xl [&_[data-slot=input-group]]:border-0 [&_[data-slot=input-group]]:shadow-none [&_[data-slot=input-group]]:!bg-transparent dark:[&_[data-slot=input-group]]:!bg-transparent [&_[data-slot=input-group-control]]:!ring-0 [&_[data-slot=input-group-control]]:!outline-none [&_[data-slot=input-group-control]]:![box-shadow:none] [&_[data-slot=input-group-control]:focus]:!ring-0 [&_[data-slot=input-group-control]:focus]:!outline-none [&_[data-slot=input-group-control]:focus]:![box-shadow:none] [&_[data-slot=input-group-control]:focus-visible]:!ring-0 [&_[data-slot=input-group-control]:focus-visible]:!outline-none [&_[data-slot=input-group-control]:focus-visible]:![box-shadow:none] [&_[data-slot=input-group]:focus-within]:border-0 [&_[data-slot=input-group]:focus-within]:ring-0 [&_[data-slot=input-group-addon]]:border-0 [&_[data-slot=input-group-control]]:border-0"
-                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                multiple
-                globalDrop
-              >
-                <PromptInputAttachments className="gap-3 p-4">
-                  {(attachment) => (
-                    <PromptInputAttachment
-                      key={attachment.id}
-                      data={attachment}
-                      className="h-12 px-3 gap-2.5 rounded-lg text-base"
-                    />
-                  )}
-                </PromptInputAttachments>
-                <TypingPlaceholderTextarea
-                  typingPlaceholder="Jac is Waiting..."
-                  typingSpeed={0.06}
-                  disabled={isLoading}
-                  className="py-1.5 min-h-0"
-                />
-                <PromptInputFooter>
-                  <PromptInputTools>
-                    <AttachmentButton />
-                  </PromptInputTools>
-                  <PromptInputSubmit
+            {/* Plasma Glow Container - wrapper for positioning */}
+            <div className="relative overflow-visible" style={{ marginTop: '24px' }}>
+              {/* Plasma Glow Effect - GSAP animated, positioned behind the input container */}
+              <PlasmaDot />
+
+              {/* Input Container - sits above plasma glow */}
+              <div className="relative rounded-2xl bg-neutral-200/95 dark:bg-neutral-800/95 shadow-inner overflow-visible z-10">
+                {/* Main Input Container */}
+                <PromptInput
+                  onSubmit={handleSubmit}
+                  className="prompt-input-form relative z-10"
+                  accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                  multiple
+                  globalDrop
+                >
+                  <PromptInputAttachments className="gap-3 p-4" >
+                    {(attachment) => (
+                      <PromptInputAttachment
+                        key={attachment.id}
+                        data={attachment}
+                        className="h-12 px-3 gap-2.5 rounded-lg text-base dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                      />
+                    )}
+                  </PromptInputAttachments>
+                  <TypingPlaceholderTextarea
+                    typingPlaceholder="Jac is Waiting..."
+                    typingSpeed={0.06}
                     disabled={isLoading}
-                    status={isLoading ? "submitted" : "ready"}
-                    className="relative p-1.5 bg-zinc-300/80 text-zinc-700 shadow-md hover:bg-zinc-400/80 dark:bg-zinc-800 dark:text-zinc-300 dark:shadow-lg dark:shadow-black/20 dark:hover:bg-zinc-700 transition-all duration-300"
+                    className="py-1.5 min-h-0"
                   />
-                </PromptInputFooter>
-              </PromptInput>             
+                  <PromptInputFooter>
+                    <PromptInputTools>
+                      <AttachmentButton />
+                    </PromptInputTools>
+                    <PromptInputSubmit
+                      disabled={isLoading}
+                      status={isLoading ? "submitted" : "ready"}
+                      className="relative rounded-2xl text-neutral-700 dark:bg-neutral-950 dark:text-neutral-300"
+                    />
+                  </PromptInputFooter>
+
+                </PromptInput>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      {/* <Footer /> */}
     </div>
   );
 }
@@ -1965,32 +2038,7 @@ function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
-      <h2 className="mb-3 text-3xl font-bold text-foreground">
-        EMJAC Engineering Assistant
-      </h2>
-      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-muted-foreground">
-        Your AI-powered helper for custom stainless steel fabrication projects.
-        Ask about kitchen equipment, specifications, or engineering details.
-      </p>
-
-      {/* Product Type Selection Buttons */}
-      <div className="flex flex-wrap gap-4 justify-center">
-        {suggestions.map((suggestion) => (
-          <Button
-            key={suggestion}
-            variant="outline"
-            size="lg"
-            onClick={openNewProjectDialog}
-            className="min-w-[140px] h-14 text-lg font-medium transition-all duration-200 hover:border-primary hover:bg-accent hover:shadow-md"
-          >
-            {suggestion}
-          </Button>
-        ))}
-      </div>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Click any product type above to create a new project
-      </p>
+      {/* Empty content area - all text removed as requested */}
     </div>
   );
 }
@@ -2004,7 +2052,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm ${
         isUser
-          ? "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-white dark:border-zinc-700"
+          ? "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-800 dark:text-white dark:border-neutral-700"
           : "bg-secondary text-foreground border-transparent shadow-md dark:bg-card dark:text-muted-foreground dark:shadow-black/20"
       }`}
     >
@@ -2015,7 +2063,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
   const messageBody = (
     <div className={hasForm ? 'w-full' : ''}>
           {isUser ? (
-            <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-zinc-800 dark:text-zinc-100">
+            <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-neutral-800 dark:text-neutral-100">
               {message.text}
             </p>
           ) : (
@@ -2061,7 +2109,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
 
           <span
             className={`mt-4 block text-xs ${
-              isUser ? "text-zinc-500" : "text-muted-foreground"
+              isUser ? "text-neutral-500" : "text-muted-foreground"
             }`}
           >
             {message.timestamp.toLocaleTimeString([], {
@@ -2077,7 +2125,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
         {isUser ? (
           <div className="flex items-start gap-3">
                   <MessageComponent from={role} className="flex-1 max-w-[95%] items-end text-right">
-                    <MessageContent className="w-full rounded-sm border border-zinc-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-zinc-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-50">
+                    <MessageContent className="w-full rounded-sm border border-neutral-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-neutral-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-50">
                 {messageBody}
               </MessageContent>
             </MessageComponent>
@@ -2105,9 +2153,9 @@ function TypingIndicator() {
       </div>
       <div className="rounded-2xl bg-card px-6 py-4 shadow-lg dark:shadow-black/20">
         <div className="flex items-center gap-2">
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-neutral-600 dark:bg-neutral-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-neutral-600 dark:bg-neutral-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-neutral-600 dark:bg-neutral-400" />
         </div>
       </div>
     </div>
@@ -2121,7 +2169,7 @@ function AttachmentButton() {
     <PromptInputButton
       onClick={() => attachments.openFileDialog()}
       aria-label="Add attachment"
-      className="bg-zinc-300/80 text-zinc-700 shadow-md hover:bg-zinc-400/80 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:shadow-lg dark:shadow-black/20 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+      className="bg-neutral-300/80 text-neutral-700 shadow-md hover:bg-neutral-400/80 hover:text-neutral-900 dark:bg-neutral-800 dark:text-neutral-300 dark:shadow-lg dark:shadow-black/20 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
     >
       <PaperclipIcon className="size-4" />
     </PromptInputButton>

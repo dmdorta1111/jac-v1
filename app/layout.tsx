@@ -10,7 +10,6 @@ import { StandardsProvider } from "@/components/providers/standards-provider";
 import { ModelViewerModal } from "@/components/model-viewer-modal";
 import { StdsFormModal } from "@/components/stds-form-modal";
 import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -26,9 +25,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EMJAC AI Assistant | Custom Stainless Steel Fabrication",
+  title: "JAC AI Assistant | Custom Stainless Steel Fabrication",
   description:
-    "AI-powered engineering assistant for EMJAC's custom commercial kitchen equipment, doors, frames, and wine coolers.",
+    "AI-powered engineering assistant for JAC's custom commercial kitchen equipment, doors, frames, and wine coolers.",
 };
 
 export default function RootLayout({
@@ -39,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#0a0f1a] font-sans antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-h-screen font-sans antialiased`}
       >
         <ThemeProvider defaultTheme="dark" storageKey="emjac-theme">
           <SidebarProvider>
@@ -48,10 +47,9 @@ export default function RootLayout({
                 <ModelModalProvider>
                   <StdsModalProvider>
                     <WorkflowModalProvider>
-                      <div className="relative flex min-h-screen flex-col">
+                      <div className="relative flex min-h-screen w-full flex-col overflow-visible">
                         <Header />
-                        <main className="flex-1 pb-20">{children}</main>
-                        <Footer />
+                        <main className="flex-1 w-full overflow-y-auto scrollbar-hide pb-20">{children}</main>
                       </div>
                       {/* Modals rendered at root level */}
                       <ModelViewerModal />
@@ -64,7 +62,7 @@ export default function RootLayout({
           </SidebarProvider>
         </ThemeProvider>
         <Toaster position="top-left" />
-      </body>     
+      </body>
     </html>
   );
 }

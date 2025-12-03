@@ -117,6 +117,16 @@
   --input-max-height-standard: 500px;
 
   /* --------------------------------------------------------------------------
+     Plasma Glow Effect Colors
+     -------------------------------------------------------------------------- */
+  --plasma-core: #ff6b00;
+  --plasma-orange: #ff9500;
+  --plasma-deep-blue: #2563eb;
+  --plasma-blue: #3b82f6;
+  --plasma-light-blue: #e8f4ff;
+  --plasma-white: #ffffff;
+
+  /* --------------------------------------------------------------------------
      Typography
      -------------------------------------------------------------------------- */
   --font-sans: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -177,7 +187,7 @@
   /* --------------------------------------------------------------------------
      Core Colors - Dark Mode
      -------------------------------------------------------------------------- */
-  --background: #0a0a0a;
+  --background: #404040;
   --foreground: #ffffff;
 
   /* Surface Colors */
@@ -352,6 +362,14 @@
   --color-error: var(--color-error);
   --color-error-foreground: var(--color-error-foreground);
 
+  /* Plasma Glow Colors */
+  --color-plasma-core: var(--plasma-core);
+  --color-plasma-orange: var(--plasma-orange);
+  --color-plasma-deep-blue: var(--plasma-deep-blue);
+  --color-plasma-blue: var(--plasma-blue);
+  --color-plasma-light-blue: var(--plasma-light-blue);
+  --color-plasma-white: var(--plasma-white);
+
   /* Layout Dimensions */
   --header-height: var(--header-height);
   --nav-height: var(--nav-height);
@@ -405,13 +423,13 @@
 
 html {
   scroll-behavior: smooth;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow-y: hidden;
 }
 
 html::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
 
 body {
@@ -421,31 +439,20 @@ body {
   color: var(--foreground);
   transition: background-color 0.2s ease, color 0.2s ease;
   letter-spacing: var(--tracking-normal);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 /* =============================================================================
-   SCROLLBAR STYLING
+   SCROLLBAR STYLING (HIDDEN - Scrollbars completely disabled for cleaner UI)
    ============================================================================= */
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--surface);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
-  transition: background 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
-}
+/* Scrollbars are hidden via html element styling above */
 
 /* =============================================================================
    FOCUS & SELECTION STYLES
@@ -595,6 +602,63 @@ body {
 }
 
 /* =============================================================================
+   PLASMA GLOW EFFECT ANIMATIONS
+   ============================================================================= */
+
+@keyframes plasma-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: blur(80px);
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    opacity: 0.85;
+    filter: blur(100px);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes plasma-pulse-dark {
+  0%, 100% {
+    opacity: 0.7;
+    filter: blur(80px);
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    opacity: 0.95;
+    filter: blur(100px);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes plasma-float {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-20px);
+  }
+}
+
+@keyframes plasma-float-tablet {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-15px);
+  }
+}
+
+@keyframes plasma-float-mobile {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-10px);
+  }
+}
+
+/* =============================================================================
    ANIMATION UTILITY CLASSES
    ============================================================================= */
 
@@ -717,11 +781,110 @@ body {
    UTILITY CLASSES
    ============================================================================= */
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .Models {
   width: 100vw;
   height: 100vh;
   background-color: var(--background);
   transition: background-color 0.2s ease;
+}
+
+/* =============================================================================
+   PLASMA GLOW EFFECT UTILITY CLASSES
+   ============================================================================= */
+
+.animate-plasma-pulse {
+  animation: plasma-pulse 4s ease-in-out infinite;
+}
+
+.dark .animate-plasma-pulse {
+  animation: plasma-pulse-dark 4s ease-in-out infinite;
+}
+
+/* SLOWED VARIANTS - 75% slower (4s → 16s, 6s → 24s) */
+.animate-plasma-pulse-slow {
+  animation: plasma-pulse 16s ease-in-out infinite;
+}
+
+.dark .animate-plasma-pulse-slow {
+  animation: plasma-pulse-dark 16s ease-in-out infinite;
+}
+
+.animate-plasma-float {
+  animation: 6s ease-in-out infinite;
+}
+
+.animate-plasma-pulse-float {
+  animation: plasma-pulse 4s ease-in-out infinite, plasma-float 6s ease-in-out infinite;
+}
+
+.dark .animate-plasma-pulse-float {
+  animation: plasma-pulse-dark 4s ease-in-out infinite, plasma-float 6s ease-in-out infinite;
+}
+
+/* SLOWED PULSE-FLOAT VARIANTS - 75% slower */
+.animate-plasma-pulse-float-slow {
+  animation: plasma-pulse 16s ease-in-out infinite, plasma-float 24s ease-in-out infinite;
+}
+
+.dark .animate-plasma-pulse-float-slow {
+  animation: plasma-pulse-dark 16s ease-in-out infinite, plasma-float 24s ease-in-out infinite;
+}
+
+/* Tablet-specific float animation */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .animate-plasma-float {
+    animation: plasma-float-tablet 6s ease-in-out infinite;
+  }
+
+  .animate-plasma-pulse-float {
+    animation: plasma-pulse 4s ease-in-out infinite, plasma-float-tablet 6s ease-in-out infinite;
+  }
+
+  .dark .animate-plasma-pulse-float {
+    animation: plasma-pulse-dark 4s ease-in-out infinite, plasma-float-tablet 6s ease-in-out infinite;
+  }
+
+  /* SLOWED tablet variants */
+  .animate-plasma-pulse-float-slow {
+    animation: plasma-pulse 16s ease-in-out infinite, plasma-float-tablet 24s ease-in-out infinite;
+  }
+
+  .dark .animate-plasma-pulse-float-slow {
+    animation: plasma-pulse-dark 16s ease-in-out infinite, plasma-float-tablet 24s ease-in-out infinite;
+  }
+}
+
+/* Mobile-specific float animation */
+@media (max-width: 767px) {
+  .animate-plasma-float {
+    animation: plasma-float-mobile 6s ease-in-out infinite;
+  }
+
+  .animate-plasma-pulse-float {
+    animation: plasma-pulse 4s ease-in-out infinite, plasma-float-mobile 6s ease-in-out infinite;
+  }
+
+  .dark .animate-plasma-pulse-float {
+    animation: plasma-pulse-dark 4s ease-in-out infinite, plasma-float-mobile 6s ease-in-out infinite;
+  }
+
+  /* SLOWED mobile variants */
+  .animate-plasma-pulse-float-slow {
+    animation: plasma-pulse 16s ease-in-out infinite, plasma-float-mobile 24s ease-in-out infinite;
+  }
+
+  .dark .animate-plasma-pulse-float-slow {
+    animation: plasma-pulse-dark 16s ease-in-out infinite, plasma-float-mobile 24s ease-in-out infinite;
+  }
 }
 
 /* Color Picker Override */
@@ -752,9 +915,63 @@ body {
   .animate-pulse,
   .animate-ping,
   .animate-bounce,
-  .animate-pulse-glow {
+  .animate-pulse-glow,
+  .animate-plasma-pulse,
+  .animate-plasma-float,
+  .animate-plasma-pulse-float {
     animation: none !important;
   }
+}
+
+/* =============================================================================
+   PROMPT INPUT COMPONENT UTILITIES
+   ============================================================================= */
+
+.prompt-input-form {
+  position: relative;
+  background-color: transparent;
+  padding: 0.375rem; /* Equivalent to p-1.5 in Tailwind */
+  box-shadow: none;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+
+.prompt-input-form [data-slot="input-group"] {
+  border-radius: 0.75rem;
+  border: 0;
+  box-shadow: none;
+  background-color: transparent !important;
+  position: relative;
+  z-index: 5;
+  /* Allow plasma glow to extend beyond */
+  overflow: visible !important;
+}
+
+.dark .prompt-input-form [data-slot="input-group"] {
+  background-color: transparent !important;
+}
+
+.prompt-input-form [data-slot="input-group-control"] {
+  ring-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+.prompt-input-form [data-slot="input-group-control"]:focus,
+.prompt-input-form [data-slot="input-group-control"]:focus-visible {
+  ring-width: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.prompt-input-form [data-slot="input-group"]:focus-within {
+  border: 0;
+  ring-width: 0;
+}
+
+.prompt-input-form [data-slot="input-group-addon"] {
+  border: 0;
 }
 
 /* =============================================================================
