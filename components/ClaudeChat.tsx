@@ -118,7 +118,7 @@ export function ClaudeChat() {
     intensity: 0.35,
     blur: 10,
     spread: 1,
-    duration: 0.25,
+    duration: 0.2,
   });
 
   // Flow engine state
@@ -170,25 +170,18 @@ export function ClaudeChat() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // GSAP hover animation for suggestion buttons - fast, darker bg, 20% font increase
+  // GSAP hover animation for suggestion buttons
   useGSAP(() => {
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
 
       buttons.forEach((button) => {
-        // Store original values
-        const originalFontSize = parseFloat(getComputedStyle(button).fontSize);
-        const targetFontSize = originalFontSize * 1.2; // 20% increase
-        const originalBg = getComputedStyle(button).backgroundColor;
-
         const onMouseEnter = () => {
           gsap.to(button, {
             scale: 1.05,
             y: -2,
-            fontSize: targetFontSize,
-            backgroundColor: 'rgb(163, 163, 163)', // neutral-400 - one shade darker
-            duration: 0.15,
+            duration: 0.3,
             ease: "power2.out",
             force3D: true,
           });
@@ -198,9 +191,7 @@ export function ClaudeChat() {
           gsap.to(button, {
             scale: 1,
             y: 0,
-            fontSize: originalFontSize,
-            backgroundColor: originalBg,
-            duration: 0.2,
+            duration: 0.3,
             ease: "power2.out",
             force3D: true,
           });
@@ -1881,7 +1872,7 @@ export function ClaudeChat() {
   }), [flowState, activeFormDataMap, currentSessionId]);
 
   return (
-    <div className="flex h-full w-full relative gap-4 lg:gap-6">
+    <div className="flex h-[calc(100dvh-4rem)] w-full relative gap-4 lg:gap-6">
       {/* New Project Dialog - triggered from header or welcome screen */}
       <NewProjectDialog
         onProjectCreated={loadAndDisplayProjectHeaderForm}
@@ -1913,10 +1904,10 @@ export function ClaudeChat() {
         isLoading={isLoading}
       />
 
-      {/* Main Chat Area - centered on sm/md when no messages, bottom-aligned on lg+ */}
-      <div className={`flex flex-1 flex-col items-center w-full ${messages.length === 0 ? 'justify-center lg:justify-end pb-6 lg:pb-0' : ''}`}>
+      {/* Main Chat Area */}
+      <div className="flex flex-1 flex-col items-center w-full min-h-0">
         {/* Messages Area */}
-        <div className={`w-full overflow-y-auto px-3 py-3 sm:px-6 sm:py-4 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${messages.length === 0 ? 'hidden' : 'flex-1'}`}>
+        <div className="w-full flex-1 min-h-0 overflow-y-auto px-3 py-4 sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {messages.length === 0 ? (
             <WelcomeScreen
               onSuggestionClick={(text) => handleSubmit({ text, files: [] })}
@@ -1976,8 +1967,8 @@ export function ClaudeChat() {
         )}
 
         {/* Input Area */}
-        <div className="flex justify-center w-full shrink-0 border-border  pb-6">
-          <div className="mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 max-w-full sm:max-w-[90%] md:max-w-[85%] lg:max-w-[70%]">
+        <div className="flex justify-center w-full shrink-0 pb-6">
+          <div className="mx-auto w-full px-4 md:px-6 lg:px-8 max-w-[95%] sm:max-w-[90%] md:max-w-[85%] lg:max-w-[70%]">
             {/* Plasma Glow Container - wrapper for positioning */}
             <div className="relative overflow-visible">
               {/* Plasma Glow Effect - GSAP animated, positioned behind the input container */}
@@ -2003,6 +1994,7 @@ export function ClaudeChat() {
                     )}
                   </PromptInputAttachments>
                   <TypingPlaceholderTextarea
+                    name="message"
                     typingPlaceholder="Jac is Waiting..."
                     typingSpeed={0.06}
                     disabled={isLoading}
@@ -2015,7 +2007,7 @@ export function ClaudeChat() {
                     <PromptInputSubmit
                       disabled={isLoading}
                       status={isLoading ? "submitted" : "ready"}
-                      className="relative rounded-2xl text-neutral-700 dark:bg-neutral-950 bg-neutral-3000 dark:text-neutral-300"
+                      className="relative rounded-2xl text-neutral-700 bg-transparent dark:text-neutral-300 shadow-none"
                     />
                   </PromptInputFooter>
 
@@ -2030,7 +2022,7 @@ export function ClaudeChat() {
                   <Button
                     key={suggestion}
                     onClick={openNewProjectDialog}
-                    className="suggestion-button min-w-[78px] h-[31px] text-xs px-5 py-2.5 rounded-xl border-0 bg-neutral-300/95 dark:bg-neutral-800/95 text-muted-foreground shadow-inner will-change-transform"
+                    className="suggestion-button min-w-[78px] h-[31px] text-xs px-5 py-2.5 rounded-xl border-0 bg-neutral-300/95 dark:bg-neutral-800/95 text-muted-foreground shadow-inner transition-colors duration-200 hover:bg-neutral-400/95 dark:hover:bg-neutral-900/95 hover:shadow-none"
                   >
                     {suggestion}
                   </Button>
@@ -2188,7 +2180,7 @@ function AttachmentButton() {
     <PromptInputButton
       onClick={() => attachments.openFileDialog()}
       aria-label="Add attachment"
-      className="bg-neutral-300/80 text-neutral-700 hover:bg-neutral-400/80 hover:text-neutral-900 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
+      className="bg-transparent text-neutral-700 shadow-none dark:text-neutral-300"
     >
       <PaperclipIcon className="size-4" />
     </PromptInputButton>

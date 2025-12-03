@@ -60,11 +60,14 @@ export function useOrangeGlowHover(
         el.style.boxShadow = orangeGlow;
         return;
       }
+      // Kill any running animation first for smooth transition
+      gsap.killTweensOf(el, "boxShadow");
       // Smooth cross-fade: blue fades out, orange fades in
       gsap.to(el, {
         boxShadow: orangeGlow,
-        duration: duration * 1.2,
-        ease: "sine.inOut",
+        duration: duration,
+        ease: "power2.out",
+        overwrite: "auto",
       });
     };
 
@@ -74,11 +77,14 @@ export function useOrangeGlowHover(
         el.style.boxShadow = blueGlow;
         return;
       }
+      // Kill any running animation first for smooth transition
+      gsap.killTweensOf(el, "boxShadow");
       // Smooth cross-fade: orange fades out, blue fades in
       gsap.to(el, {
         boxShadow: blueGlow,
         duration: duration * 1.2,
-        ease: "sine.inOut",
+        ease: "power2.out",
+        overwrite: "auto",
       });
     };
 

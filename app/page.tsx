@@ -2,10 +2,9 @@ import  {ClaudeChat}  from "@/components/ClaudeChat";
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-screen w-full flex-col bg-linear-to-b from-backgr
-    ound mix-blend-multiply  via-surface to-surface-secondary dark:bg-background overflow-hidden">
+    <div className="relative flex min-h-screen w-full flex-col bg-background/80 dark:bg-background/90  overflow-hidden">
       {/* Subtle background pattern - Enhanced for depth */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden mix-blend-multiply">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 left-1/2 h-[800px] w-[800px] -translate-x-1/2 rounded-full bg-neutral-500/10  blur-3xl animate-float" />
         <div className="absolute -bottom-1/4 left-1/4 h-[600px] w-[600px] rounded-full bg-neutral-600/10 blur-3xl " />
         <div className="absolute top-1/4 right-1/4 h-[500px] w-[500px] rounded-full bg-neutral-400/5 blur-3xl " />

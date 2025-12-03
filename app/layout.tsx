@@ -37,6 +37,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Disable transitions during initial load to prevent flash
+                document.documentElement.style.setProperty('--initial-load', '1');
+                const stored = localStorage.getItem('emjac-theme');
+                const theme = stored || 'dark';
+                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                }
+                // Re-enable transitions after paint
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    document.documentElement.style.removeProperty('--initial-load');
+                  });
+                });
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-h-screen font-sans antialiased`}
       >
@@ -61,7 +84,22 @@ export default function RootLayout({
               </StandardsProvider>
             </ProjectProvider>
           </SidebarProvider>
-        <Image src="/METAL_SHEET_02.png" alt="Metal Sheet" fill className="absolute inset-0 -z-10 object-cover opacity-20" />
+        {/* Steel texture with 3D depth effect */}
+        <div className="absolute inset-0 -z-10">
+          {/* Base steel texture */}
+          <Image
+            src="/METAL_SHEET_02.png"
+            alt="Metal Sheet"
+            fill
+            className="object-cover opacity-40 dark:opacity-50"
+          />
+          {/* Depth gradient overlay - creates 3D recessed effect */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30 dark:from-black/30 dark:via-transparent dark:to-black/40" />
+          {/* Vignette for depth around edges */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_50%,rgba(0,0,0,0.3)_100%)] dark:bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_40%,rgba(0,0,0,0.5)_100%)]" />
+          {/* Subtle inner shadow from top */}
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/15 to-transparent dark:from-black/25" />
+        </div>
         </ThemeProvider>
         <Toaster position="top-left" />
       </body>

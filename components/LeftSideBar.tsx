@@ -127,23 +127,23 @@ export function LeftSidebar({
 
   return (
     <>
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay - below header (z-50), below sidebar (z-45) */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-50 backdrop-blur-sm bg-neutral-300/50 dark:bg-neutral-800/50 lg:hidden"
+          className="fixed inset-0 z-40 backdrop-blur-sm bg-neutral-300/50 dark:bg-neutral-800/50 lg:hidden animate-[fade-in_200ms_ease-out]"
           onClick={closeSidebar}
           aria-hidden="true"
         />
       )}
 
-      {/* Chat History Sidebar */}
+      {/* Chat History Sidebar - mobile: z-45 (above overlay), desktop: z-30 (below header) */}
       <aside
         id="chat-sidebar"
         role="navigation"
         aria-label="Chat history and navigation"
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-52 lg:w-56 h-[calc(100dvh-var(--header-height))] lg:h-[calc(100vh-var(--header-height)-var(--footer-height))] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col bg-neutral-300/95 dark:bg-neutral-800/95 backdrop-blur-sm transition-transform duration-300`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-[45] lg:z-30 w-52 lg:w-56 h-[calc(100dvh-var(--header-height))] lg:h-[calc(100vh-var(--header-height))] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col bg-neutral-300/95 dark:bg-neutral-800/95 backdrop-blur-sm transition-transform duration-300`}
       >
 
         {/* New Item Button - Above Session History */}
