@@ -171,10 +171,14 @@ export function ClaudeChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // GSAP hover animation for suggestion buttons
+  // WeakMap prevents memory leaks by allowing garbage collection when buttons are removed
+  const buttonHandlersRef = useRef(new WeakMap<HTMLElement, { mouseEnter: () => void; mouseLeave: () => void }>());
+
   useGSAP(() => {
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
+      const handlers = buttonHandlersRef.current;
 
       buttons.forEach((button) => {
         const onMouseEnter = () => {
@@ -200,21 +204,21 @@ export function ClaudeChat() {
         button.addEventListener('mouseenter', onMouseEnter);
         button.addEventListener('mouseleave', onMouseLeave);
 
-        // Store handlers for cleanup
-        (button as any)._mouseEnterHandler = onMouseEnter;
-        (button as any)._mouseLeaveHandler = onMouseLeave;
+        // Store handlers in WeakMap for proper cleanup without memory leaks
+        handlers.set(button, { mouseEnter: onMouseEnter, mouseLeave: onMouseLeave });
       });
     }, 50);
 
     return () => {
       clearTimeout(timer);
       const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
+      const handlers = buttonHandlersRef.current;
       buttons.forEach((button) => {
-        if ((button as any)._mouseEnterHandler) {
-          button.removeEventListener('mouseenter', (button as any)._mouseEnterHandler);
-        }
-        if ((button as any)._mouseLeaveHandler) {
-          button.removeEventListener('mouseleave', (button as any)._mouseLeaveHandler);
+        const storedHandlers = handlers.get(button);
+        if (storedHandlers) {
+          button.removeEventListener('mouseenter', storedHandlers.mouseEnter);
+          button.removeEventListener('mouseleave', storedHandlers.mouseLeave);
+          handlers.delete(button);
         }
         gsap.killTweensOf(button);
       });

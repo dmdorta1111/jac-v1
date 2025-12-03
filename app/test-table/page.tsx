@@ -217,7 +217,7 @@ export default function TestTablePage() {
           <h2 className="text-xl font-bold mb-4 text-green-800 dark:text-green-200">
             ✅ Form Submitted Successfully!
           </h2>
-          <div className="bg-white dark:bg-zinc-900 rounded-md p-4 overflow-auto">
+          <div className="bg-white dark:bg-neutral-900 rounded-md p-4 overflow-auto">
             <h3 className="font-semibold mb-2">Submitted Data:</h3>
             <pre className="text-xs whitespace-pre-wrap">
               {JSON.stringify(submittedData, null, 2)}

@@ -39,7 +39,6 @@ export function ThemeProvider({
     if (!mounted) return;
 
     const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
 
     let resolved: "dark" | "light";
     if (theme === "system") {
@@ -50,7 +49,18 @@ export function ThemeProvider({
       resolved = theme;
     }
 
-    root.classList.add(resolved);
+    // Only update classes if they need to change
+    const currentIsDark = root.classList.contains("dark");
+    const currentIsLight = root.classList.contains("light");
+
+    if (resolved === "dark" && !currentIsDark) {
+      root.classList.remove("light");
+      root.classList.add("dark");
+    } else if (resolved === "light" && !currentIsLight) {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    }
+
     setResolvedTheme(resolved);
   }, [theme, mounted]);
 
