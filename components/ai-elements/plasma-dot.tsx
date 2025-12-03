@@ -119,8 +119,8 @@ export const PlasmaDot = ({ className, style, ...props }: PlasmaDotProps) => {
         "pointer-events-none absolute inset-0 -z-10",
 
         // Size proportional to container (wider than tall for rectangle)
-        // Using percentage-based sizing relative to parent
-        "w-[120%] h-[200%]",
+        // Width +20%: 84% → 101%, Height unchanged: 140%
+        "w-[101%] h-[140%]",
         // Center within parent
         "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
 
@@ -150,7 +150,7 @@ export const PlasmaDot = ({ className, style, ...props }: PlasmaDotProps) => {
  * Styling Considerations:
  * - Parent container must use relative positioning
  * - Z-index -1 keeps glow behind form inputs
- * - Elliptical shape (w-120%, h-200%) matches rectangular container
+ * - Elliptical shape (w-101%, h-140%) matches rectangular container
  * - GSAP animations: drift, rotation, scale morph, blur variation
  * - CSS animation slowed 75%: 16s pulse cycle
  * - Dark mode: opacity increases for better visibility
