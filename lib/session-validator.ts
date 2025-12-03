@@ -18,6 +18,7 @@ export interface SessionState {
   tableSelections: Record<string, number>; // Session-scoped table row selections (fieldName -> rowIndex)
   highestStepReached: number; // Track furthest step visited for forward navigation
   lastAccessedAt?: number;
+  projectPath?: string; // Project folder path for isolation (e.g., "project-docs/SDI/SO123")
 }
 
 /**
@@ -65,7 +66,7 @@ export function validateSessionState(state: unknown): state is SessionState {
  * Creates a fresh session state with defaults.
  * Used when validation fails or for new sessions.
  */
-export function createFreshSessionState(itemNumber: string = ''): SessionState {
+export function createFreshSessionState(itemNumber: string = '', projectPath?: string): SessionState {
   return {
     messages: [],
     flowState: {},
@@ -78,15 +79,19 @@ export function createFreshSessionState(itemNumber: string = ''): SessionState {
     tableSelections: {},
     highestStepReached: 0,
     lastAccessedAt: Date.now(),
+    projectPath,
   };
 }
 
 /**
  * Validates and filters a session state map, dropping corrupted entries.
  * Returns a clean map with only valid sessions.
+ * @param parsed - Raw parsed data from localStorage
+ * @param currentProjectPath - Optional project path to filter sessions by
  */
 export function validateSessionStateMap(
-  parsed: unknown
+  parsed: unknown,
+  currentProjectPath?: string | null
 ): Record<string, SessionState> {
   if (!parsed || typeof parsed !== 'object') {
     console.warn('[Session] Invalid state map: not an object');
@@ -94,6 +99,7 @@ export function validateSessionStateMap(
   }
 
   const validated: Record<string, SessionState> = {};
+  let filteredCount = 0;
 
   Object.entries(parsed as Record<string, unknown>).forEach(([id, state]) => {
     if (validateSessionState(state)) {
@@ -108,18 +114,35 @@ export function validateSessionStateMap(
         ?? (completedIds.length > 0 ? completedIds.length : state.currentStepOrder)
         ?? 0;
 
-      validated[id] = {
-        ...state,
-        activeFormData: state.activeFormData ?? {},
-        completedFormIds: completedIds,
-        tableSelections: state.tableSelections ?? {},
-        highestStepReached: migratedHighestStep,
-        lastAccessedAt: state.lastAccessedAt ?? Date.now(),
-      };
+      const sessionProjectPath = state.projectPath;
+
+      // Project isolation: only include sessions matching current project
+      // Legacy sessions (no projectPath) are included for backward compatibility
+      const projectMatches = !currentProjectPath ||
+                            !sessionProjectPath ||
+                            sessionProjectPath === currentProjectPath;
+
+      if (projectMatches) {
+        validated[id] = {
+          ...state,
+          activeFormData: state.activeFormData ?? {},
+          completedFormIds: completedIds,
+          tableSelections: state.tableSelections ?? {},
+          highestStepReached: migratedHighestStep,
+          lastAccessedAt: state.lastAccessedAt ?? Date.now(),
+          projectPath: sessionProjectPath,
+        };
+      } else {
+        filteredCount++;
+      }
     } else {
       console.warn(`[Session] Dropping corrupted session: ${id}`);
     }
   });
+
+  if (filteredCount > 0) {
+    console.log(`[Session] Filtered ${filteredCount} sessions from other projects`);
+  }
 
   return validated;
 }
