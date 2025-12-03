@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   Bot,
   User,
   AlertCircle,
   X,
-  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NewProjectDialog } from "@/components/new-project-dialog";
 import {
   PromptInput,
-  PromptInputTextarea,
   PromptInputAttachments,
   PromptInputAttachment,
   PromptInputFooter,
@@ -22,6 +22,7 @@ import {
   usePromptInputAttachments,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
+import { TypingPlaceholderTextarea } from "@/components/ui/typing-placeholder-textarea";
 import { PaperclipIcon } from "lucide-react";
 import {
   Message as MessageComponent,
@@ -63,8 +64,10 @@ import {
 import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
-import { cleanProjectScopedStorage } from "@/lib/storage-utils";
-
+import { Footer } from "./footer";
+import { PlasmaDot } from "./ai-elements/plasma-dot";
+import { BlueBorderGlow } from "./ai-elements/blue-border-glow";
+import { useOrangeGlowHover } from "./hooks/use-orange-glow-hover";
 // Project context for tracking active project
 interface ProjectContext {
   productType: string;
@@ -107,6 +110,17 @@ export function ClaudeChat() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
 
+  // Access project context for button actions
+  const { openNewProjectDialog } = useProject();
+
+  // Blue glow by default, orange glow on hover for suggestion buttons
+  useOrangeGlowHover(".suggestion-button", {
+    intensity: 0.35,
+    blur: 10,
+    spread: 1,
+    duration: 0.2,
+  });
+
   // Flow engine state
   const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
   const [flowState, setFlowState] = useState<Record<string, Record<string, any>>>({});
@@ -134,11 +148,6 @@ export function ClaudeChat() {
   // Store active (unsaved) form data per session - synced from DynamicFormRenderer
   const [activeFormDataMap, setActiveFormDataMap] = useState<Record<string, Record<string, any>>>({});
 
-  // Project loading key - increments on each project load to force memo invalidation
-  // This fixes the race condition where async state clearing hasn't completed
-  // when the initialFormData memo runs, causing stale data to persist
-  const [projectLoadingKey, setProjectLoadingKey] = useState(0);
-
   // Access global project metadata context for header display
   const { metadata, setMetadata: setProjectMetadata } = useProject();
 
@@ -161,6 +170,57 @@ export function ClaudeChat() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // GSAP hover animation for suggestion buttons
+  useGSAP(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
+
+      buttons.forEach((button) => {
+        const onMouseEnter = () => {
+          gsap.to(button, {
+            scale: 1.05,
+            y: -2,
+            duration: 0.3,
+            ease: "power2.out",
+            force3D: true,
+          });
+        };
+
+        const onMouseLeave = () => {
+          gsap.to(button, {
+            scale: 1,
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out",
+            force3D: true,
+          });
+        };
+
+        button.addEventListener('mouseenter', onMouseEnter);
+        button.addEventListener('mouseleave', onMouseLeave);
+
+        // Store handlers for cleanup
+        (button as any)._mouseEnterHandler = onMouseEnter;
+        (button as any)._mouseLeaveHandler = onMouseLeave;
+      });
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      const buttons = gsap.utils.toArray<HTMLElement>('.suggestion-button');
+      buttons.forEach((button) => {
+        if ((button as any)._mouseEnterHandler) {
+          button.removeEventListener('mouseenter', (button as any)._mouseEnterHandler);
+        }
+        if ((button as any)._mouseLeaveHandler) {
+          button.removeEventListener('mouseleave', (button as any)._mouseLeaveHandler);
+        }
+        gsap.killTweensOf(button);
+      });
+    };
+  });
+
   // Use crypto.randomUUID for collision-proof ID generation
   const generateId = () => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -169,55 +229,6 @@ export function ClaudeChat() {
     // Fallback: timestamp + high-entropy random
     return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   };
-
-  /**
-   * Clear all session state when switching to a new project.
-   * This ensures previous project's items don't persist in the new project.
-   *
-   * IMPORTANT: React 18+ automatically batches all state updates in this callback,
-   * meaning all setters execute atomically and trigger a single re-render.
-   * We clear all state FIRST, then increment projectLoadingKey LAST to ensure
-   * the final re-render sees fully cleared state.
-   */
-  const clearAllSessionState = useCallback(() => {
-    console.log('[ClearState] Clearing all session state for new project');
-
-    // React 18+ batches these updates atomically.
-    // Order: 1) Clear all data states, 2) Increment key LAST
-    // This ensures re-render sees completely cleared state.
-
-    // 1. Clear session lists
-    setChatSessions([]);
-    setSessionStateMap({});
-    setActiveFormDataMap({});
-
-    // 2. Clear current session
-    setCurrentSessionId(null);
-    setMessages([]);
-    setCurrentItemNumber(null);
-
-    // 3. Clear flow state (critical for project isolation)
-    setFlowState({});
-    setCurrentStepOrder(0);
-    setTotalSteps(0);
-    setFilteredSteps([]);
-    setFlowExecutor(null);
-    setValidationErrors({});
-
-    // 4. Clear localStorage cache to prevent stale data restoration
-    try {
-      localStorage.removeItem('sessions:list');
-      localStorage.removeItem('sessions:state');
-    } catch (e) {
-      console.warn('[ClearState] Failed to clear localStorage:', e);
-    }
-
-    // 5. Clean all project-scoped localStorage keys (pattern-based cleanup)
-    cleanProjectScopedStorage();
-
-    // 6. Increment loading key LAST - triggers re-render with all state cleared
-    setProjectLoadingKey(prev => prev + 1);
-  }, []);
 
   /**
    * Load existing project state from JSON files
@@ -296,30 +307,10 @@ export function ClaudeChat() {
     setIsLoading(true);
 
     try {
-      // CRITICAL: Clear all previous project state before loading new project
-      // This prevents items from previous project persisting in the new project
-      clearAllSessionState();
-
-      // CRITICAL: Reset project metadata IMMEDIATELY to prevent stale data in header
-      // Must happen BEFORE async operations to avoid race condition where old project
-      // info is displayed during loading. Will be updated with actual data once loaded.
-      setProjectMetadata({
-        SO_NUM: salesOrderNumber,
-        JOB_NAME: '',
-        CUSTOMER_NAME: '',
-        productType,
-        salesOrderNumber,
-        folderPath,
-        isRevision: false,
-        currentSessionId: undefined,
-        projectHeaderCompleted: false, // Will be set to true after loading
-        itemSessions: {},
-      });
-
       // 1. Load project header data from JSON file
       const existingState = await loadExistingProjectState(folderPath);
 
-      // 2. Update project metadata with loaded header data
+      // 2. Set project metadata from header
       const projectMetadataUpdate = {
         SO_NUM: existingState.SO_NUM || salesOrderNumber,
         JOB_NAME: existingState.JOB_NAME || '',
@@ -353,12 +344,6 @@ export function ClaudeChat() {
       setFilteredSteps(itemSteps);
       setTotalSteps(itemSteps.length);
       setCurrentFlowId(flow.metadata.source || 'SDI-form-flow');
-
-      // 5b. Initialize FlowExecutor with project state (includes standards for autofill)
-      // This ensures standards like HINGE_GAP, DOOR_THICKNESS are available when creating new items
-      const executor = createFlowExecutor(flow, itemSteps, existingState);
-      setFlowExecutor(executor);
-      console.log('[LoadExisting] FlowExecutor initialized with standards:', Object.keys(existingState).length, 'fields');
 
       // 6. Try to rebuild sessions from MongoDB
       const hasSessionsInDB = await loadExistingProjectFromDB(salesOrderNumber);
@@ -497,26 +482,6 @@ export function ClaudeChat() {
     folderPath: string
   ) => {
     try {
-      // CRITICAL: Clear all previous project state before setting up new project
-      // This prevents items from previous project persisting in the new project
-      clearAllSessionState();
-
-      // CRITICAL: Reset project metadata IMMEDIATELY to prevent stale data in header
-      // Must happen BEFORE async operations to avoid race condition where old project
-      // info is displayed during flow loading
-      setProjectMetadata({
-        SO_NUM: salesOrderNumber,
-        JOB_NAME: '',
-        CUSTOMER_NAME: '',
-        productType,
-        salesOrderNumber,
-        folderPath,
-        isRevision: false,
-        currentSessionId: undefined,
-        projectHeaderCompleted: false,
-        itemSessions: {},
-      });
-
       // For SDI product type, load flow and initialize form flow
       if (productType.toUpperCase() === 'SDI') {
         // Load SDI form flow
@@ -536,8 +501,19 @@ export function ClaudeChat() {
           throw new Error('Failed to initialize flow or no steps found');
         }
 
-        // NOTE: Project metadata already set at function start (before async ops)
-        // No need to set again here - prevents race condition
+        // Update project metadata with isRevision flag
+        setProjectMetadata({
+          SO_NUM: salesOrderNumber,
+          JOB_NAME: '',
+          CUSTOMER_NAME: '',
+          productType,
+          salesOrderNumber,
+          folderPath,
+          isRevision: false,
+          currentSessionId: undefined,
+          projectHeaderCompleted: false,
+          itemSessions: {},
+        });
 
         // Get first form from filtered steps (project-header is now step 0)
         const entryFormId = steps[0].formTemplate;
@@ -570,8 +546,7 @@ export function ClaudeChat() {
           formSpec: prefilledSpec,
         };
 
-        // Set fresh messages (not append) since this is a new project
-        setMessages([botMessage]);
+        setMessages((prev) => [...prev, botMessage]);
         return;
       }
 
@@ -605,8 +580,7 @@ export function ClaudeChat() {
         formSpec: prefilledSpec,
       };
 
-      // Set fresh messages (not append) since this is a new project
-      setMessages([botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error('Failed to load project header form:', error);
       const errorMessage: Message = {
@@ -615,8 +589,7 @@ export function ClaudeChat() {
         text: 'Project folder created, but I couldn\'t load the header form. Please try refreshing the page.',
         timestamp: new Date(),
       };
-      // Set fresh message (not append) since this is a new project
-      setMessages([errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
@@ -722,24 +695,9 @@ export function ClaudeChat() {
           : s
       ));
 
-      // Initialize FlowExecutor with project-scoped state
-      // CRITICAL: Only reuse executor state if from SAME project to prevent state leakage
-      // between projects. Previous bug: old project's data persisted when creating new project.
-      const currentProjectPath = metadata?.folderPath || '';
-      const executorState = flowExecutor?.getState() || {};
-      const executorProjectPath = executorState._projectPath as string | undefined;
-
-      // Only reuse state if project paths match (same project)
-      const shouldReuseState = executorProjectPath && executorProjectPath === currentProjectPath;
-      const existingState = shouldReuseState ? executorState : {};
-
-      const executor = createFlowExecutor(flow, itemSteps, existingState);
-
-      // Store project context in executor state for future validation
-      if (currentProjectPath && !existingState._projectPath) {
-        executor.updateState('_projectContext', { _projectPath: currentProjectPath });
-      }
-
+      // Initialize FlowExecutor with project-header data as initial state
+      const projectHeaderState = flowExecutor?.getState()?.['project-header'] || {};
+      const executor = createFlowExecutor(flow, itemSteps, projectHeaderState);
       setFlowExecutor(executor);
 
       // 6. Load sdi-project form template
@@ -859,9 +817,7 @@ export function ClaudeChat() {
       // PHASE 3: ASYNC DATA LOADING (complete ALL async before state updates)
       // ============================================
       const targetStep = sessionState.highestStepReached ?? sessionState.currentStepOrder;
-      // Start with project standards as base, then overlay session data
-      // This ensures standards are available for autofill across all forms
-      let mergedFlowState = { ...standards, ...sessionState.flowState };
+      let mergedFlowState = { ...sessionState.flowState };
 
       // 3a. Load disk data (async)
       if (metadata?.folderPath && sessionState.itemNumber) {
@@ -1168,9 +1124,9 @@ export function ClaudeChat() {
         }
 
         // 4. Update FlowExecutor state with validated data
-        // Use CHOICE from form data (defaults to 1) when sdi-project form is submitted
+        // Add CHOICE=1 when sdi-project form is submitted (indicates "New item" mode)
         const stateDataToUpdate = currentStepId === 'sdi-project'
-          ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
+          ? { ...validationResult.data, CHOICE: 1 }
           : validationResult.data;
         flowExecutor.updateState(currentStepId, stateDataToUpdate);
         flowExecutor.setCurrentStepIndex(currentStepOrder);
@@ -1181,10 +1137,8 @@ export function ClaudeChat() {
           [currentStepId]: stateDataToUpdate,
         }));
 
-        // Update project metadata with project-header form data
-        // NOTE: Check currentStepId, NOT currentStepOrder, because item sessions have
-        // different step indices (sdi-project is step 0 in item flow, but step 1 in project flow)
-        if (currentStepId === 'project-header') {
+        // Update project metadata with first form data (project-header)
+        if (currentStepOrder === 0) {
           setProjectMetadata({
             SO_NUM: String(validationResult.data.SO_NUM || projectContext.salesOrderNumber),
             JOB_NAME: String(validationResult.data.JOB_NAME || ''),
@@ -1220,10 +1174,8 @@ export function ClaudeChat() {
           }
         }
 
-        // Save item data JSON for item forms (sdi-project, door forms, etc.)
-        // NOTE: Check currentStepId to determine if this is item data, not currentStepOrder
-        const isItemForm = currentStepId !== 'project-header' && projectContext.folderPath;
-        if (isItemForm) {
+        // Save item data JSON for forms after project-header (step 1+)
+        if (currentStepOrder >= 1 && projectContext.folderPath) {
           // Get the NEW item number from form data (user may have changed it)
           const newItemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
           // Original item number is tracked in session state (from when session was created)
@@ -1234,9 +1186,9 @@ export function ClaudeChat() {
             const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
 
             try {
-              // Use CHOICE from form data (defaults to 1) when sdi-project form is submitted
+              // Add CHOICE=1 parameter when sdi-project form is submitted (indicates "New item" mode)
               const formDataToSave = currentStepId === 'sdi-project'
-                ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
+                ? { ...validationResult.data, CHOICE: 1 }
                 : validationResult.data;
 
               const saveResponse = await fetch('/api/save-item-data', {
@@ -1914,25 +1866,13 @@ export function ClaudeChat() {
 
   // Memoize initialFormData to prevent unnecessary form resets on re-render
   // Priority: activeFormData (unsaved) > flowState (submitted) > formSpec.defaultValue
-  //
-  // RACE CONDITION FIX: projectLoadingKey is incremented synchronously in clearAllSessionState()
-  // BEFORE the async state clears (setFlowState, etc.) are processed by React.
-  // When the key changes, we return empty object to prevent stale flowState from
-  // contaminating new project forms. The next render cycle will have cleared state.
-  const initialFormData = useMemo(() => {
-    // Return empty when no session is active (project transition state)
-    if (!currentSessionId) {
-      return {};
-    }
-    return {
-      ...flowState,
-      ...(activeFormDataMap[currentSessionId] || {}),
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flowState, activeFormDataMap, currentSessionId, projectLoadingKey]);
+  const initialFormData = useMemo(() => ({
+    ...flowState,
+    ...(activeFormDataMap[currentSessionId || ''] || {}),
+  }), [flowState, activeFormDataMap, currentSessionId]);
 
   return (
-    <div className="flex h-full w-full relative gap-4 lg:gap-6">
+    <div className="flex h-[calc(100dvh-4rem)] w-full relative gap-4 lg:gap-6">
       {/* New Project Dialog - triggered from header or welcome screen */}
       <NewProjectDialog
         onProjectCreated={loadAndDisplayProjectHeaderForm}
@@ -1960,12 +1900,14 @@ export function ClaudeChat() {
         } : undefined}
         onNavigatePrev={handleNavigatePrev}
         onNavigateNext={handleNavigateNext}
+        showNewItemButton={metadata?.projectHeaderCompleted || false}
+        isLoading={isLoading}
       />
 
       {/* Main Chat Area */}
-      <div className="flex flex-1 flex-col items-center w-full">
+      <div className="flex flex-1 flex-col items-center w-full min-h-0">
         {/* Messages Area */}
-        <div className="w-full flex-1 overflow-y-auto px-3 py-3 sm:px-6 sm:py-4 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="w-full flex-1 min-h-0 overflow-y-auto px-3 py-4 sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {messages.length === 0 ? (
             <WelcomeScreen
               onSuggestionClick={(text) => handleSubmit({ text, files: [] })}
@@ -2024,71 +1966,73 @@ export function ClaudeChat() {
           </div>
         )}
 
-        {/* Add New Item Button - Visible when project is loaded (has salesOrderNumber) */}
-        {/* Disabled until project header is completed */}
-        {metadata?.salesOrderNumber && (
-          <div className="w-full px-4 pb-2">
-            <Button
-              onClick={startNewItemChat}
-              variant="outline"
-              className="w-full border-dashed border-2 hover:border-solid hover:bg-accent/50"
-              disabled={isLoading || !metadata?.projectHeaderCompleted}
-              title={!metadata?.projectHeaderCompleted ? 'Complete project header first' : undefined}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
-            </Button>
-          </div>
-        )}
-
         {/* Input Area */}
-        <div className="justify-center w-full shrink-0 border-border backdrop-blur-sm dark:bg-background">
-          <div className="mx-auto w-full">
-            {/* Input Container with Glow Effect */}
-            <div className="relative">
-              {/* Subtle Glow Behind */}
-              <div
-                className={`absolute -inset-1 rounded-3xl bg-gradient-to-r from-zinc-500/20 via-zinc-400/20 to-zinc-600/20 blur-xl duration-500 ${
-                  isLoading ? "opacity-80" : "opacity-30"
-                }`}
-              />
+        <div className="flex justify-center w-full shrink-0 pb-6">
+          <div className="mx-auto w-full px-4 md:px-6 lg:px-8 max-w-[95%] sm:max-w-[90%] md:max-w-[85%] lg:max-w-[70%]">
+            {/* Plasma Glow Container - wrapper for positioning */}
+            <div className="relative overflow-visible">
+              {/* Plasma Glow Effect - GSAP animated, positioned behind the input container */}
+              <PlasmaDot />
 
-              {/* Main Input Container */}
-              <PromptInput
-                onSubmit={handleSubmit}
-                className="relative bg-linear-to-b from-surface to-background p-1.5 shadow-lg transition-all duration-300 has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot=input-group-control]:focus-visible]:ring-transparent has-[[data-slot=input-group-control]:focus-visible]:border-zinc-300 dark:bg-card dark:bg-none dark:shadow-xl dark:shadow-black/20 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-transparent dark:has-[[data-slot=input-group-control]:focus-visible]:border-zinc-700"
-                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                multiple
-                globalDrop
-              >
-                <PromptInputAttachments className="gap-3 p-4">
-                  {(attachment) => (
-                    <PromptInputAttachment
-                      key={attachment.id}
-                      data={attachment}
-                      className="h-12 px-3 gap-2.5 rounded-lg text-base"
-                    />
-                  )}
-                </PromptInputAttachments>
-                <PromptInputTextarea
-                  placeholder="Jac is Waiting..."
-                  disabled={isLoading}
-                />
-                <PromptInputFooter>
-                  <PromptInputTools>
-                    <AttachmentButton />
-                  </PromptInputTools>
-                  <PromptInputSubmit
+              {/* Input Container with Blue Border Glow - sits above plasma glow */}
+              <BlueBorderGlow className="relative bg-neutral-300/95 dark:bg-neutral-800/95 shadow-inner overflow-visible z-10">
+                {/* Main Input Container */}
+                <PromptInput
+                  onSubmit={handleSubmit}
+                  className="prompt-input-form relative z-10"
+                  accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                  multiple
+                  globalDrop
+                >
+                  <PromptInputAttachments className="gap-3 p-4" >
+                    {(attachment) => (
+                      <PromptInputAttachment
+                        key={attachment.id}
+                        data={attachment}
+                        className="h-12 px-3 gap-2.5 rounded-lg text-base dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                      />
+                    )}
+                  </PromptInputAttachments>
+                  <TypingPlaceholderTextarea
+                    name="message"
+                    typingPlaceholder="Jac is Waiting..."
+                    typingSpeed={0.06}
                     disabled={isLoading}
-                    status={isLoading ? "submitted" : "ready"}
-                    className="relative p-1.5 shadow-lg transition-all duration-300"
+                    className="py-1.5 min-h-0"
                   />
-                </PromptInputFooter>
-              </PromptInput>             
+                  <PromptInputFooter>
+                    <PromptInputTools>
+                      <AttachmentButton />
+                    </PromptInputTools>
+                    <PromptInputSubmit
+                      disabled={isLoading}
+                      status={isLoading ? "submitted" : "ready"}
+                      className="relative rounded-2xl text-neutral-700 bg-transparent dark:text-neutral-300 shadow-none"
+                    />
+                  </PromptInputFooter>
+
+                </PromptInput>
+              </BlueBorderGlow>
             </div>
+
+            {/* Product Type Selection Buttons - below the prompt */}
+            {messages.length === 0 && (
+              <div className="flex flex-wrap gap-6 justify-center" style={{ marginTop: '24px' }}>
+                {suggestions.map((suggestion) => (
+                  <Button
+                    key={suggestion}
+                    onClick={openNewProjectDialog}
+                    className="suggestion-button min-w-[78px] h-[31px] text-xs px-5 py-2.5 rounded-xl border-0 bg-neutral-300/95 dark:bg-neutral-800/95 text-muted-foreground shadow-inner transition-colors duration-200 hover:bg-neutral-400/95 dark:hover:bg-neutral-900/95 hover:shadow-none"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+      {/* <Footer /> */}
     </div>
   );
 }
@@ -2105,32 +2049,7 @@ function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
 
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 sm:px-8">
-      <h2 className="mb-3 text-3xl font-bold text-foreground">
-        EMJAC Engineering Assistant
-      </h2>
-      <p className="mb-12 max-w-xl text-center text-base leading-relaxed text-muted-foreground">
-        Your AI-powered helper for custom stainless steel fabrication projects.
-        Ask about kitchen equipment, specifications, or engineering details.
-      </p>
-
-      {/* Product Type Selection Buttons */}
-      <div className="flex flex-wrap gap-4 justify-center">
-        {suggestions.map((suggestion) => (
-          <Button
-            key={suggestion}
-            variant="outline"
-            size="lg"
-            onClick={openNewProjectDialog}
-            className="min-w-[140px] h-14 text-lg font-medium transition-all duration-200 hover:border-primary hover:bg-accent hover:shadow-md"
-          >
-            {suggestion}
-          </Button>
-        ))}
-      </div>
-
-      <p className="mt-8 text-sm text-muted-foreground">
-        Click any product type above to create a new project
-      </p>
+      {/* Empty content area - all text removed as requested */}
     </div>
   );
 }
@@ -2144,7 +2063,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
     <div
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm ${
         isUser
-          ? "bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-white dark:border-zinc-700"
+          ? "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-800 dark:text-white dark:border-neutral-700"
           : "bg-secondary text-foreground border-transparent shadow-md dark:bg-card dark:text-muted-foreground dark:shadow-black/20"
       }`}
     >
@@ -2155,7 +2074,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
   const messageBody = (
     <div className={hasForm ? 'w-full' : ''}>
           {isUser ? (
-            <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-zinc-800 dark:text-zinc-100">
+            <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-neutral-800 dark:text-neutral-100">
               {message.text}
             </p>
           ) : (
@@ -2201,7 +2120,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
 
           <span
             className={`mt-4 block text-xs ${
-              isUser ? "text-zinc-500" : "text-muted-foreground"
+              isUser ? "text-neutral-500" : "text-muted-foreground"
             }`}
           >
             {message.timestamp.toLocaleTimeString([], {
@@ -2217,7 +2136,7 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
         {isUser ? (
           <div className="flex items-start gap-3">
                   <MessageComponent from={role} className="flex-1 max-w-[95%] items-end text-right">
-                    <MessageContent className="w-full rounded-sm border border-zinc-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-zinc-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-50">
+                    <MessageContent className="w-full rounded-sm border border-neutral-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-neutral-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-50">
                 {messageBody}
               </MessageContent>
             </MessageComponent>
@@ -2245,9 +2164,9 @@ function TypingIndicator() {
       </div>
       <div className="rounded-2xl bg-card px-6 py-4 shadow-lg dark:shadow-black/20">
         <div className="flex items-center gap-2">
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
-          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-zinc-600 dark:bg-zinc-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-neutral-600 dark:bg-neutral-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-neutral-600 dark:bg-neutral-400" />
+          <div className="typing-dot h-2.5 w-2.5 rounded-full bg-neutral-600 dark:bg-neutral-400" />
         </div>
       </div>
     </div>
@@ -2261,7 +2180,7 @@ function AttachmentButton() {
     <PromptInputButton
       onClick={() => attachments.openFileDialog()}
       aria-label="Add attachment"
-      className="bg-zinc-100 text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-zinc-100"
+      className="bg-transparent text-neutral-700 shadow-none dark:text-neutral-300"
     >
       <PaperclipIcon className="size-4" />
     </PromptInputButton>
