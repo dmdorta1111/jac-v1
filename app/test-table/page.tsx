@@ -187,7 +187,7 @@ export default function TestTablePage() {
             <li>Use Tab key to navigate to table rows, then press Enter or Space to select</li>
             <li>Try submitting without selecting required table - should show validation error</li>
             <li>Select a row and submit - form data should contain row object</li>
-            <li>Check empty table displays "No data available"</li>
+            <li>Check empty table displays &quot;No data available&quot;</li>
             <li>Verify other field types (input, select, checkbox) still work correctly</li>
           </ol>
         </div>

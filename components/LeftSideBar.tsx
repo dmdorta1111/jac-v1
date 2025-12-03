@@ -9,6 +9,12 @@ import { useStdsModal } from "@/components/providers/stds-modal-provider";
 import { Button } from "./ui/button";
 import Image from "next/image";
 
+export interface ProjectMetadata {
+  name?: string;
+  path?: string;
+  [key: string]: unknown;
+}
+
 export interface ChatSession {
   id: string;
   title: string;
@@ -16,8 +22,8 @@ export interface ChatSession {
   createdAt: Date;
   updatedAt: Date;
   itemNumber?: string;
-  projectMetadata?: any;
-  flowState?: Record<string, any>;
+  projectMetadata?: ProjectMetadata;
+  flowState?: Record<string, unknown>;
   flowComplete?: boolean;
   currentStep?: number;
   totalSteps?: number;
@@ -31,7 +37,7 @@ export interface Message {
   files?: UploadedFile[];
   reasoning?: ReasoningStep[];
   tasks?: TaskStep[];
-  formSpec?: any; // Dynamic form specification from Claude
+  formSpec?: Record<string, unknown>; // Dynamic form specification from Claude
 }
 
 export interface UploadedFile {
@@ -78,7 +84,7 @@ interface LeftSidebarProps {
 export function LeftSidebar({
   chatSessions,
   currentSessionId,
-  onNewChat,
+  onNewChat: _onNewChat,
   onSelectSession,
   onDeleteSession,
   formNavigationState,
@@ -89,7 +95,7 @@ export function LeftSidebar({
 }: LeftSidebarProps) {
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
   const { open: openModelModal } = useModelModal();
-  const { open: openWorkflowModal } = useWorkflowModal();
+  const { open: _openWorkflowModal } = useWorkflowModal();
   const { open: openStdsModal } = useStdsModal();
 
   // Close sidebar on Escape key

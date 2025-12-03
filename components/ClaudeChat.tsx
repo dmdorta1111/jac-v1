@@ -48,12 +48,12 @@ import DynamicFormRenderer from "@/components/DynamicFormRenderer";
 import { loadFormTemplate } from "@/lib/form-templates";
 import { useProject } from "@/components/providers/project-context";
 import { usePersistedProject } from "@/lib/hooks/usePersistedProject";
-import { usePersistedSession } from "@/lib/hooks/usePersistedSession";
 import { useSessionSync } from "@/lib/hooks/useSessionSync";
 import { useStandards } from "@/components/providers/standards-provider";
 import { applyStandardsToForm } from "@/lib/standards/service";
 import {
   validateSessionState,
+  validateSessionProject,
   createFreshSessionState,
   type SessionState,
 } from "@/lib/session-validator";
@@ -64,10 +64,12 @@ import {
 import { loadFlow, filterSteps, buildStepDefinitions, type FormFlow, type FlowStep } from "@/lib/flow-engine/loader";
 import { createFlowExecutor, type FlowExecutor } from "@/lib/flow-engine/executor";
 import { validateFormData } from "@/lib/validation/zod-schema-builder";
+import { cleanProjectScopedStorage, checkStorageAndCleanup } from "@/lib/storage-utils";
 import { Footer } from "./footer";
 import { PlasmaDot } from "./ai-elements/plasma-dot";
 import { BlueBorderGlow } from "./ai-elements/blue-border-glow";
 import { useOrangeGlowHover } from "./hooks/use-orange-glow-hover";
+
 // Project context for tracking active project
 interface ProjectContext {
   productType: string;
@@ -82,7 +84,7 @@ const suggestions = [
 ];
 
 // Parse form specification from Claude's response
-const parseFormFromMessage = (content: string): { text: string; formSpec?: any } => {
+const parseFormFromMessage = (content: string): { text: string; formSpec?: Record<string, unknown> } => {
   // Look for ```json-form blocks
   const formRegex = /```json-form\s*([\s\S]*?)```/;
   const match = content.match(formRegex);
@@ -122,8 +124,8 @@ export function ClaudeChat() {
   });
 
   // Flow engine state
-  const [currentFlowId, setCurrentFlowId] = useState<string | null>(null);
-  const [flowState, setFlowState] = useState<Record<string, Record<string, any>>>({});
+  const [_currentFlowId, setCurrentFlowId] = useState<string | null>(null);
+  const [flowState, setFlowState] = useState<Record<string, Record<string, unknown>>>({});
   const [currentStepOrder, setCurrentStepOrder] = useState<number>(0);
   const [totalSteps, setTotalSteps] = useState<number>(0);
   const [filteredSteps, setFilteredSteps] = useState<FlowStep[]>([]);
@@ -132,21 +134,12 @@ export function ClaudeChat() {
   const [currentItemNumber, setCurrentItemNumber] = useState<string | null>(null);
 
   // Session state management for multi-session support
-  const [sessionStateMap, setSessionStateMap] = useState<Record<string, {
-    messages: Message[];
-    flowState: Record<string, any>;
-    currentStepOrder: number;
-    filteredSteps: FlowStep[];
-    itemNumber: string;
-    validationErrors: Record<string, string>; // Session-scoped validation errors
-    activeFormData: Record<string, any>; // Unsaved form data for session persistence
-    completedFormIds: string[]; // Track completed form steps for tab navigation
-    tableSelections: Record<string, number>; // Session-scoped table row selections
-    highestStepReached: number; // Track furthest step visited for forward navigation
-  }>>({});
+  // CRITICAL: Each session has its own executorState to prevent cross-session data contamination
+  // Uses SessionState type from session-validator for consistency
+  const [sessionStateMap, setSessionStateMap] = useState<Record<string, SessionState>>({});
 
   // Store active (unsaved) form data per session - synced from DynamicFormRenderer
-  const [activeFormDataMap, setActiveFormDataMap] = useState<Record<string, Record<string, any>>>({});
+  const [activeFormDataMap, setActiveFormDataMap] = useState<Record<string, Record<string, unknown>>>({});
 
   // Access global project metadata context for header display
   const { metadata, setMetadata: setProjectMetadata } = useProject();
@@ -166,7 +159,7 @@ export function ClaudeChat() {
   );
 
   // Project standards context for autofill
-  const { standards, refresh: refreshStandards } = useStandards();
+  const { standards, refresh: _refreshStandards } = useStandards();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -242,8 +235,8 @@ export function ClaudeChat() {
    * IMPORTANT: This also merges project standards from the `standards` key
    * into the flat state, enabling autofill of matching fields across all forms.
    */
-  const loadExistingProjectState = async (folderPath: string): Promise<Record<string, any>> => {
-    const state: Record<string, any> = {};
+  const loadExistingProjectState = async (folderPath: string): Promise<Record<string, unknown>> => {
+    const state: Record<string, unknown> = {};
 
     try {
       // Load project-header.json if exists
@@ -279,7 +272,7 @@ export function ClaudeChat() {
    * @param itemNumber - Item number (e.g., "001")
    * @returns Item data or empty object
    */
-  const loadExistingItemState = async (folderPath: string, itemNumber: string): Promise<Record<string, any>> => {
+  const loadExistingItemState = async (folderPath: string, itemNumber: string): Promise<Record<string, unknown>> => {
     try {
       const res = await fetch(`/api/save-item-data?projectPath=${encodeURIComponent(folderPath)}&itemNumber=${itemNumber}`);
       if (res.ok) {
@@ -403,8 +396,8 @@ export function ClaudeChat() {
       // Filter steps (non-revision mode)
       const steps = filterSteps(flow, false);
 
-      // Rebuild sessions from MongoDB
-      const rebuilt = await rebuildSessionsFromDB(salesOrderNumber, steps);
+      // Rebuild sessions from MongoDB with project path for isolation
+      const rebuilt = await rebuildSessionsFromDB(salesOrderNumber, steps, metadata?.folderPath);
 
       if (rebuilt.length === 0) {
         console.log('[Rebuild] No sessions found in DB');
@@ -420,7 +413,7 @@ export function ClaudeChat() {
 
       // Update React state
       setChatSessions(sessions);
-      setSessionStateMap(stateMap as any);
+      setSessionStateMap(stateMap);
 
       // Persist to localStorage
       try {
@@ -449,7 +442,7 @@ export function ClaudeChat() {
    * @param isRevision - Whether this is a revision/edit of existing item
    * @param initialState - Optional initial state to populate executor
    */
-  const initializeFlow = async (flow: FormFlow, isRevision: boolean, initialState: Record<string, any> = {}): Promise<FlowStep[] | null> => {
+  const initializeFlow = async (flow: FormFlow, isRevision: boolean, initialState: Record<string, unknown> = {}): Promise<FlowStep[] | null> => {
     try {
       // Filter steps based on revision status
       const steps = filterSteps(flow, isRevision);
@@ -605,8 +598,14 @@ export function ClaudeChat() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  // PHASE 4: Check localStorage usage on mount and cleanup if needed
+  useEffect(() => {
+    // Trigger cleanup if localStorage is above 80% capacity
+    checkStorageAndCleanup(80);
+  }, []); // Run once on mount
+
   // Handle form data changes from DynamicFormRenderer for session persistence
-  const handleFormDataChange = useCallback((formId: string, data: Record<string, any>) => {
+  const handleFormDataChange = useCallback((_formId: string, data: Record<string, unknown>) => {
     if (!currentSessionId) return;
 
     setActiveFormDataMap(prev => ({
@@ -699,10 +698,41 @@ export function ClaudeChat() {
           : s
       ));
 
-      // Initialize FlowExecutor with project-header data as initial state
-      const projectHeaderState = flowExecutor?.getState()?.['project-header'] || {};
-      const executor = createFlowExecutor(flow, itemSteps, projectHeaderState);
+      // CRITICAL FIX: Create FRESH executor per session to prevent cross-session data contamination
+      // Previous bug: Shared global executor caused Item A's data to appear in Item B
+      const currentProjectPath = metadata?.folderPath || '';
+
+      // Load project standards for the new item (autofill support)
+      // Only get project-level standards (not other session's data)
+      const projectStandardsState = { ...standards, _projectPath: currentProjectPath };
+
+      // Create fresh executor for THIS session only
+      const executor = createFlowExecutor(flow, itemSteps, projectStandardsState);
+
+      // Store project context in executor state for future validation
+      executor.updateState('_projectContext', { _projectPath: currentProjectPath });
+
       setFlowExecutor(executor);
+
+      // Store initial executor state in session state map for persistence
+      // This ensures each session has isolated executor state
+      setSessionStateMap(prev => ({
+        ...prev,
+        [sessionId]: {
+          messages: [],
+          flowState: {},
+          currentStepOrder: 0,
+          filteredSteps: itemSteps,
+          itemNumber,
+          validationErrors: {},
+          activeFormData: {},
+          completedFormIds: [],
+          tableSelections: {},
+          highestStepReached: 0,
+          projectPath: currentProjectPath,
+          executorState: executor.getState(), // Per-session executor state
+        },
+      }));
 
       // 6. Load sdi-project form template
       const formSpec = await loadFormTemplate('sdi-project');
@@ -766,12 +796,14 @@ export function ClaudeChat() {
 
     try {
       // ============================================
-      // PHASE 1: SAVE CURRENT SESSION (sync state read)
+      // PHASE 1: SAVE CURRENT SESSION with EXECUTOR STATE
+      // CRITICAL: Save executor state per-session to prevent cross-session data contamination
       // ============================================
       if (currentSessionId) {
         // Use executor's flat state for proper restoration (not component's nested flowState)
         const executorState = flowExecutor?.getState() || {};
         const prevHighest = sessionStateMap[currentSessionId]?.highestStepReached ?? 0;
+        const currentProjectPath = metadata?.folderPath || '';
         const currentState = {
           messages,
           flowState: executorState,
@@ -784,12 +816,16 @@ export function ClaudeChat() {
           tableSelections: sessionStateMap[currentSessionId]?.tableSelections || {},
           highestStepReached: Math.max(prevHighest, currentStepOrder),
           lastAccessedAt: Date.now(),
+          projectPath: currentProjectPath,
+          executorState, // CRITICAL: Save executor state per-session
         };
 
         setSessionStateMap(prev => ({
           ...prev,
           [currentSessionId]: currentState,
         }));
+
+        console.log(`[Session Switch] Saved executor state for session ${currentSessionId}:`, Object.keys(executorState));
       }
 
       // ============================================
@@ -818,29 +854,80 @@ export function ClaudeChat() {
       }
 
       // ============================================
-      // PHASE 3: ASYNC DATA LOADING (complete ALL async before state updates)
+      // PHASE 2.5: VALIDATE PROJECT PATH MATCH
+      // CRITICAL: Reject sessions from other projects to prevent data contamination
+      // ============================================
+      const currentProjectPath = metadata?.folderPath;
+      const sessionProjectPath = sessionState.projectPath;
+
+      // Strict validation: session must belong to current project
+      // Legacy sessions (no projectPath) are still allowed for backward compatibility
+      if (sessionProjectPath && !validateSessionProject(sessionProjectPath, currentProjectPath)) {
+        console.warn(`[Session Switch] Project mismatch - creating fresh state for session ${sessionId}`);
+
+        // Create fresh state for current project instead of using stale data
+        const session = chatSessions.find(s => s.id === sessionId);
+        const freshState = createFreshSessionState(session?.itemNumber || '', currentProjectPath);
+
+        // BATCH: All state updates for fresh session
+        setMessages(freshState.messages);
+        setFlowState(freshState.flowState);
+        setCurrentStepOrder(freshState.currentStepOrder);
+        setFilteredSteps(freshState.filteredSteps);
+        setValidationErrors(freshState.validationErrors);
+        setCurrentItemNumber(freshState.itemNumber || null);
+        setCurrentSessionId(sessionId);
+        setFlowExecutor(null);
+
+        // Update sessionStateMap with fresh state
+        setSessionStateMap(prev => ({
+          ...prev,
+          [sessionId]: freshState,
+        }));
+
+        setIsLoading(false);
+        return;
+      }
+
+      // ============================================
+      // PHASE 3: ASYNC DATA LOADING with PER-SESSION EXECUTOR STATE
+      // CRITICAL: Use session-specific executorState to prevent cross-session contamination
       // ============================================
       const targetStep = sessionState.highestStepReached ?? sessionState.currentStepOrder;
-      let mergedFlowState = { ...sessionState.flowState };
 
-      // 3a. Load disk data (async)
+      // Priority order for executor state:
+      // 1. Session-specific executorState (most recent in-memory state)
+      // 2. Session flowState (persisted localStorage/DB state)
+      // 3. Disk data (file-based persistence)
+      // 4. Project standards (defaults)
+      const sessionExecutorState = sessionState.executorState || {};
+      const mergedFlowState = { ...standards, ...sessionState.flowState, ...sessionExecutorState };
+
+      console.log(`[Session Switch] Restoring executor state for session ${sessionId}:`, Object.keys(sessionExecutorState));
+
+      // 3a. Load disk data (async) - only as fallback for missing fields
       if (metadata?.folderPath && sessionState.itemNumber) {
         try {
           const diskData = await loadExistingItemState(metadata.folderPath, sessionState.itemNumber);
 
           if (Object.keys(diskData).length > 0) {
-            // Disk data takes priority (source of truth)
+            // Disk data fills in gaps but doesn't override session-specific state
             Object.keys(diskData).forEach(key => {
               if (key !== '_metadata') {
                 const formData = diskData[key];
                 if (formData && typeof formData === 'object' && !Array.isArray(formData)) {
                   // Flatten individual fields for form defaultValues
                   Object.keys(formData).forEach(fieldName => {
-                    mergedFlowState[fieldName] = formData[fieldName];
+                    // Only fill in if not already set in session state
+                    if (mergedFlowState[fieldName] === undefined) {
+                      mergedFlowState[fieldName] = formData[fieldName];
+                    }
                   });
                   // Also keep nested structure for executor state
-                  mergedFlowState[key] = formData;
-                } else {
+                  if (mergedFlowState[key] === undefined) {
+                    mergedFlowState[key] = formData;
+                  }
+                } else if (mergedFlowState[key] === undefined) {
                   mergedFlowState[key] = formData;
                 }
               }
@@ -858,7 +945,8 @@ export function ClaudeChat() {
         throw new Error('SDI form flow not found');
       }
 
-      // 3c. Create executor with complete merged state - BEFORE any state updates
+      // 3c. Create executor with session-specific state - BEFORE any state updates
+      // This executor is isolated to THIS session only
       const newExecutor = createFlowExecutor(flow, sessionState.filteredSteps, mergedFlowState);
       newExecutor.setCurrentStepIndex(targetStep);
 
@@ -903,6 +991,7 @@ export function ClaudeChat() {
 
       // CRITICAL: Ensure sessionStateMap has the session's state for navigation functions
       // This is especially important when providedState is passed (sessionStateMap may not have it yet)
+      // Store executorState for per-session isolation
       setSessionStateMap(prev => ({
         ...prev,
         [sessionId]: {
@@ -910,6 +999,8 @@ export function ClaudeChat() {
           flowState: mergedFlowState,
           currentStepOrder: targetStep,
           highestStepReached: Math.max(sessionState.highestStepReached ?? 0, targetStep),
+          projectPath: sessionState.projectPath || metadata?.folderPath,
+          executorState: mergedFlowState, // Per-session executor state snapshot
         },
       }));
 
@@ -967,7 +1058,7 @@ export function ClaudeChat() {
   };
 
   // Handle form submission from DynamicFormRenderer
-  const handleFormSubmit = async (formData: Record<string, any>) => {
+  const handleFormSubmit = async (formData: Record<string, unknown>) => {
     // Check if we have project context (from folder creation)
     if (!projectContext) {
       const errorMessage: Message = {
@@ -1094,7 +1185,21 @@ export function ClaudeChat() {
           return;
         }
 
-        // 3. Save validated form data to MongoDB
+        // ============================================
+        // PHASE 3: ATOMIC PERSISTENCE (Two-Phase Commit)
+        // MongoDB + Disk must both succeed or both fail
+        // Executor is updated ONLY after both succeed
+        // ============================================
+
+        // Prepare state data for update
+        const stateDataToUpdate = currentStepId === 'sdi-project'
+          ? { ...validationResult.data, CHOICE: validationResult.data.CHOICE ?? 1 }
+          : validationResult.data;
+
+        // Track MongoDB submission ID for potential rollback
+        let dbSubmissionId: string | null = null;
+
+        // Phase 1: Save to MongoDB
         try {
           const submissionResponse = await fetch('/api/form-submission', {
             method: 'POST',
@@ -1103,7 +1208,7 @@ export function ClaudeChat() {
               sessionId: currentSessionId || generateId(),
               stepId: currentStepId,
               formId: currentStepId,
-              formData: validationResult.data,
+              formData: stateDataToUpdate,
               metadata: {
                 salesOrderNumber: projectContext.salesOrderNumber,
                 itemNumber: currentItemNumber || validationResult.data.ITEM_NUM || '',
@@ -1118,22 +1223,112 @@ export function ClaudeChat() {
           const submissionData = await submissionResponse.json();
 
           if (!submissionData.success) {
-            throw new Error(submissionData.error || 'Failed to save form data');
+            throw new Error(submissionData.error || 'Failed to save form data to database');
           }
 
-          console.log('Form data saved to MongoDB:', submissionData.submissionId);
+          dbSubmissionId = submissionData.submissionId;
+          console.log('[AtomicSave] Phase 1 complete: MongoDB saved:', dbSubmissionId);
         } catch (dbError) {
-          console.error('MongoDB submission error:', dbError);
-          // Continue with flow even if DB save fails (graceful degradation)
+          console.error('[AtomicSave] Phase 1 failed: MongoDB error:', dbError);
+          // Show error to user - DO NOT continue without DB save
+          setValidationErrors({
+            _form: 'Failed to save form data. Please try again.',
+          });
+          setIsLoading(false);
+          return; // Stop here - don't update executor
         }
 
-        // 4. Update FlowExecutor state with validated data
-        // Add CHOICE=1 when sdi-project form is submitted (indicates "New item" mode)
-        const stateDataToUpdate = currentStepId === 'sdi-project'
-          ? { ...validationResult.data, CHOICE: 1 }
-          : validationResult.data;
+        // Phase 2: Save to disk (for item forms only)
+        const isItemForm = currentStepId !== 'project-header' && projectContext.folderPath;
+        if (isItemForm) {
+          const newItemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
+          const originalItemNum = currentItemNumber;
+
+          if (newItemNum) {
+            const paddedNewItemNumber = String(newItemNum).padStart(3, '0');
+            const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
+
+            try {
+              const saveResponse = await fetch('/api/save-item-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  projectPath: projectContext.folderPath,
+                  itemNumber: paddedNewItemNumber,
+                  originalItemNumber: paddedOriginalItemNumber,
+                  formId: currentStepId,
+                  formData: stateDataToUpdate,
+                  merge: true,
+                  sessionId: currentSessionId,
+                  salesOrderNumber: projectContext.salesOrderNumber,
+                }),
+              });
+
+              const saveData = await saveResponse.json();
+
+              if (!saveData.success) {
+                throw new Error(saveData.error || 'Failed to save item data to disk');
+              }
+
+              console.log(`[AtomicSave] Phase 2 complete: Disk saved for item ${paddedNewItemNumber}`);
+
+              // Update item number tracking (moved from later in the function)
+              const itemNumberChanged = paddedNewItemNumber !== paddedOriginalItemNumber;
+              setCurrentItemNumber(paddedNewItemNumber);
+
+              setChatSessions(prev => prev.map(s =>
+                s.id === currentSessionId
+                  ? { ...s, title: `Item ${paddedNewItemNumber}`, itemNumber: paddedNewItemNumber }
+                  : s
+              ));
+
+              if (itemNumberChanged && metadata?.itemSessions) {
+                const updatedItemSessions = { ...metadata.itemSessions };
+                if (paddedOriginalItemNumber) {
+                  delete updatedItemSessions[paddedOriginalItemNumber];
+                }
+                updatedItemSessions[paddedNewItemNumber] = {
+                  sessionId: currentSessionId || '',
+                  itemNumber: paddedNewItemNumber,
+                  createdAt: Date.now(),
+                  title: `Item ${paddedNewItemNumber}`,
+                };
+                setProjectMetadata({
+                  ...metadata,
+                  itemSessions: updatedItemSessions,
+                });
+              }
+            } catch (diskError) {
+              console.error('[AtomicSave] Phase 2 failed: Disk error:', diskError);
+
+              // ROLLBACK: Delete MongoDB submission
+              if (dbSubmissionId) {
+                try {
+                  console.log('[AtomicSave] Rolling back MongoDB submission:', dbSubmissionId);
+                  await fetch(`/api/form-submission/${dbSubmissionId}`, {
+                    method: 'DELETE',
+                  });
+                  console.log('[AtomicSave] Rollback complete');
+                } catch (rollbackError) {
+                  console.error('[AtomicSave] Rollback failed:', rollbackError);
+                  // Log but continue - user will see error message
+                }
+              }
+
+              // Show error to user
+              setValidationErrors({
+                _form: 'Failed to save form data to disk. Please try again.',
+              });
+              setIsLoading(false);
+              return; // Stop here - don't update executor
+            }
+          }
+        }
+
+        // Phase 3: ONLY update executor after BOTH MongoDB + Disk succeeded
         flowExecutor.updateState(currentStepId, stateDataToUpdate);
         flowExecutor.setCurrentStepIndex(currentStepOrder);
+        console.log('[AtomicSave] Phase 3 complete: Executor updated');
 
         // 5. Store form data for current step (already in executor state)
         setFlowState(prev => ({
@@ -1178,84 +1373,8 @@ export function ClaudeChat() {
           }
         }
 
-        // Save item data JSON for forms after project-header (step 1+)
-        if (currentStepOrder >= 1 && projectContext.folderPath) {
-          // Get the NEW item number from form data (user may have changed it)
-          const newItemNum = validationResult.data.ITEM_NUM || flowExecutor.getState().ITEM_NUM || currentItemNumber;
-          // Original item number is tracked in session state (from when session was created)
-          const originalItemNum = currentItemNumber;
-
-          if (newItemNum) {
-            const paddedNewItemNumber = String(newItemNum).padStart(3, '0');
-            const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
-
-            try {
-              // Add CHOICE=1 parameter when sdi-project form is submitted (indicates "New item" mode)
-              const formDataToSave = currentStepId === 'sdi-project'
-                ? { ...validationResult.data, CHOICE: 1 }
-                : validationResult.data;
-
-              const saveResponse = await fetch('/api/save-item-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  projectPath: projectContext.folderPath,
-                  itemNumber: paddedNewItemNumber,
-                  originalItemNumber: paddedOriginalItemNumber,  // For rename detection
-                  formId: currentStepId,
-                  formData: formDataToSave,
-                  merge: true,
-                  sessionId: currentSessionId,  // For MongoDB updates
-                  salesOrderNumber: projectContext.salesOrderNumber,  // For MongoDB updates
-                }),
-              });
-
-              const saveData = await saveResponse.json();
-              if (!saveData.success) {
-                console.error('Failed to save item data:', saveData.error);
-              } else {
-                console.log(`Item ${paddedNewItemNumber} data saved (${currentStepId})${saveData.renamed ? ` - renamed from ${saveData.renamedFrom}` : ''}`);
-              }
-
-              // Always sync item number to session (handles both initial set and changes)
-              // This ensures sidebar always shows correct item number
-              const itemNumberChanged = paddedNewItemNumber !== paddedOriginalItemNumber;
-
-              // Update currentItemNumber state
-              setCurrentItemNumber(paddedNewItemNumber);
-
-              // Always update session with current item number
-              setChatSessions(prev => prev.map(s =>
-                s.id === currentSessionId
-                  ? { ...s, title: `Item ${paddedNewItemNumber}`, itemNumber: paddedNewItemNumber }
-                  : s
-              ));
-
-              // Update itemSessions map in metadata if item number changed
-              if (itemNumberChanged && metadata?.itemSessions) {
-                const updatedItemSessions = { ...metadata.itemSessions };
-                // Remove old entry if exists
-                if (paddedOriginalItemNumber) {
-                  delete updatedItemSessions[paddedOriginalItemNumber];
-                }
-                // Add/update entry with new item number
-                updatedItemSessions[paddedNewItemNumber] = {
-                  sessionId: currentSessionId || '',
-                  itemNumber: paddedNewItemNumber,
-                  createdAt: Date.now(),
-                  title: `Item ${paddedNewItemNumber}`,
-                };
-                setProjectMetadata({
-                  ...metadata,
-                  itemSessions: updatedItemSessions,
-                });
-              }
-            } catch (jsonError) {
-              console.error('Failed to save item JSON:', jsonError);
-              // Continue flow - not blocking
-            }
-          }
-        }
+        // NOTE: Item data save logic has been moved to PHASE 2: ATOMIC PERSISTENCE above
+        // This ensures MongoDB + Disk saves are atomic with rollback on failure
 
         // Remove form from current message
         setMessages((prev) => prev.map(msg =>
@@ -1263,7 +1382,10 @@ export function ClaudeChat() {
         ));
 
         // Track completed form in session state for tab navigation
+        // CRITICAL: Also save executor state to prevent cross-session data contamination
         if (currentSessionId && currentStepId) {
+          const currentExecutorState = flowExecutor.getState();
+          const currentProjectPath = metadata?.folderPath || '';
           setSessionStateMap(prev => ({
             ...prev,
             [currentSessionId]: {
@@ -1271,7 +1393,9 @@ export function ClaudeChat() {
               completedFormIds: [
                 ...(prev[currentSessionId]?.completedFormIds || []),
                 currentStepId
-              ].filter((id, idx, arr) => arr.indexOf(id) === idx) // dedupe
+              ].filter((id, idx, arr) => arr.indexOf(id) === idx), // dedupe
+              executorState: currentExecutorState, // Per-session executor state
+              projectPath: currentProjectPath,
             }
           }));
         }
@@ -1622,16 +1746,18 @@ export function ClaudeChat() {
   }, [messages, currentSessionId]);
 
   // Auto-save session state when messages change and broadcast to other tabs
+  // CRITICAL: Include executorState for per-session isolation
   useEffect(() => {
     if (currentSessionId && messages.length > 0) {
       // Use executor's flat state for proper restoration
-      const executorState = flowExecutor?.getState() || flowState;
+      const currentExecutorState = flowExecutor?.getState() || flowState;
       // Track highest step reached for forward navigation after going back
       const prevHighest = sessionStateMap[currentSessionId]?.highestStepReached ?? 0;
       const newHighest = Math.max(prevHighest, currentStepOrder);
+      const currentProjectPath = metadata?.folderPath || '';
       const state: SessionState = {
         messages,
-        flowState: executorState,
+        flowState: currentExecutorState,
         currentStepOrder,
         filteredSteps,
         itemNumber: currentItemNumber || '',
@@ -1641,6 +1767,8 @@ export function ClaudeChat() {
         tableSelections: sessionStateMap[currentSessionId]?.tableSelections || {},
         highestStepReached: newHighest,
         lastAccessedAt: Date.now(),
+        projectPath: currentProjectPath,
+        executorState: currentExecutorState, // Per-session executor state for isolation
       };
 
       setSessionStateMap(prev => ({
@@ -1651,7 +1779,7 @@ export function ClaudeChat() {
       // Broadcast to other tabs (they won't update if this is their active session)
       broadcastSessionUpdated(currentSessionId, state);
     }
-  }, [messages, currentSessionId, flowState, flowExecutor, currentStepOrder, filteredSteps, currentItemNumber, validationErrors, activeFormDataMap, broadcastSessionUpdated]);
+  }, [messages, currentSessionId, flowState, flowExecutor, currentStepOrder, filteredSteps, currentItemNumber, validationErrors, activeFormDataMap, broadcastSessionUpdated, metadata?.folderPath]);
 
   // Rebuild sessions from MongoDB when project is recalled and cache is empty
   useEffect(() => {
@@ -1677,7 +1805,7 @@ export function ClaudeChat() {
     return "New Chat";
   };
 
-  const startNewChat = () => {
+  const _startNewChat = () => {
     const newSession: ChatSession = {
       id: generateId(),
       title: "New Chat",
@@ -1691,7 +1819,7 @@ export function ClaudeChat() {
     setError(null);
   };
 
-  const selectSession = (sessionId: string) => {
+  const _selectSession = (sessionId: string) => {
     const session = chatSessions.find((s) => s.id === sessionId);
     if (session) {
       setCurrentSessionId(sessionId);
@@ -1931,8 +2059,10 @@ export function ClaudeChat() {
                   validationErrors={validationErrors}
                   initialFormData={initialFormData}
                   selectedTableRows={sessionStateMap[currentSessionId || '']?.tableSelections || {}}
-                  onTableRowSelect={(fieldName, rowIndex, rowData) => {
+                  onTableRowSelect={(fieldName, rowIndex, _rowData) => {
                     if (!currentSessionId) return;
+                    // Preserve executorState when updating table selections
+                    const currentExecutorState = flowExecutor?.getState() || {};
                     setSessionStateMap(prev => ({
                       ...prev,
                       [currentSessionId]: {
@@ -1940,7 +2070,8 @@ export function ClaudeChat() {
                         tableSelections: {
                           ...(prev[currentSessionId]?.tableSelections || {}),
                           [fieldName]: rowIndex
-                        }
+                        },
+                        executorState: prev[currentSessionId]?.executorState || currentExecutorState,
                       }
                     }));
                   }}
@@ -2048,7 +2179,7 @@ interface WelcomeScreenProps {
   setProjectContext?: (context: ProjectContext) => void;
 }
 
-function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
+function WelcomeScreen({ onSuggestionClick: _onSuggestionClick }: WelcomeScreenProps) {
   const { openNewProjectDialog } = useProject();
 
   return (
@@ -2058,7 +2189,7 @@ function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
   );
 }
 
-function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, validationErrors = {}, initialFormData = {}, selectedTableRows = {}, onTableRowSelect }: { message: Message; sessionId: string; onFormSubmit?: (data: Record<string, any>) => void; onFormDataChange?: (formId: string, data: Record<string, any>) => void; validationErrors?: Record<string, string>; initialFormData?: Record<string, any>; selectedTableRows?: Record<string, number>; onTableRowSelect?: (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => void }) {
+function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, validationErrors = {}, initialFormData = {}, selectedTableRows = {}, onTableRowSelect }: { message: Message; sessionId: string; onFormSubmit?: (data: Record<string, unknown>) => void; onFormDataChange?: (formId: string, data: Record<string, unknown>) => void; validationErrors?: Record<string, string>; initialFormData?: Record<string, unknown>; selectedTableRows?: Record<string, number>; onTableRowSelect?: (fieldName: string, rowIndex: number, rowData: Record<string, string | number>) => void }) {
   const isUser = message.sender === "user";
   const role = isUser ? "user" : "assistant";
   const hasForm = !isUser && message.formSpec;

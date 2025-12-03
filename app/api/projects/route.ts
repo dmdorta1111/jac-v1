@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       isDeleted: false,
       createdAt: now,
       updatedAt: now,
-    } as any);
+    } as unknown);
 
     return NextResponse.json({
       success: true,

@@ -73,33 +73,27 @@ export function Header() {
             {/* Vertical Divider */}
             <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
 
-            {/* Job Name */}
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                Job Name
-              </span>
-              <span
-                className="text-sm font-medium text-neutral-800 dark:text-neutral-100 truncate max-w-[180px]"
-                title={metadata.JOB_NAME}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Job</span>
+              <h1
+                className="text-lg font-semibold text-foreground/90 truncate max-w-[200px]"
+                title={metadata.JOB_NAME || 'Not set'}
               >
-                {metadata.JOB_NAME}
-              </span>
+                {metadata.JOB_NAME || <span className="text-muted-foreground/60 italic">Not set</span>}
+              </h1>
             </div>
 
             {/* Vertical Divider */}
             <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
 
-            {/* Customer Name */}
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                Customer
-              </span>
-              <span
-                className="text-sm font-medium text-neutral-700 dark:text-neutral-200 truncate max-w-[200px]"
-                title={metadata.CUSTOMER_NAME}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Customer</span>
+              <h1
+                className="text-lg font-semibold text-foreground/80 truncate max-w-[200px]"
+                title={metadata.CUSTOMER_NAME || 'Not set'}
               >
-                {metadata.CUSTOMER_NAME}
-              </span>
+                {metadata.CUSTOMER_NAME || <span className="text-muted-foreground/60 italic">Not set</span>}
+              </h1>
             </div>
           </div>
         )}

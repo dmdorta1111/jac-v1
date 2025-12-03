@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
             isDeleted: false,
             createdAt: now,
             updatedAt: now,
-          } as any, { session });
+          } as unknown, { session });
 
           insertedId = result.insertedId;
 
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         isDeleted: false,
         createdAt: now,
         updatedAt: now,
-      } as any);
+      } as unknown);
 
       // Update project itemCount (non-atomic)
       await projects.updateOne(

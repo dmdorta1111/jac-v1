@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     const isRename = sanitizedOriginalItemNumber &&
                      sanitizedOriginalItemNumber !== sanitizedItemNumber;
 
-    let existingData: any = {};
+    let existingData: Record<string, unknown> = {};
     let existingFormIds: string[] = [];
 
     if (isRename && originalItemFile && existsSync(originalItemFile)) {
