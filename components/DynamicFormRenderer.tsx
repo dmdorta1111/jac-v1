@@ -301,19 +301,20 @@ export default function DynamicFormRenderer({
     }
   }, [errors, validationErrors]);
 
+  // Sync form data to parent using useEffect to avoid race conditions
+  // This replaces queueMicrotask which could cause state mismatch during rapid input
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
+
+  useEffect(() => {
+    onFormDataChange?.(formSpec.formId, formData);
+  }, [formData, formSpec.formId, onFormDataChange]);
+
   // Helper to create session-scoped field IDs for HTML id attribute
   const getFieldId = (field: FormField) => `${sessionId}-${formSpec.formId}-${field.id}`;
 
   const handleFieldChange = (name: string, value: FormFieldValue) => {
-    setFormData((prev) => {
-      const newData = { ...prev, [name]: value };
-      // Defer parent callback to avoid "setState during render" error
-      // Must be outside setFormData updater to prevent synchronous parent update
-      queueMicrotask(() => {
-        onFormDataChange?.(formSpec.formId, newData);
-      });
-      return newData;
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when field is modified
     if (allErrors[name]) {
       setErrors((prev) => {

@@ -48,10 +48,9 @@ export const TypingPlaceholderTextarea = forwardRef<
     if (hasAnimatedRef.current) return;
     hasAnimatedRef.current = true;
 
-    // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    // Check for reduced motion preference (with SSR safety)
+    const prefersReducedMotion = typeof window !== 'undefined'
+      && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
     if (prefersReducedMotion) {
       setDisplayText(typingPlaceholder);

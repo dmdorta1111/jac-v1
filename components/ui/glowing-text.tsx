@@ -28,10 +28,9 @@ export function GlowingText({
   useEffect(() => {
     if (!textRef.current) return;
 
-    // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    // Check for reduced motion preference (with SSR safety)
+    const prefersReducedMotion = typeof window !== 'undefined'
+      && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
     if (prefersReducedMotion) return;
 
