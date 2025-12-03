@@ -1,6 +1,6 @@
 # Code Standards
 
-**Last Updated:** 2025-11-29
+**Last Updated:** 2025-12-02
 
 ## React Component Standards
 
@@ -91,6 +91,192 @@ const toNumberValue = (value: FormFieldValue, fallback: number): number => {
 - `toDateValue(value): Date | undefined`
 
 **File:** `components/DynamicFormRenderer.tsx` (lines 48-79)
+
+## Design Token Standards
+
+### 1. Color Token Usage
+
+**Rule:** ALWAYS use neutral color palette and semantic tokens - NEVER hardcode colors.
+
+**Pattern:**
+```tsx
+// ✅ Correct: Use design tokens
+<div className="bg-neutral-50 dark:bg-neutral-900">
+<div className="text-neutral-700 dark:text-neutral-400">
+<div className="border-neutral-200">
+
+// ✅ Correct: Semantic tokens for meaning
+<Button variant="destructive">  // Uses --color-error
+<Badge variant="success">        // Uses --color-success
+<Alert variant="warning">        // Uses --color-warning
+
+// ❌ Wrong: Hardcoded zinc (deprecated)
+<div className="bg-zinc-50">
+
+// ❌ Wrong: Hardcoded hex values
+<div className="bg-[#fafafa]">
+<div style={{ backgroundColor: "#0a0a0a" }}>
+```
+
+**Neutral Palette (11 shades):**
+- `neutral-50` through `neutral-950` (light to dark)
+- Complete coverage for all grayscale needs
+- Consistent across light and dark modes
+
+**Semantic Tokens:**
+- `success` / `success-foreground` - Confirmations, checkmarks
+- `warning` / `warning-foreground` - Alerts, cautionary states
+- `error` / `error-foreground` - Errors, destructive actions
+- `surface-neutral` / `surface-neutral-hover` - Background surfaces
+- `border-neutral` - All borders and dividers
+- `text-muted` / `text-muted-foreground` - Secondary text
+
+**Files:** `app/globals.css` (CSS variables), `tailwind.config.ts` (Tailwind config)
+
+### 2. Layout Dimension Tokens
+
+**Rule:** Use CSS variables for layout dimensions - NEVER hardcode rem/px values.
+
+**Pattern:**
+```tsx
+// ✅ Correct: CSS variable references
+<header className="h-[var(--header-height)]">
+<nav className="h-[var(--nav-height)]">
+<aside className="w-[var(--sidebar-width)]">
+<div style={{ height: "calc(100dvh - var(--header-height))" }}>
+
+// ✅ Correct: Responsive layout heights
+<main className="h-[var(--layout-height-mobile)] lg:h-[var(--layout-height-desktop)]">
+
+// ❌ Wrong: Hardcoded dimensions
+<header className="h-16">
+<div className="h-[calc(100vh-4rem)]">
+<aside style={{ width: "16rem" }}>
+```
+
+**Available Layout Tokens:**
+- `--header-height: 4rem` - Main navigation header
+- `--nav-height: 3rem` - Secondary navigation
+- `--footer-height: 3rem` - Page footer
+- `--sidebar-width: 16rem` - Sidebar panels
+- `--layout-height-mobile: calc(100dvh - var(--header-height))` - Mobile viewports
+- `--layout-height-desktop: calc(100vh - var(--header-height))` - Desktop viewports
+
+**Rationale:**
+- Single source of truth - change once, updates everywhere
+- Enables dynamic responsive layouts
+- Self-documents design decisions
+- Easy to adjust spacing system-wide
+
+**File:** `app/globals.css` (CSS variables)
+
+### 3. Input Dimension Tokens
+
+**Rule:** Use standardized input dimensions for consistency.
+
+**Pattern:**
+```tsx
+// ✅ Correct: Standard input widths
+<Input className="w-[var(--input-width-standard)]">  // 400px
+<Textarea className="max-w-[var(--input-width-large)]">  // 500px
+<Select className="max-h-[var(--input-max-height-standard)]">  // 500px
+
+// ❌ Wrong: Arbitrary dimensions
+<Input className="w-[450px]">
+<Textarea className="max-w-[95%]">
+```
+
+**Available Input Tokens:**
+- `--input-width-standard: 400px` - Default form inputs
+- `--input-width-large: 500px` - Wider inputs (textareas, selects)
+- `--input-max-height-standard: 500px` - Maximum input height
+
+### 4. NO Inline Styles Rule
+
+**Rule:** NEVER use inline style attributes for spacing or colors - use Tailwind classes or CSS variables.
+
+**Pattern:**
+```tsx
+// ✅ Correct: Tailwind utility classes
+<div className="p-6">
+<div className="p-6 pb-4">
+<div className="bg-neutral-50">
+
+// ✅ Correct: CSS variables for calculations
+<div style={{ height: "calc(100vh - var(--header-height))" }}>
+
+// ❌ Wrong: Inline padding styles
+<div style={{ padding: "1.5rem" }}>
+<div style={{ paddingBottom: "1rem" }}>
+
+// ❌ Wrong: Inline color styles
+<div style={{ backgroundColor: "#fafafa" }}>
+```
+
+**Rationale:**
+- Violates DRY (Don't Repeat Yourself)
+- Hard to maintain and update
+- Conflicts with Tailwind classes
+- No dark mode support
+
+**Exception:** CSS variable calculations are allowed when Tailwind arbitrary values become too complex.
+
+### 5. Animation Token Usage
+
+**Rule:** Use CSS variables for animation colors, not hardcoded RGBA values.
+
+**Pattern:**
+```css
+/* ✅ Correct: CSS variable with color-mix() */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 30%, transparent); }
+  50% { box-shadow: 0 0 40px color-mix(in srgb, var(--primary) 60%, transparent); }
+}
+
+/* ❌ Wrong: Hardcoded RGBA */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(113, 113, 122, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(113, 113, 122, 0.6); }
+}
+```
+
+**File:** `app/globals.css` (keyframe definitions)
+
+### 6. Design Token Migration Process
+
+**Rule:** When adding new colors or spacing, follow this process:
+
+**Step 1: Define CSS Variable**
+```css
+/* In app/globals.css :root */
+--new-token: value;
+```
+
+**Step 2: Add to @theme Directive**
+```css
+/* In app/globals.css @theme inline */
+--color-new-token: var(--new-token);  /* For colors */
+--spacing-new-token: var(--new-token);  /* For spacing */
+```
+
+**Step 3: Extend Tailwind Config (if needed)**
+```typescript
+// In tailwind.config.ts
+theme: {
+  extend: {
+    colors: {
+      'new-token': 'var(--new-token)',
+    },
+  },
+}
+```
+
+**Step 4: Use in Components**
+```tsx
+<div className="bg-new-token">  // Option 1: Direct class
+<div className="bg-[var(--new-token)]">  // Option 2: Arbitrary value
+<div style={{ background: "var(--new-token)" }}>  // Option 3: Inline CSS variable
+```
 
 ### 3. Component Cleanup
 
@@ -528,16 +714,46 @@ a855075 fix: resolve form flow execution and validation errors
 
 Before submitting PR, verify:
 
+**React & TypeScript:**
 - [ ] All React lists use stable composite keys with `formId` prefix
 - [ ] Type-safe value helpers used (no direct casts)
+- [ ] No unused components/imports
+- [ ] TypeScript strict mode passes
+
+**Validation & Flow:**
 - [ ] Validation calls include `data` parameter for conditionals
 - [ ] Boolean/number normalization in conditional checks
 - [ ] FlowExecutor state updated after validation
-- [ ] Graceful degradation for non-critical errors
 - [ ] Form templates validated with scripts
-- [ ] No unused components/imports
-- [ ] TypeScript strict mode passes
+
+**Design Tokens (Tailwind V4):**
+- [ ] NO `zinc-*` classes (use `neutral-*` instead)
+- [ ] NO hardcoded hex colors in className or style
+- [ ] NO inline `style={{padding:...}}` (use Tailwind classes)
+- [ ] Use CSS variables for layout dimensions (`--header-height`, etc.)
+- [ ] Use semantic color tokens (`success`, `warning`, `error`)
+- [ ] Animation keyframes use `color-mix()` with CSS variables
+
+**Error Handling:**
+- [ ] Graceful degradation for non-critical errors
+
+**Git:**
 - [ ] Git commit follows message format
+
+**Verification Commands:**
+```bash
+# No zinc classes remaining
+grep -r "zinc-" components/ app/ --include="*.tsx" | grep -v node_modules
+
+# No inline padding styles
+grep -r 'style={{.*padding' components/ app/ --include="*.tsx"
+
+# Build passes
+npm run build
+
+# Type check passes
+npx tsc --noEmit
+```
 
 ---
 

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,11 +29,57 @@ export function NewProjectDialog({
   setProjectContext,
 }: NewProjectDialogProps) {
   const { showNewProjectDialog, closeNewProjectDialog } = useProject();
+  const dialogContentRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<'select' | 'enter-so'>('select');
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [salesOrder, setSalesOrder] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // GSAP animation for dialog entrance - centered and responsive
+  useGSAP(() => {
+    if (showNewProjectDialog) {
+      const timer = setTimeout(() => {
+        const content = document.querySelector('[data-slot="dialog-content"]');
+        const overlay = document.querySelector('[data-slot="dialog-overlay"]');
+
+        if (content && overlay) {
+          // Kill any existing animations
+          gsap.killTweensOf([content, overlay]);
+
+          // Add will-change for performance optimization
+          gsap.set([content, overlay], { willChange: "transform, opacity" });
+
+          // Set initial state - only scale and opacity, no position changes
+          gsap.set(content, {
+            scale: 0.85,
+            opacity: 0,
+            transformOrigin: "center center", // Scale from absolute center
+          });
+
+          // Animate overlay fade in
+          gsap.to(overlay, {
+            opacity: 1,
+            duration: 0.4,
+            ease: "power2.inOut",
+            force3D: true,
+          });
+
+          // Animate content entrance - scale and fade only
+          gsap.to(content, {
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            ease: "power3.out",
+            force3D: true,
+            clearProps: "transform,opacity,willChange",
+          });
+        }
+      }, 10);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showNewProjectDialog]);
 
   const handleProductSelect = (product: string) => {
     setSelectedProduct(product);
@@ -122,9 +170,13 @@ export function NewProjectDialog({
 
   return (
     <Dialog open={showNewProjectDialog} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        ref={dialogContentRef}
+        className="sm:max-w-[423px] !animate-none"
+      >
         {step === 'select' ? (
           <>
+
             <DialogHeader>
               <DialogTitle>Create New Project</DialogTitle>
               <DialogDescription>
@@ -132,14 +184,14 @@ export function NewProjectDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col gap-3 py-6">
+            <div className="flex flex-col gap-3 px-6 py-8">
               {PRODUCT_TYPES.map((product) => (
                 <Button
                   key={product}
                   variant="outline"
                   size="lg"
                   onClick={() => handleProductSelect(product)}
-                  className="w-full h-14 text-lg font-medium transition-all duration-200 hover:border-primary hover:bg-accent hover:shadow-md"
+                  className="w-full h-12 text-base font-medium rounded-md transition-all duration-200 hover:border-primary hover:bg-accent"
                 >
                   {product}
                 </Button>
@@ -147,7 +199,11 @@ export function NewProjectDialog({
             </div>
 
             <DialogFooter>
-              <Button variant="ghost" onClick={handleClose}>
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="h-9 px-4 rounded-md"
+              >
                 Cancel
               </Button>
             </DialogFooter>
@@ -161,20 +217,27 @@ export function NewProjectDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              <Input
-                name="salesOrder"
-                placeholder="Enter sales order number"
-                value={salesOrder}
-                onChange={(e) => setSalesOrder(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isSubmitting}
-                autoFocus
-              />
+            <div className="space-y-3 px-6 py-8">
+              <div className="space-y-2">
+                <label htmlFor="salesOrder" className="text-sm font-medium text-foreground">
+                  Sales Order Number
+                </label>
+                <Input
+                  id="salesOrder"
+                  name="salesOrder"
+                  placeholder="Enter sales order number"
+                  value={salesOrder}
+                  onChange={(e) => setSalesOrder(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isSubmitting}
+                  autoFocus
+                  className="rounded-md"
+                />
+              </div>
 
               {feedback && (
                 <div
-                  className={`rounded-lg px-4 py-3 text-sm ${
+                  className={`rounded-md px-3 py-2.5 text-sm ${
                     feedback.type === 'success'
                       ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                       : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
@@ -185,17 +248,19 @@ export function NewProjectDialog({
               )}
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button
                 variant="outline"
                 onClick={handleBack}
                 disabled={isSubmitting}
+                className="h-9 px-4 rounded-md"
               >
                 Back
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !salesOrder.trim()}
+                className="h-9 px-4 rounded-md shadow-2xs"
               >
                 {isSubmitting ? 'Creating...' : 'Create Project'}
               </Button>

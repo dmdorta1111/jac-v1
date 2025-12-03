@@ -226,7 +226,7 @@ export function StdsFormModal() {
           </div>
 
           {/* Scrollable Form Content */}
-          <div className="flex-1 overflow-y-auto" style={{ padding: '1.5rem' }}>
+          <div className="flex-1 overflow-y-auto p-6">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-muted-foreground">Loading form...</p>

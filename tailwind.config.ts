@@ -22,6 +22,36 @@ const config: Config = {
           DEFAULT: "var(--surface)",
           secondary: "var(--surface-secondary)",
         },
+
+        // Neutral Color Palette (replaces zinc)
+        neutral: {
+          50: "var(--neutral-50)",
+          100: "var(--neutral-100)",
+          200: "var(--neutral-200)",
+          300: "var(--neutral-300)",
+          400: "var(--neutral-400)",
+          500: "var(--neutral-500)",
+          600: "var(--neutral-600)",
+          700: "var(--neutral-700)",
+          800: "var(--neutral-800)",
+          900: "var(--neutral-900)",
+          950: "var(--neutral-950)",
+        },
+
+        // Semantic Colors
+        success: "var(--color-success)",
+        "success-foreground": "var(--color-success-foreground)",
+        warning: "var(--color-warning)",
+        "warning-foreground": "var(--color-warning-foreground)",
+        error: "var(--color-error)",
+        "error-foreground": "var(--color-error-foreground)",
+
+        // Surface Variations
+        "surface-neutral": "var(--color-surface-neutral)",
+        "surface-neutral-hover": "var(--color-surface-neutral-hover)",
+        "border-neutral": "var(--color-border-neutral)",
+        "text-muted": "var(--color-text-muted)",
+        "text-muted-foreground": "var(--color-text-muted-foreground)",
       },
       spacing: {
         // Shadcraft Pro Spacing Scale
@@ -36,6 +66,17 @@ const config: Config = {
         "22": "5.5rem",
         "26": "6.5rem",
         "30": "7.5rem",
+
+        // Layout Dimensions (named tokens)
+        "header": "var(--header-height)",
+        "nav": "var(--nav-height)",
+        "footer": "var(--footer-height)",
+        "sidebar": "var(--sidebar-width)",
+      },
+      maxWidth: {
+        // Input Widths
+        "input-large": "var(--input-width-large)",
+        "input-standard": "var(--input-width-standard)",
       },
       borderRadius: {
         // Shadcraft Pro Border Radius

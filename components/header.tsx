@@ -4,34 +4,29 @@ import { Moon, Sun, Menu, Plus } from "lucide-react";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useProject } from "@/components/providers/project-context";
-import { Shimmer } from "./ai-elements/shimmer";
+import { useThemeTransition } from "./hooks/useThemeTransition";
+import { PlasmaDot } from "./ai-elements/plasma-dot";
 import { Button } from "./ui/button";
+import Image from "next/image";
 
 export function Header() {
   const { setTheme, resolvedTheme } = useTheme();
   const { isOpen: sidebarOpen, toggle: toggleSidebar } = useSidebar();
   const { metadata, openNewProjectDialog } = useProject();
 
+  // Enable smooth theme transition animations
+  useThemeTransition();
+
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 left-0 right-0 z-50 w-screen border-0 bg-neutral-200/95 dark:bg-neutral-800/95 backdrop-blur-lg" data-theme-animated>
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 w-full">
         {/* Left Side - New Project Button + Mobile Menu Toggle */}
-        <div className="flex items-center gap-2">
-          {/* New Project Button - Always visible */}
-          <Button
-            onClick={openNewProjectDialog}
-            variant="ghost"
-            size="icon"
-            className="size-10 rounded-[10px] text-secondary-foreground hover:bg-accent/50 transition-all duration-200 active:scale-95"
-            aria-label="Create new project"
-          >
-            <Plus className="size-5" />
-          </Button>
-
+        <div className="flex items-center gap-2" data-theme-animated>
+        
           {/* Mobile Menu Toggle */}
           <button
             onClick={toggleSidebar}
@@ -47,8 +42,8 @@ export function Header() {
           {metadata && (
             <div className="flex lg:hidden items-center ml-2">
               <span
-                className="text-sm font-semibold text-foreground/80 truncate max-w-[120px]"
-                title={`${metadata.SO_NUM} - ${metadata.JOB_NAME || 'Not set'} - ${metadata.CUSTOMER_NAME || 'Not set'}`}
+                className="text-xs font-semibold text-foreground/80 truncate max-w-[120px]"
+                title={`${metadata.SO_NUM} - ${metadata.JOB_NAME} - ${metadata.CUSTOMER_NAME}`}
               >
                 {metadata.SO_NUM}
               </span>
@@ -58,18 +53,25 @@ export function Header() {
 
         {/* Project Metadata - Desktop View (Center-Left) */}
         {metadata && (
-          <div className="hidden lg:flex items-start justify-start gap-0 flex-1 max-w-3xl ml-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">SO</span>
-              <h1
-                className="text-lg font-bold text-foreground truncate max-w-[180px]"
+          <div
+            className="hidden lg:flex items-center justify-start gap-6 flex-1 max-w-4xl ml-6"
+            data-theme-animated
+          >
+            {/* SO Number - Primary identifier */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                Sales Order
+              </span>
+              <span
+                className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 truncate max-w-[160px]"
                 title={metadata.SO_NUM}
               >
                 {metadata.SO_NUM}
-              </h1>
+              </span>
             </div>
 
-            <span className="mx-8 text-muted-foreground">•</span>
+            {/* Vertical Divider */}
+            <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground uppercase tracking-wide">Job</span>
@@ -81,7 +83,8 @@ export function Header() {
               </h1>
             </div>
 
-            <span className="mx-8 text-muted-foreground">•</span>
+            {/* Vertical Divider */}
+            <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground uppercase tracking-wide">Customer</span>
@@ -96,7 +99,7 @@ export function Header() {
         )}
 
         {/* EMJAC Logo and Theme Toggle - Right Side */}
-        <div className="flex items-center justify-end gap-3 mr-4 ml-auto">
+        <div className="flex items-center justify-end gap-3 mr-4 ml-auto" data-theme-animated>
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -112,11 +115,23 @@ export function Header() {
             </div>
           </button>
 
-          {/* EMJAC Logo */}
-          <div className="flex items-center gap-1">
-            <Shimmer duration={4} spread={20} as="h1" className="font-bold text-3xl tracking-tight whitespace-nowrap">
+          {/* JAC Logo - Blue glow in light mode, Orange glow in dark mode */}
+          <div className="relative flex items-center gap-1">
+            {/* Plasma Glow - behind (only visible in dark mode) - reduced by 75% */}
+            <PlasmaDot className="!w-[150%] !h-[200%] !opacity-0 dark:!opacity-[0.1125]" />
+            {/* JAC Text - Blue in light mode, Orange in dark mode */}
+            <h1
+              className={`
+                font-bold text-3xl tracking-tight whitespace-nowrap relative z-10 px-3 py-1
+                bg-clip-text [-webkit-background-clip:text] text-transparent
+                bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300
+                dark:from-orange-500 dark:via-orange-400 dark:to-amber-300
+                [text-shadow:0_0_20px_rgba(59,130,246,0.125),0_0_40px_rgba(59,130,246,0.075),0_0_60px_rgba(96,165,250,0.05)]
+                dark:[text-shadow:0_0_20px_rgba(249,115,22,0.125),0_0_40px_rgba(249,115,22,0.075),0_0_60px_rgba(251,191,36,0.05)]
+              `}
+            >
               JAC
-            </Shimmer>
+            </h1>
           </div>
         </div>
       </div>

@@ -76,6 +76,7 @@ prompt.md
 #SmartAssembly
 SmartAssembly/
 trail_files/
+QuoteProgram/
 
 # Lock files (item number reservation)
 **/.item-lock
