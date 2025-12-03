@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Sliders, Trash2 } from "lucide-react";
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Plus, Sliders, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
 import { useStdsModal } from "@/components/providers/stds-modal-provider";
 import { Button } from "./ui/button";
+import Image from "next/image";
 
 export interface ChatSession {
   id: string;
@@ -70,6 +71,8 @@ interface LeftSidebarProps {
   formNavigationState?: FormNavigationState;
   onNavigatePrev?: () => void;
   onNavigateNext?: () => void;
+  showNewItemButton?: boolean;
+  isLoading?: boolean;
 }
 
 export function LeftSidebar({
@@ -81,6 +84,8 @@ export function LeftSidebar({
   formNavigationState,
   onNavigatePrev,
   onNavigateNext,
+  showNewItemButton = false,
+  isLoading = false,
 }: LeftSidebarProps) {
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
   const { open: openModelModal } = useModelModal();
@@ -122,34 +127,38 @@ export function LeftSidebar({
 
   return (
     <>
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay - below header (z-50), below sidebar (z-45) */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 backdrop-blur-sm bg-neutral-300/50 dark:bg-neutral-800/50 lg:hidden animate-[fade-in_200ms_ease-out]"
           onClick={closeSidebar}
           aria-hidden="true"
         />
       )}
 
-      {/* Chat History Sidebar */}
+      {/* Chat History Sidebar - mobile: z-45 (above overlay), desktop: z-30 (below header) */}
       <aside
         id="chat-sidebar"
         role="navigation"
-        aria-label=''
+        aria-label="Chat history and navigation"
         className={`${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-60 w-72 lg:w-80 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-7.5rem)] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur-sm transition-transform duration-300`}
+        } lg:translate-x-0 fixed lg:sticky left-0 top-16 lg:top-0 z-[45] lg:z-30 w-52 lg:w-56 h-[calc(100dvh-var(--header-height))] lg:h-[calc(100vh-var(--header-height))] flex justify-between overflow-hidden px-4 pt-4 pb-4 lg:pb-6 shrink-0 flex-col bg-neutral-300/95 dark:bg-neutral-800/95 backdrop-blur-sm transition-transform duration-300`}
       >
 
-        {/* <div className="shrink-0 pb-3">
-          <Button
-            onClick={onNewChat}
-            className="flex w-full items-center justify-center gap-2.5 border border-border bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            <Plus className="size-5" />
-            New Item
-          </Button>
-        </div> */}
+        {/* New Item Button - Above Session History */}
+        {showNewItemButton && (
+          <div className="shrink-0 pb-3">
+            <Button
+              onClick={onNewChat}
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-border bg-secondary/50 px-4 py-3 text-sm font-semibold text-secondary-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-solid hover:border-neutral-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="size-5" />
+              {chatSessions.length === 0 ? 'Create First Item' : 'Add New Item'}
+            </Button>
+          </div>
+        )}
         {/* Workflow Viewer Button
         <div className="mb-4">
           <button
@@ -190,7 +199,7 @@ export function LeftSidebar({
           </div>
         </div>
         {/* Footer Buttons: Project STDS & 3D Viewer */}
-        <div className="shrink-0 pt-3 sticky bottom-0 bg-background/95 backdrop-blur-sm pb-2 -mx-4 px-4 border-t border-border/50 mt-2 space-y-2">
+        <div className="shrink-0 pt-3 sticky bottom-0 backdrop-blur-sm pb-2 -mx-4 px-4 mt-2 space-y-2">
           {/* Project STDS Button */}
           <Button
             onClick={() => {
@@ -199,7 +208,8 @@ export function LeftSidebar({
                 closeSidebar();
               }
             }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400 shadow-sm transition-all duration-200 hover:bg-amber-500/10 hover:border-amber-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            variant="ghost"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-400 transition-all duration-200 hover:bg-amber-500/15 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Open Project Standards"
           >
             <Sliders className="size-5" />
@@ -214,7 +224,8 @@ export function LeftSidebar({
                 closeSidebar();
               }
             }}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-400/30 bg-zinc-500/5 px-4 py-3 text-sm font-semibold text-zinc-600 dark:text-zinc-400 shadow-sm transition-all duration-200 hover:bg-zinc-500/10 hover:border-zinc-400/50 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            variant="ghost"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold text-neutral-600 dark:text-neutral-400 transition-all duration-200 hover:bg-neutral-500/15 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-label="Open 3D Model Viewer"
           >
             <Box className="size-5" />
@@ -283,7 +294,7 @@ function SessionItem({ session, isSelected, onSelect, onDelete, formNavigationSt
       }}
       className={`group flex w-full cursor-pointer flex-col gap-1.5 rounded-xl px-3 py-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
         isSelected
-          ? "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 shadow-sm"
+          ? "bg-neutral-500/10 text-neutral-700 dark:text-neutral-300 shadow-sm"
           : "text-foreground hover:bg-accent"
       }`}
     >
@@ -311,7 +322,7 @@ function SessionItem({ session, isSelected, onSelect, onDelete, formNavigationSt
             onDelete(e);
           }}
           aria-label={`Delete chat: ${session.title}`}
-          className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-zinc-500/10 hover:text-zinc-600 dark:hover:text-zinc-400 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all duration-150 hover:bg-neutral-500/10 hover:text-neutral-600 dark:hover:text-neutral-400 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Trash2 className="size-4" aria-hidden="true" />
         </Button>
