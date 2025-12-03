@@ -118,9 +118,8 @@ export const PlasmaDot = ({ className, style, ...props }: PlasmaDotProps) => {
         // Positioning - fill parent container, stay behind
         "pointer-events-none absolute inset-0 -z-10",
 
-        // Size proportional to container (wider than tall for rectangle)
-        // Width +20%: 84% → 101%, Height unchanged: 140%
-        "w-[101%] h-[140%]",
+        // Size proportional to container - WIDTH +100%
+        "w-[100%] h-[70%]",
         // Center within parent
         "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
 
@@ -130,8 +129,8 @@ export const PlasmaDot = ({ className, style, ...props }: PlasmaDotProps) => {
         // Blur for soft glow edges (GSAP also animates this)
         "blur-[45px]",
 
-        // Opacity & Dark Mode
-        "opacity-70 dark:opacity-80",
+        // Opacity & Dark Mode - REDUCED BY 75% total
+        "opacity-[0.175] dark:opacity-20",
 
         // CSS Animations - SLOWED BY 75% (4s → 16s)
         "block animate-plasma-pulse-slow",

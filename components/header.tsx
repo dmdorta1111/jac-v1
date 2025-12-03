@@ -5,9 +5,9 @@ import { useTheme } from "@/components/providers/theme-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useProject } from "@/components/providers/project-context";
 import { useThemeTransition } from "./hooks/useThemeTransition";
-import { Shimmer } from "./ai-elements/shimmer";
-import { GlowingText } from "./ui/glowing-text";
+import { PlasmaDot } from "./ai-elements/plasma-dot";
 import { Button } from "./ui/button";
+import Image from "next/image";
 
 export function Header() {
   const { setTheme, resolvedTheme } = useTheme();
@@ -53,39 +53,53 @@ export function Header() {
 
         {/* Project Metadata - Desktop View (Center-Left) */}
         {metadata && (
-          <div className="hidden lg:flex items-start justify-start gap-0 flex-1 max-w-3xl ml-4" data-theme-animated>
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">SO</span>
-              <h1
-                className="text-sm font-bold text-foreground truncate max-w-[180px]"
+          <div
+            className="hidden lg:flex items-center justify-start gap-6 flex-1 max-w-4xl ml-6"
+            data-theme-animated
+          >
+            {/* SO Number - Primary identifier */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                Sales Order
+              </span>
+              <span
+                className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 truncate max-w-[160px]"
                 title={metadata.SO_NUM}
               >
                 {metadata.SO_NUM}
-              </h1>
+              </span>
             </div>
 
-            <span className="mx-4 text-muted-foreground text-xs">•</span>
+            {/* Vertical Divider */}
+            <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
 
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Job</span>
-              <h1
-                className="text-sm font-semibold text-foreground/90 truncate max-w-[200px]"
+            {/* Job Name */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                Job Name
+              </span>
+              <span
+                className="text-sm font-medium text-neutral-800 dark:text-neutral-100 truncate max-w-[180px]"
                 title={metadata.JOB_NAME}
               >
                 {metadata.JOB_NAME}
-              </h1>
+              </span>
             </div>
 
-            <span className="mx-4 text-muted-foreground text-xs">•</span>
+            {/* Vertical Divider */}
+            <div className="h-8 w-px bg-neutral-300 dark:bg-neutral-600" />
 
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Customer</span>
-              <h1
-                className="text-sm font-semibold text-foreground/80 truncate max-w-[200px]"
+            {/* Customer Name */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                Customer
+              </span>
+              <span
+                className="text-sm font-medium text-neutral-700 dark:text-neutral-200 truncate max-w-[200px]"
                 title={metadata.CUSTOMER_NAME}
               >
                 {metadata.CUSTOMER_NAME}
-              </h1>
+              </span>
             </div>
           </div>
         )}
@@ -107,17 +121,23 @@ export function Header() {
             </div>
           </button>
 
-          {/* EMJAC Logo */}
-          <div className="flex items-center gap-1">
-            <GlowingText
-              glowColor="rgba(160, 160, 170, 0.4)"
-              duration={2.5}
-              intensity={0.6}
+          {/* JAC Logo - Blue glow in light mode, Orange glow in dark mode */}
+          <div className="relative flex items-center gap-1">
+            {/* Plasma Glow - behind (only visible in dark mode) - reduced by 75% */}
+            <PlasmaDot className="!w-[150%] !h-[200%] !opacity-0 dark:!opacity-[0.1125]" />
+            {/* JAC Text - Blue in light mode, Orange in dark mode */}
+            <h1
+              className={`
+                font-bold text-3xl tracking-tight whitespace-nowrap relative z-10 px-3 py-1
+                bg-clip-text [-webkit-background-clip:text] text-transparent
+                bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300
+                dark:from-orange-500 dark:via-orange-400 dark:to-amber-300
+                [text-shadow:0_0_20px_rgba(59,130,246,0.125),0_0_40px_rgba(59,130,246,0.075),0_0_60px_rgba(96,165,250,0.05)]
+                dark:[text-shadow:0_0_20px_rgba(249,115,22,0.125),0_0_40px_rgba(249,115,22,0.075),0_0_60px_rgba(251,191,36,0.05)]
+              `}
             >
-              <Shimmer duration={16} spread={5} as="h1" className="font-bold text-3xl tracking-tight whitespace-nowrap [--color-muted-foreground:#27272a] dark:[--color-muted-foreground:#a1a1aa]">
-                JAC
-              </Shimmer>
-            </GlowingText>
+              JAC
+            </h1>
           </div>
         </div>
       </div>
