@@ -389,6 +389,31 @@ export default function DynamicFormRenderer({
     return null;
   };
 
+  /**
+   * Normalize value for comparison - handles type coercion between form data and condition specs
+   * @param value - Value from form data or condition spec
+   * @returns Normalized value (converts numeric strings to numbers, booleans to numbers)
+   */
+  const normalizeValue = (value: any): any => {
+    if (value === null || value === undefined) return value;
+
+    // Convert boolean to number (true -> 1, false -> 0)
+    // This handles switch components that return boolean instead of numeric values
+    if (typeof value === 'boolean') {
+      return value ? 1 : 0;
+    }
+
+    // Convert numeric strings to numbers
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed !== '' && !isNaN(Number(trimmed))) {
+        return Number(trimmed);
+      }
+    }
+
+    return value;
+  };
+
   const checkConditional = (field: FormField): boolean => {
     if (!field.conditional) return true;
 
@@ -396,26 +421,65 @@ export default function DynamicFormRenderer({
 
     // Evaluate each condition
     const results = conditions.map(({ field: dependentField, value: requiredValue, operator }) => {
-      const currentValue = formData[dependentField];
+      const rawCurrentValue = formData[dependentField];
+      let currentValue = rawCurrentValue;
+      let normalizedRequired = requiredValue;
 
       // Handle undefined/null values
       if (currentValue === undefined || currentValue === null) {
         return operator === 'notEquals';
       }
 
+      // Normalize both values for consistent comparison
+      currentValue = normalizeValue(currentValue);
+      normalizedRequired = normalizeValue(normalizedRequired);
+
+      // Debug logging for conditional evaluation (can be removed in production)
+      if (process.env.NODE_ENV === 'development') {
+        const result = (() => {
+          switch (operator) {
+            case 'equals':
+              return currentValue === normalizedRequired;
+            case 'notEquals':
+              return currentValue !== normalizedRequired;
+            case 'greaterThan':
+              return Number(currentValue) > Number(normalizedRequired);
+            case 'greaterThanOrEqual':
+              return Number(currentValue) >= Number(normalizedRequired);
+            case 'lessThan':
+              return Number(currentValue) < Number(normalizedRequired);
+            case 'lessThanOrEqual':
+              return Number(currentValue) <= Number(normalizedRequired);
+            default:
+              return true;
+          }
+        })();
+
+        // Log failed conditions for debugging
+        if (!result) {
+          console.log(`[Conditional] ${field.name}: ${dependentField} ${operator} ${requiredValue}`, {
+            raw: rawCurrentValue,
+            normalized: currentValue,
+            required: normalizedRequired,
+            result
+          });
+        }
+      }
+
       switch (operator) {
         case 'equals':
-          return currentValue == requiredValue; // Loose equality for type coercion
+          // Use strict equality after normalization for type safety
+          return currentValue === normalizedRequired;
         case 'notEquals':
-          return currentValue != requiredValue; // Loose inequality for type coercion
+          return currentValue !== normalizedRequired;
         case 'greaterThan':
-          return Number(currentValue) > Number(requiredValue);
+          return Number(currentValue) > Number(normalizedRequired);
         case 'greaterThanOrEqual':
-          return Number(currentValue) >= Number(requiredValue);
+          return Number(currentValue) >= Number(normalizedRequired);
         case 'lessThan':
-          return Number(currentValue) < Number(requiredValue);
+          return Number(currentValue) < Number(normalizedRequired);
         case 'lessThanOrEqual':
-          return Number(currentValue) <= Number(requiredValue);
+          return Number(currentValue) <= Number(normalizedRequired);
         default:
           return true;
       }

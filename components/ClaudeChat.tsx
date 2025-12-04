@@ -294,24 +294,30 @@ export function ClaudeChat() {
     const state: Record<string, any> = {};
 
     try {
-      // Load project-header.json if exists
-      const headerRes = await fetch(`/api/read-json?path=${encodeURIComponent(folderPath + '/project-header.json')}`);
-      if (headerRes.ok) {
-        const headerData = await headerRes.json();
-        if (headerData.success && headerData.data) {
-          // First, merge the header data (excluding standards to avoid nesting)
-          const { standards, ...headerFields } = headerData.data;
-          Object.assign(state, headerFields);
+      // Load project from MongoDB via /api/projects
+      // Extract salesOrderNumber from folderPath (e.g., "project-docs/SDI/SO123")
+      const salesOrderNumber = folderPath.split('/').pop();
 
-          // Merge project standards into flat state for autofill
-          // Standards are saved by stds-form-modal and contain field values like HINGE_GAP, DOOR_THICKNESS, etc.
-          // These will be picked up by flowExecutor.getContextValues() to prefill matching fields in other forms
-          if (standards && typeof standards === 'object') {
-            Object.assign(state, standards);
-            console.log('Loaded project standards for autofill:', Object.keys(standards).length, 'fields');
+      if (salesOrderNumber) {
+        const projectRes = await fetch(`/api/projects?salesOrderNumber=${encodeURIComponent(salesOrderNumber)}`);
+        if (projectRes.ok) {
+          const projectData = await projectRes.json();
+          if (projectData.success && projectData.project) {
+            const metadata = projectData.project.metadata || {};
+            // First, merge the header data (excluding standards to avoid nesting)
+            const { standards, ...headerFields } = metadata;
+            Object.assign(state, headerFields);
+
+            // Merge project standards into flat state for autofill
+            // Standards are saved by stds-form-modal and contain field values like HINGE_GAP, DOOR_THICKNESS, etc.
+            // These will be picked up by flowExecutor.getContextValues() to prefill matching fields in other forms
+            if (standards && typeof standards === 'object') {
+              Object.assign(state, standards);
+              console.log('Loaded project standards for autofill:', Object.keys(standards).length, 'fields');
+            }
+
+            console.log('Loaded project header state from MongoDB:', Object.keys(metadata));
           }
-
-          console.log('Loaded project header state:', Object.keys(headerData.data));
         }
       }
     } catch (e) {
@@ -1312,25 +1318,9 @@ export function ClaudeChat() {
           });
 
           // Save project-header.json to project folder
-          try {
-            await fetch('/api/generate-project-doc', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                projectData: {
-                  ...validationResult.data,
-                  productType: projectContext.productType,
-                },
-                action: 'project_header',
-                targetFolder: projectContext.folderPath,
-                output: 'json',
-              }),
-            });
-            console.log('Project header JSON saved to:', projectContext.folderPath);
-          } catch (jsonError) {
-            console.error('Failed to save project header JSON:', jsonError);
-            // Continue flow - not blocking
-          }
+          // Project header is saved to MongoDB via save-project-header above.
+          // File system creation (project-header.json) is deferred until Export.
+          console.log('Project header saved to MongoDB. File creation deferred to export.');
         }
 
         // Save item data JSON for forms after project-header (step 1+)
@@ -2076,12 +2066,39 @@ export function ClaudeChat() {
     }
   };
 
-  // Memoize initialFormData to prevent unnecessary form resets on re-render
-  // Priority: activeFormData (unsaved) > flowState (submitted) > formSpec.defaultValue
-  const initialFormData = useMemo(() => ({
-    ...flowState,
-    ...(activeFormDataMap[currentSessionId || ''] || {}),
-  }), [flowState, activeFormDataMap, currentSessionId]);
+  /**
+   * Memoize initialFormData to prevent unnecessary form resets on re-render
+   *
+   * Data Priority (rightmost wins):
+   * 1. flowExecutor.getState() - Flat accumulated state from all submitted forms
+   * 2. activeFormDataMap - Unsaved changes in current form
+   *
+   * IMPORTANT: Do NOT use flowState directly - it's nested by formId but
+   * DynamicFormRenderer.checkConditional() expects flat field access.
+   *
+   * Bug Fix: Changed from spreading nested flowState to using flat executor state
+   * to fix conditional field visibility (e.g., PRIMARY_LOCK, SUB_TYPE-dependent fields).
+   */
+  const initialFormData = useMemo(() => {
+    // Get unsaved form data for current session
+    const activeData = activeFormDataMap[currentSessionId || ''] || {};
+
+    // Return early with just active data if executor isn't ready (during session switches)
+    if (!flowExecutor) {
+      return activeData;
+    }
+
+    // Get flat state from executor (contains all fields from all submitted forms)
+    const executorState = flowExecutor.getState();
+
+    // Merge: executor state (submitted data) + active unsaved data (priority)
+    return {
+      ...executorState,
+      ...activeData,
+    };
+    // flowState is included as a dependency to trigger recalculation when forms are submitted
+    // (flowExecutor.updateState is called alongside setFlowState)
+  }, [flowExecutor, activeFormDataMap, currentSessionId, flowState]);
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] w-full relative gap-4 lg:gap-6">
