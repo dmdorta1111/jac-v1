@@ -1,0 +1,12 @@
+{
+    "itemNumber": "001",
+    "sessionId": "TEST_SESSION_001",
+    "salesOrderNumber": "TEST_EXPORT_001",
+    "formId": "sdi-project",
+    "formData": {
+        "ITEM_NUM": "001",
+        "QTY": 1,
+        "WIDTH": 36,
+        "HEIGHT": 84
+    }
+}

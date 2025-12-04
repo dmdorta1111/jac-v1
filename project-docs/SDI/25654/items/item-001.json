@@ -9,7 +9,7 @@
     "PEEP_DIA": null,
     "HINGES": true,
     "CLOSER": true,
-    "WELDED_PREPS": false,
+    "WELDED_PREPS": true,
     "PRIMARY_LOCK": false,
     "SECONDARY_LOCK": false,
     "DUMMY_TRIM": false,
@@ -30,11 +30,15 @@
     "KICK_PLATE": false
   },
   "_metadata": {
-    "itemNumber": "321",
-    "lastUpdated": "2025-12-04T04:04:33.880Z",
+    "itemNumber": "001",
+    "productType": "",
+    "salesOrderNumber": "25654",
+    "exportedAt": "2025-12-04T13:21:14.300Z",
     "formIds": [
       "options",
-      "hinge-info"
+      "hinge-info",
+      "door-info",
+      "closers"
     ]
   },
   "hinge-info": {
@@ -49,5 +53,40 @@
     "THRU_BOLT": false,
     "CONTINUOUS_HINGE_REINFORCEMENT": true,
     "INSTAL_HINGE": false
-  }
+  },
+  "door-info": {
+    "DOOR_ELEVATION": "F",
+    "UNDERCUT": 0.75,
+    "DOOR_GAUGE": 10,
+    "DOOR_GRADE": "1",
+    "BODY_SIDE_FINISH": "1",
+    "COVER_SIDE_FINISH": "1",
+    "DOOR_THICKNESS": 1.75,
+    "TOP_CHANNEL_DEPTH": 0.75,
+    "BOTTOM_CHANNEL_DEPTH": 0.75,
+    "STRIKE_GAP": 0.125,
+    "HINGE_GAP": 0.125,
+    "DOOR_WIDTH_ADJUSTMENT": 0,
+    "CLOSURE_CHANNEL_CLEARANCE": 2.125,
+    "ACTIVE_LEAF": 99,
+    "WEEP_HOLES": false,
+    "WEEP_HOLES_ALT": false,
+    "EQUAL_ELEVATIONS": true,
+    "ASTRAGAL": false,
+    "ASTRAGAL_INSTALLED": false,
+    "ADD_BOTTOM_CHANNEL": false,
+    "DOOR_CONSTRUCTION_": 0,
+    "CORE": 0,
+    "STRIKE_EDGE_": 0,
+    "TOP_EDGE_": 0,
+    "BOTTOM_EDGE_": 0
+  },
+  "closers": {
+    "SURFACE_CLOSER_LENGTH": 21,
+    "SURFACE_CLOSER_WIDTH": 5,
+    "EQUAL_CLOSERS": true,
+    "CLOSER_TYPE": 1
+  },
+  "CHOICE": 1,
+  "FRAME_PROCESSED": ""
 }

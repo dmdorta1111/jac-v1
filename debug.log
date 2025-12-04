@@ -1,0 +1,7 @@
+Error in create-project-folder: Bad escaped character in JSON at position 15 (line 1 column 16)
+SyntaxError: Bad escaped character in JSON at position 15 (line 1 column 16)
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:6433:19)
+    at successSteps (node:internal/deps/undici/undici:6414:27)
+    at readAllBytes (node:internal/deps/undici/undici:5380:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)

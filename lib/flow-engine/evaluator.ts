@@ -6,6 +6,32 @@
  */
 
 /**
+ * Normalize values for consistent comparison in flow conditions
+ * Handles type mismatches between form components and condition expressions:
+ * - Switch components return boolean (true/false) but conditions use numeric (1/0)
+ * - Select dropdowns return strings ("1") but conditions use numbers (1)
+ *
+ * @param value - The value to normalize
+ * @returns Normalized value suitable for comparison
+ */
+function normalizeValue(value: any): any {
+  // Convert boolean to number (switch components return true/false)
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+
+  // Convert numeric strings to numbers (select dropdowns return string values)
+  if (typeof value === 'string' && value !== '') {
+    const num = Number(value);
+    if (!isNaN(num)) {
+      return num;
+    }
+  }
+
+  return value;
+}
+
+/**
  * Evaluate a boolean expression safely with given context
  * @param expression - SmartAssembly expression (e.g., "OPENING_TYPE == 1 AND HINGES == 1")
  * @param context - Variable context from flowState
@@ -26,6 +52,15 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   const expressionVars = extractVariableNames(jsExpression);
   const safeContext: Record<string, any> = { ...context };
 
+  // Debug logging for condition evaluation
+  console.log(`[safeEval] Expression: "${expression}" → JS: "${jsExpression}"`);
+  console.log(`[safeEval] Variables in expression:`, expressionVars);
+  expressionVars.forEach(varName => {
+    const rawValue = context[varName];
+    const normalizedValue = normalizeValue(rawValue);
+    console.log(`[safeEval]   ${varName}: raw=${JSON.stringify(rawValue)} (${typeof rawValue}), normalized=${JSON.stringify(normalizedValue)}`);
+  });
+
   for (const varName of expressionVars) {
     if (!(varName in safeContext)) {
       safeContext[varName] = null;
@@ -36,7 +71,8 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   try {
     // Create function with context variables as parameters
     const varNames = Object.keys(safeContext);
-    const varValues = Object.values(safeContext);
+    // Normalize values for consistent comparison (boolean→number, string→number)
+    const varValues = Object.values(safeContext).map(normalizeValue);
 
     // Sanitize variable names for use as function parameters
     // Replace invalid characters (like hyphens) with underscores
@@ -75,7 +111,9 @@ export function safeEval(expression: string, context: Record<string, any>): bool
     const result = fn(...varValues);
 
     // Ensure boolean result
-    return Boolean(result);
+    const boolResult = Boolean(result);
+    console.log(`[safeEval] Result: ${boolResult}`);
+    return boolResult;
   } catch (error) {
     console.error('Expression evaluation error:', error, 'Expression:', jsExpression);
     throw new Error(`Failed to evaluate condition: ${expression}`);

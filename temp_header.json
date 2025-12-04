@@ -1,0 +1,10 @@
+{
+    "folderPath": "project-docs/SDI/TEST_EXPORT_001",
+    "data": {
+        "PROJECT_NAME": "Test Project",
+        "SO_NUM": "TEST_EXPORT_001",
+        "JOB_NAME": "Test Job",
+        "CUSTOMER_NAME": "Test Customer",
+        "productType": "SDI"
+    }
+}

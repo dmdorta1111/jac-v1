@@ -219,14 +219,21 @@ export default function DynamicFormRenderer({
 
   // Reset form data when session or form step changes to pick up restored/new form values
   // Merges formSpec defaults with initialData (restored state takes priority)
+  // IMPORTANT: Preserves current formData values (like table selections) that aren't in initialData
   useEffect(() => {
     const defaults = buildInitialFormData(formSpec);
-    const merged = { ...defaults, ...(initialData || {}) };
+
+    // Merge order: defaults < initialData < current formData (preserves unsaved changes)
+    // This ensures table selections and other user inputs aren't wiped out by state updates
+    const merged = {
+      ...defaults,
+      ...(initialData || {}),
+      ...formData,  // Preserve current formData values (table selections, etc.)
+    };
 
     // Only reset formData if:
     // 1. initialData has content (explicit restore) OR
     // 2. formData is empty (first render)
-    // This preserves unsaved changes when session switches without initialData
     const shouldReset =
       Object.keys(initialData || {}).length > 0 ||
       Object.keys(formData).length === 0;
@@ -933,12 +940,11 @@ export default function DynamicFormRenderer({
             <div className="rounded-lg border border-border overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10"></TableHead> {/* Selection column */}
+                  <TableRow>{/* Selection column */}
+                    <TableHead className="w-10"></TableHead>
                     {field.columns?.map((column) => (
                       <TableHead key={column.key}>{column.label}</TableHead>
-                    ))}
-                  </TableRow>
+                    ))}</TableRow>
                 </TableHeader>
                 <TableBody>
                   {field.tableData && field.tableData.length > 0 ? (

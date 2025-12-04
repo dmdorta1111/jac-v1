@@ -141,7 +141,8 @@ export function ClaudeChat() {
     validationErrors: Record<string, string>; // Session-scoped validation errors
     activeFormData: Record<string, any>; // Unsaved form data for session persistence
     completedFormIds: string[]; // Track completed form steps for tab navigation
-    tableSelections: Record<string, number>; // Session-scoped table row selections
+    tableSelections: Record<string, number>; // Session-scoped table row indices (for highlighting)
+    tableSelectionData: Record<string, Record<string, any>>; // Session-scoped table row data (for persistence)
     highestStepReached: number; // Track furthest step visited for forward navigation
   }>>({});
 
@@ -914,6 +915,7 @@ export function ClaudeChat() {
           activeFormData: activeFormDataMap[currentSessionId] || {}, // Save unsaved form data
           completedFormIds: sessionStateMap[currentSessionId]?.completedFormIds || [],
           tableSelections: sessionStateMap[currentSessionId]?.tableSelections || {},
+          tableSelectionData: sessionStateMap[currentSessionId]?.tableSelectionData || {},
           highestStepReached: Math.max(prevHighest, currentStepOrder),
           lastAccessedAt: Date.now(),
         };
@@ -1641,10 +1643,19 @@ export function ClaudeChat() {
       const exportData = await exportResponse.json();
 
       if (exportData.success) {
+        // Build script execution summary
+        let scriptsSummary = '';
+        if (exportData.scripts && exportData.scripts.length > 0) {
+          const scriptLines = exportData.scripts.map((s: { script: string; success: boolean; output: string }) =>
+            `- ${s.script}: ${s.success ? '✓' : '✗'}`
+          );
+          scriptsSummary = `\n\n**Scripts executed:**\n${scriptLines.join('\n')}`;
+        }
+
         const successMessage: Message = {
           id: generateId(),
           sender: 'bot',
-          text: `✓ Export complete!\n\n**Items exported:** ${exportData.itemCount || completedSessions.length}\n**Export path:** \`${exportData.exportPath}\`\n\nYour SDI project data has been exported for SmartAssembly.`,
+          text: `✓ Export complete!\n\n**Items exported:** ${exportData.itemCount || completedSessions.length}\n**Export path:** \`${exportData.exportPath}\`${scriptsSummary}\n\nYour SDI project data has been exported for SmartAssembly.`,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, successMessage]);
@@ -1837,6 +1848,7 @@ export function ClaudeChat() {
         activeFormData: activeFormDataMap[currentSessionId] || {}, // Include unsaved form data
         completedFormIds: sessionStateMap[currentSessionId]?.completedFormIds || [],
         tableSelections: sessionStateMap[currentSessionId]?.tableSelections || {},
+        tableSelectionData: sessionStateMap[currentSessionId]?.tableSelectionData || {},
         highestStepReached: newHighest,
         lastAccessedAt: Date.now(),
       };
@@ -2083,22 +2095,26 @@ export function ClaudeChat() {
     // Get unsaved form data for current session
     const activeData = activeFormDataMap[currentSessionId || ''] || {};
 
+    // Get table selection data from session state (persisted row data for table fields)
+    const tableData = sessionStateMap[currentSessionId || '']?.tableSelectionData || {};
+
     // Return early with just active data if executor isn't ready (during session switches)
     if (!flowExecutor) {
-      return activeData;
+      return { ...tableData, ...activeData };
     }
 
     // Get flat state from executor (contains all fields from all submitted forms)
     const executorState = flowExecutor.getState();
 
-    // Merge: executor state (submitted data) + active unsaved data (priority)
+    // Merge: executor state (submitted data) + table selections + active unsaved data (priority)
     return {
       ...executorState,
+      ...tableData,
       ...activeData,
     };
     // flowState is included as a dependency to trigger recalculation when forms are submitted
     // (flowExecutor.updateState is called alongside setFlowState)
-  }, [flowExecutor, activeFormDataMap, currentSessionId, flowState]);
+  }, [flowExecutor, activeFormDataMap, currentSessionId, flowState, sessionStateMap]);
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] w-full relative gap-4 lg:gap-6">
@@ -2159,6 +2175,7 @@ export function ClaudeChat() {
                   selectedTableRows={sessionStateMap[currentSessionId || '']?.tableSelections || {}}
                   onTableRowSelect={(fieldName, rowIndex, rowData) => {
                     if (!currentSessionId) return;
+                    // Store both row index (for highlighting) and row data (for persistence)
                     setSessionStateMap(prev => ({
                       ...prev,
                       [currentSessionId]: {
@@ -2166,7 +2183,19 @@ export function ClaudeChat() {
                         tableSelections: {
                           ...(prev[currentSessionId]?.tableSelections || {}),
                           [fieldName]: rowIndex
+                        },
+                        tableSelectionData: {
+                          ...(prev[currentSessionId]?.tableSelectionData || {}),
+                          [fieldName]: rowData
                         }
+                      }
+                    }));
+                    // Also update activeFormDataMap so table selection is included in form submission
+                    setActiveFormDataMap(prev => ({
+                      ...prev,
+                      [currentSessionId]: {
+                        ...(prev[currentSessionId] || {}),
+                        [fieldName]: rowData
                       }
                     }));
                   }}

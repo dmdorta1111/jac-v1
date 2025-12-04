@@ -5,6 +5,65 @@ import fs from 'fs/promises';
 import path from 'path';
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import * as Sentry from '@sentry/nextjs';
+import { spawn } from 'child_process';
+
+/**
+ * Execute a PowerShell script with arguments
+ * @param scriptPath - Absolute path to the .ps1 script
+ * @param args - Arguments to pass to the script
+ * @returns Promise with stdout/stderr and exit code
+ */
+async function runPowerShellScript(
+  scriptPath: string,
+  args: string[]
+): Promise<{ success: boolean; stdout: string; stderr: string; exitCode: number }> {
+  return new Promise((resolve) => {
+    const psArgs = [
+      '-ExecutionPolicy', 'Bypass',
+      '-File', scriptPath,
+      ...args
+    ];
+
+    console.log(`Running PowerShell: powershell ${psArgs.join(' ')}`);
+
+    const child = spawn('powershell', psArgs, {
+      windowsHide: true,
+      shell: false,
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+      console.log(`[PS stdout] ${data.toString().trim()}`);
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+      console.error(`[PS stderr] ${data.toString().trim()}`);
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({
+        success: exitCode === 0,
+        stdout,
+        stderr,
+        exitCode: exitCode ?? 1,
+      });
+    });
+
+    child.on('error', (error) => {
+      console.error(`[PS error] ${error.message}`);
+      resolve({
+        success: false,
+        stdout,
+        stderr: error.message,
+        exitCode: 1,
+      });
+    });
+  });
+}
 
 /**
  * POST /api/export-variables
@@ -67,17 +126,19 @@ export async function POST(request: NextRequest) {
 
     console.log(`Exporting ${projectItems.length} items for ${validData.salesOrderNumber}`);
 
-    // Construct project items directory
-    const projectItemsDir = path.join(
+    // Construct project directories
+    const projectRoot = path.join(
       process.cwd(),
       'project-docs',
       validData.productType,
-      validData.salesOrderNumber,
-      'items'
+      validData.salesOrderNumber
     );
+    const projectItemsDir = path.join(projectRoot, 'items');
+    const customerDrawingsDir = path.join(projectRoot, 'Customer Drawings');
+    const proeModelsDir = path.join(projectRoot, 'ProE Models');
 
     // Security: Validate path doesn't escape project-docs directory
-    const normalizedPath = path.normalize(projectItemsDir);
+    const normalizedPath = path.normalize(projectRoot);
     const projectDocsRoot = path.join(process.cwd(), 'project-docs');
     if (!normalizedPath.startsWith(projectDocsRoot)) {
       return NextResponse.json(
@@ -86,8 +147,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure directory exists
+    // Ensure all directories exist
     await fs.mkdir(projectItemsDir, { recursive: true });
+    await fs.mkdir(customerDrawingsDir, { recursive: true });
+    await fs.mkdir(proeModelsDir, { recursive: true });
+
+    // Write project-header.json
+    const headerData = {
+      ...project.metadata,
+      salesOrderNumber: validData.salesOrderNumber,
+      productType: validData.productType,
+      exportedAt: new Date().toISOString(),
+    };
+    await fs.writeFile(
+      path.join(projectRoot, 'project-header.json'),
+      JSON.stringify(headerData, null, 2),
+      'utf-8'
+    );
 
     // Cleanup: Delete existing item-XXX.json files
     try {
@@ -138,14 +214,68 @@ export async function POST(request: NextRequest) {
 
     const relativePath = path.relative(process.cwd(), projectItemsDir);
 
+    // Chain PowerShell scripts after file export
+    const scriptsDir = path.join(process.cwd(), 'programs');
+    const scriptResults: { script: string; success: boolean; output: string }[] = [];
+
+    // 1. Run json_to_tab.ps1 - converts JSON to SmartAssembly .tab format
+    const jsonToTabScript = path.join(scriptsDir, 'json_to_tab.ps1');
+    try {
+      await fs.access(jsonToTabScript);
+      console.log(`Running json_to_tab.ps1 on ${projectItemsDir}...`);
+      const jsonToTabResult = await runPowerShellScript(jsonToTabScript, [projectItemsDir]);
+      scriptResults.push({
+        script: 'json_to_tab.ps1',
+        success: jsonToTabResult.success,
+        output: jsonToTabResult.stdout || jsonToTabResult.stderr,
+      });
+
+      if (!jsonToTabResult.success) {
+        console.error(`json_to_tab.ps1 failed: ${jsonToTabResult.stderr}`);
+      }
+    } catch (scriptError) {
+      console.warn(`json_to_tab.ps1 not found or not accessible: ${scriptError}`);
+      scriptResults.push({
+        script: 'json_to_tab.ps1',
+        success: false,
+        output: 'Script not found',
+      });
+    }
+
+    // 2. Run creoD.ps1 - launches Creo Parametric with project directory
+    const creoDScript = path.join(scriptsDir, 'creoD.ps1');
+    try {
+      await fs.access(creoDScript);
+      console.log(`Running creoD.ps1 on ${projectRoot}...`);
+      const creoDResult = await runPowerShellScript(creoDScript, [projectRoot]);
+      scriptResults.push({
+        script: 'creoD.ps1',
+        success: creoDResult.success,
+        output: creoDResult.stdout || creoDResult.stderr,
+      });
+
+      if (!creoDResult.success) {
+        console.error(`creoD.ps1 failed: ${creoDResult.stderr}`);
+      }
+    } catch (scriptError) {
+      console.warn(`creoD.ps1 not found or not accessible: ${scriptError}`);
+      scriptResults.push({
+        script: 'creoD.ps1',
+        success: false,
+        output: 'Script not found',
+      });
+    }
+
     return NextResponse.json({
       success: true,
       exportPath: relativePath,
+      projectPath: path.relative(process.cwd(), projectRoot),
       itemCount: projectItems.length,
       exportedFiles,
       salesOrderNumber: validData.salesOrderNumber,
       productType: validData.productType,
       exportedAt: new Date().toISOString(),
+      scripts: scriptResults,
     });
 
   } catch (error) {

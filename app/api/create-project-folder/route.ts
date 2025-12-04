@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { connectToDatabase, getProjectsCollection } from '@/lib/mongodb';
 
-// Product type to folder mapping
-const PRODUCT_FOLDERS: Record<string, string> = {
-  'SDI': 'SDI',
-  'EMJAC': 'EMJAC',
-  'Harmonic': 'HARMONIC',
-};
+// Product type validation
+const VALID_PRODUCT_TYPES = ['SDI', 'EMJAC', 'Harmonic'];
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate product type
-    const folderName = PRODUCT_FOLDERS[productType];
-    if (!folderName) {
+    if (!VALID_PRODUCT_TYPES.includes(productType)) {
       return NextResponse.json(
         { success: false, error: 'Invalid product type' },
         { status: 400 }
@@ -34,40 +27,45 @@ export async function POST(request: NextRequest) {
     // Sanitize sales order number
     const sanitizedSO = salesOrderNumber.replace(/[^a-zA-Z0-9-_]/g, '_');
 
-    // Build paths
-    const projectDocsDir = join(process.cwd(), 'project-docs');
-    const productDir = join(projectDocsDir, folderName);
-    const orderDir = join(productDir, sanitizedSO);
-    const customerDrawingsDir = join(orderDir, 'Customer Drawings');
-    const proeModelsDir = join(orderDir, 'ProE Models');
+    // Connect to MongoDB
+    const db = await connectToDatabase();
+    const projects = getProjectsCollection(db);
 
-    // Check if folder exists - if so, return success with exists flag
-    // This allows reopening existing projects
-    if (existsSync(orderDir)) {
+    // Check if project exists in MongoDB
+    const existingProject = await projects.findOne({
+      salesOrderNumber: sanitizedSO,
+      isDeleted: { $ne: true }
+    });
+
+    if (existingProject) {
       return NextResponse.json({
         success: true,
         exists: true,
-        path: `project-docs/${folderName}/${sanitizedSO}`,
+        // Path is virtual now, but we keep the structure for frontend compatibility
+        path: `project-docs/${productType}/${sanitizedSO}`,
         folderName: sanitizedSO,
+        projectId: existingProject._id.toString()
       }, { status: 200 });
     }
 
-    // Create folders for new project
-    await mkdir(orderDir, { recursive: true });
-    await mkdir(customerDrawingsDir, { recursive: true });
-    await mkdir(proeModelsDir, { recursive: true });
-
+    // Return success for new project (without creating folders yet)
+    // Folders will be created only on Export
     return NextResponse.json({
       success: true,
       exists: false,
-      path: `project-docs/${folderName}/${sanitizedSO}`,
+      path: `project-docs/${productType}/${sanitizedSO}`,
       folderName: sanitizedSO,
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error creating project folder:', error);
+    console.error('Error checking project existence:', error);
+    try {
+      const fs = require('fs');
+      fs.appendFileSync('debug.log', `Error in create-project-folder: ${error instanceof Error ? error.message + '\n' + error.stack : String(error)}\n`);
+    } catch (e) { /* ignore */ }
+
     return NextResponse.json(
-      { success: false, error: 'Failed to create project folder' },
+      { success: false, error: 'Failed to check project existence' },
       { status: 500 }
     );
   }

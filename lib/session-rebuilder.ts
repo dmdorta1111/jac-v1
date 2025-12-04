@@ -208,6 +208,7 @@ export async function rebuildSessionsFromDB(
         activeFormData: {}, // No unsaved form data when rebuilding from DB
         completedFormIds: Array.from(completedSteps), // Populate from submitted form steps
         tableSelections: {}, // Reset table selections on rebuild
+        tableSelectionData: {}, // Reset table selection data on rebuild
         highestStepReached: highestCompletedStep >= 0 ? highestCompletedStep : 0, // Enable navigation to all completed steps
         lastAccessedAt: Date.now(),
       };
@@ -339,6 +340,7 @@ async function rebuildFromNormalizedSchema(
       activeFormData: {},
       completedFormIds: Array.from(completedSteps),
       tableSelections: {},
+      tableSelectionData: {},
       highestStepReached: highestCompletedStep >= 0 ? highestCompletedStep : 0, // Enable navigation to all completed steps
       lastAccessedAt: Date.now(),
     };

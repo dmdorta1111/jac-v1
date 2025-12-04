@@ -10,7 +10,7 @@
     "HINGES": true,
     "CLOSER": true,
     "WELDED_PREPS": false,
-    "PRIMARY_LOCK": false,
+    "PRIMARY_LOCK": true,
     "SECONDARY_LOCK": false,
     "DUMMY_TRIM": false,
     "PRIMARY_STRIKE": false,
@@ -27,15 +27,19 @@
     "HEAD_STRIKE": false,
     "SILENCERS": false,
     "DOOR_EDGE_REINFORCEMENT": false,
-    "KICK_PLATE": false
+    "KICK_PLATE": false,
+    "AUTO_BOTTOM": 0
   },
   "_metadata": {
-    "itemNumber": "001",
-    "lastUpdated": "2025-12-04T04:45:59.156Z",
+    "itemNumber": "969",
+    "productType": "",
+    "salesOrderNumber": "96999",
+    "exportedAt": "2025-12-04T14:43:45.389Z",
     "formIds": [
       "options",
       "hinge-info",
       "door-info",
+      "lock-options",
       "closers"
     ]
   },
@@ -56,8 +60,8 @@
     "DOOR_ELEVATION": "F",
     "UNDERCUT": 0.75,
     "DOOR_GAUGE": 10,
-    "DOOR_GRADE": "10",
-    "BODY_SIDE_FINISH": "10",
+    "DOOR_GRADE": "1",
+    "BODY_SIDE_FINISH": "1",
     "COVER_SIDE_FINISH": "1",
     "DOOR_THICKNESS": 1.75,
     "TOP_CHANNEL_DEPTH": 0.75,
@@ -78,10 +82,37 @@
     "TOP_EDGE_": 0,
     "BOTTOM_EDGE_": 0
   },
+  "lock-options": {
+    "STRIKE_CENTER": null,
+    "MULLION_ADD_PER_DOOR": null,
+    "MORTISE_BOX_DEPTH": null,
+    "EXIT_MULLION": false,
+    "UNEQUAL_EXITS": false,
+    "FIRE_BOLT": false,
+    "SPECIAL_BOX_DEPTH": false,
+    "SELECT_LOCK": true,
+    "SELECTED_LOCK": {
+      "__id": "lock-2",
+      "id": 2,
+      "lockType": "CYLINDER LOCK",
+      "manufacturer": "GENERIC",
+      "modelNumber": "2-1/8\" BORE",
+      "drawingDescription": "CYLINDER LOCK",
+      "template": "NA",
+      "backset": 2.75,
+      "offset": 0
+    },
+    "SELECT_TRIM": false,
+    "LOCK_ELECTRIFIED": false,
+    "VERIFY_STRIKE": false,
+    "VERIFY_LOCK": false
+  },
   "closers": {
     "SURFACE_CLOSER_LENGTH": 21,
     "SURFACE_CLOSER_WIDTH": 5,
     "EQUAL_CLOSERS": true,
     "CLOSER_TYPE": 1
-  }
+  },
+  "CHOICE": 1,
+  "FRAME_PROCESSED": ""
 }
