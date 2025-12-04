@@ -1518,52 +1518,20 @@ export function ClaudeChat() {
           });
         } else {
           // Flow complete - no more steps satisfy conditions
-          // Export all form data to SmartAssembly JSON
-          try {
-            const exportResponse = await fetch('/api/export-variables', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                sessionId: currentSessionId || generateId(),
-                salesOrderNumber: projectContext.salesOrderNumber,
-              }),
-            });
+          // Mark session as complete and show completion message
+          setChatSessions(prev => prev.map(s =>
+            s.id === currentSessionId
+              ? { ...s, flowComplete: true, currentStep: totalSteps, totalSteps }
+              : s
+          ));
 
-            const exportData = await exportResponse.json();
-
-            if (exportData.success) {
-              const completionMessage: Message = {
-                id: generateId(),
-                sender: 'bot',
-                text: `✓ Item ${currentItemNumber} configuration complete!\n\nAll required forms have been filled based on your selections.\n\n**Export Summary:**\n- Variables exported: ${exportData.variableCount}\n- Export path: \`${exportData.exportPath}\`\n- Session ID: ${exportData.sessionId}\n\nYour SDI project data has been exported for SmartAssembly.\n\nWould you like to create another item for this project?`,
-                timestamp: new Date(),
-              };
-              setMessages((prev) => [...prev, completionMessage]);
-              // Mark session as flow complete
-              setChatSessions(prev => prev.map(s =>
-                s.id === currentSessionId
-                  ? { ...s, flowComplete: true, currentStep: totalSteps, totalSteps }
-                  : s
-              ));
-            } else {
-              throw new Error(exportData.error || 'Export failed');
-            }
-          } catch (exportError) {
-            console.error('Export error:', exportError);
-            const errorMessage: Message = {
-              id: generateId(),
-              sender: 'bot',
-              text: `✓ Item ${currentItemNumber} configuration complete!\n\nAll forms filled, but I encountered an issue exporting to SmartAssembly:\n${exportError instanceof Error ? exportError.message : 'Unknown error'}\n\nYour data is saved in the database. You can retry export later.\n\nWould you like to create another item for this project?`,
-              timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, errorMessage]);
-            // Mark session as flow complete (even on export error)
-            setChatSessions(prev => prev.map(s =>
-              s.id === currentSessionId
-                ? { ...s, flowComplete: true, currentStep: totalSteps, totalSteps }
-                : s
-            ));
-          }
+          const completionMessage: Message = {
+            id: generateId(),
+            sender: 'bot',
+            text: `✓ Item ${currentItemNumber} configuration complete!\n\nAll required forms have been filled based on your selections.\n\nYour data is saved in the database. Click the **Export Items** button in the sidebar when ready to generate files for SmartAssembly.\n\nWould you like to create another item for this project?`,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, completionMessage]);
         }
 
         setIsLoading(false);
@@ -1624,6 +1592,85 @@ export function ClaudeChat() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  /**
+   * Handle export button click
+   * Export all completed items to per-item JSON files for SmartAssembly
+   */
+  const handleExportClick = async () => {
+    try {
+      // Get project context
+      const SO_NUM = projectContext?.salesOrderNumber;
+      const productType = projectContext?.productType || 'SDI';
+
+      if (!SO_NUM) {
+        console.error('Cannot export: Missing sales order number');
+        const errorMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: 'Cannot export: Sales order number is missing. Please complete the project header first.',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        return;
+      }
+
+      // Get all completed item sessions
+      const completedSessions = chatSessions.filter(s => s.flowComplete === true);
+
+      if (completedSessions.length === 0) {
+        console.warn('No completed items to export');
+        const warningMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: 'No completed items to export. Please complete at least one item workflow first.',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, warningMessage]);
+        return;
+      }
+
+      console.log(`Exporting ${completedSessions.length} completed items...`);
+
+      // Trigger export API
+      const exportResponse = await fetch('/api/export-variables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          salesOrderNumber: SO_NUM,
+          productType,
+        }),
+      });
+
+      if (!exportResponse.ok) {
+        throw new Error('Export request failed');
+      }
+
+      const exportData = await exportResponse.json();
+
+      if (exportData.success) {
+        const successMessage: Message = {
+          id: generateId(),
+          sender: 'bot',
+          text: `✓ Export complete!\n\n**Items exported:** ${exportData.itemCount || completedSessions.length}\n**Export path:** \`${exportData.exportPath}\`\n\nYour SDI project data has been exported for SmartAssembly.`,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, successMessage]);
+      } else {
+        throw new Error(exportData.error || 'Export failed');
+      }
+
+    } catch (error) {
+      console.error('Export error:', error);
+      const errorMessage: Message = {
+        id: generateId(),
+        sender: 'bot',
+        text: `Export failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\nYour data is saved in the database. Please try again.`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
@@ -2067,6 +2114,7 @@ export function ClaudeChat() {
         onNavigateNext={handleNavigateNext}
         showNewItemButton={metadata?.projectHeaderCompleted || false}
         isLoading={isLoading}
+        onExportClick={handleExportClick}
       />
 
       {/* Main Chat Area */}

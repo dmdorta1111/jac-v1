@@ -1,6 +1,6 @@
 # System Architecture
 
-**Last Updated:** 2025-11-29
+**Last Updated:** 2025-12-04
 
 ## High-Level Architecture
 
@@ -315,20 +315,35 @@ const validationResult = validateFormData(formSpec, mergedData);
 ```
 Form Submission
     ↓
-POST /api/save-item-data (MongoDB upsert)
+POST /api/save-item-data (MongoDB upsert ONLY)
     ↓
 Items Collection Updated
     ↓
-Workflow Continues (no files written)
+Workflow Continues (no filesystem writes)
     ↓
-[User clicks Export]
+Flow Complete → flowComplete: true
     ↓
-POST /api/export-variables (filesystem write)
+Export Button Enabled in LeftSidebar
     ↓
-JSON files created in project-docs/
+[User clicks Export Button]
+    ↓
+POST /api/export-variables (queries MongoDB, writes files)
+    ↓
+JSON files created in project-docs/{productType}/{SO_NUM}/items/
 ```
 
-**Key Principle:** Database is single source of truth during workflow. Filesystem writes occur ONLY during explicit export operations.
+**Key Principles:**
+1. **MongoDB-First:** Database is single source of truth during workflow
+2. **Explicit Export:** User controls when files are written via Export button
+3. **No Auto-Export:** File generation decoupled from workflow completion
+4. **Filesystem writes occur ONLY during explicit export operations**
+
+**Export Button Architecture:**
+- Location: LeftSidebar footer (below 3D Viewer button)
+- Enabled when: ≥1 item has `flowComplete: true`
+- Badge: Shows count of completed items
+- Mobile: Closes sidebar after export
+- Handler: `ClaudeChat.handleExportClick()` calls `/api/export-variables`
 
 ### 6. Template Management
 
