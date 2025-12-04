@@ -1,27 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import { ExportVariablesRequestSchema } from '@/lib/schemas/form-submission';
+import { ExportProjectRequestSchema } from '@/lib/schemas/form-submission';
 import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import * as Sentry from '@sentry/nextjs';
+import { spawn } from 'child_process';
+
+/**
+ * Execute a PowerShell script with arguments
+ * @param scriptPath - Absolute path to the .ps1 script
+ * @param args - Arguments to pass to the script
+ * @returns Promise with stdout/stderr and exit code
+ */
+async function runPowerShellScript(
+  scriptPath: string,
+  args: string[]
+): Promise<{ success: boolean; stdout: string; stderr: string; exitCode: number }> {
+  return new Promise((resolve) => {
+    const psArgs = [
+      '-ExecutionPolicy', 'Bypass',
+      '-File', scriptPath,
+      ...args
+    ];
+
+    console.log(`Running PowerShell: powershell ${psArgs.join(' ')}`);
+
+    const child = spawn('powershell', psArgs, {
+      windowsHide: true,
+      shell: false,
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+      console.log(`[PS stdout] ${data.toString().trim()}`);
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+      console.error(`[PS stderr] ${data.toString().trim()}`);
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({
+        success: exitCode === 0,
+        stdout,
+        stderr,
+        exitCode: exitCode ?? 1,
+      });
+    });
+
+    child.on('error', (error) => {
+      console.error(`[PS error] ${error.message}`);
+      resolve({
+        success: false,
+        stdout,
+        stderr: error.message,
+        exitCode: 1,
+      });
+    });
+  });
+}
 
 /**
  * POST /api/export-variables
- * Export all form data for a session as SmartAssembly JSON
+ * Export all items for a project to individual JSON files for SmartAssembly
  *
  * Rate limit: 10 requests per minute per IP
  *
  * Request body:
- * - sessionId: Session to export
- * - salesOrderNumber: Optional sales order filter
- * - itemNumber: Optional item number filter
+ * - salesOrderNumber: Sales order number (required)
+ * - productType: Product type (default: SDI)
  *
  * Response:
  * - success: true if exported successfully
- * - exportPath: Path to generated formdata.json
- * - variableCount: Number of variables exported
+ * - exportPath: Path to items directory
+ * - itemCount: Number of items exported
+ * - exportedFiles: Array of file names created
  */
 export async function POST(request: NextRequest) {
   // Apply rate limiting
@@ -32,68 +90,192 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate request
-    const validData = ExportVariablesRequestSchema.parse(body);
+    const validData = ExportProjectRequestSchema.parse(body);
 
     // Connect to MongoDB
+    const { connectToDatabase, getProjectsCollection, getItemsCollection } = await import('@/lib/mongodb');
     const db = await connectToDatabase();
+    const projects = getProjectsCollection(db);
+    const items = getItemsCollection(db);
 
-    // Fetch all submissions for session
-    const submissions = await db
-      .collection('form_submissions')
-      .find({ sessionId: validData.sessionId })
-      .sort({ 'metadata.submittedAt': 1 })
-      .toArray();
+    // Find project
+    const project = await projects.findOne({
+      salesOrderNumber: validData.salesOrderNumber,
+      isDeleted: { $ne: true },
+    });
 
-    if (submissions.length === 0) {
+    if (!project) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'No submissions found for session',
-          sessionId: validData.sessionId,
-        },
+        { success: false, error: 'Project not found' },
         { status: 404 }
       );
     }
 
-    // Merge all form data into single object
-    // Later submissions override earlier ones for same field names
-    const mergedData = submissions.reduce((acc, sub) => ({
-      ...acc,
-      ...sub.formData,
-    }), {} as Record<string, any>);
+    // Query all items for project
+    const projectItems = await items.find({
+      projectId: project._id,
+      isDeleted: { $ne: true },
+    }).sort({ itemNumber: 1 }).toArray();
 
-    // Add metadata fields to exported variables
-    const firstSubmission = submissions[0];
-    const exportData = {
-      ...mergedData,
-      _metadata: {
-        sessionId: validData.sessionId,
-        salesOrderNumber: firstSubmission.metadata.salesOrderNumber,
-        itemNumber: firstSubmission.metadata.itemNumber,
-        productType: firstSubmission.metadata.productType,
-        exportedAt: new Date().toISOString(),
-        formCount: submissions.length,
-      },
+    if (projectItems.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No items found for project' },
+        { status: 404 }
+      );
+    }
+
+    console.log(`Exporting ${projectItems.length} items for ${validData.salesOrderNumber}`);
+
+    // Construct project directories
+    const projectRoot = path.join(
+      process.cwd(),
+      'project-docs',
+      validData.productType,
+      validData.salesOrderNumber
+    );
+    const projectItemsDir = path.join(projectRoot, 'items');
+    const customerDrawingsDir = path.join(projectRoot, 'Customer Drawings');
+    const proeModelsDir = path.join(projectRoot, 'ProE Models');
+
+    // Security: Validate path doesn't escape project-docs directory
+    const normalizedPath = path.normalize(projectRoot);
+    const projectDocsRoot = path.join(process.cwd(), 'project-docs');
+    if (!normalizedPath.startsWith(projectDocsRoot)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid path: directory traversal detected' },
+        { status: 400 }
+      );
+    }
+
+    // Ensure all directories exist
+    await fs.mkdir(projectItemsDir, { recursive: true });
+    await fs.mkdir(customerDrawingsDir, { recursive: true });
+    await fs.mkdir(proeModelsDir, { recursive: true });
+
+    // Write project-header.json
+    const headerData = {
+      ...project.metadata,
+      salesOrderNumber: validData.salesOrderNumber,
+      productType: validData.productType,
+      exportedAt: new Date().toISOString(),
     };
+    await fs.writeFile(
+      path.join(projectRoot, 'project-header.json'),
+      JSON.stringify(headerData, null, 2),
+      'utf-8'
+    );
 
-    // Get SmartAssembly work directory from environment
-    const workDir = process.env.SMARTASSEMBLY_WORK_DIR || './smartassembly-work';
+    // Cleanup: Delete existing item-XXX.json files
+    try {
+      const existingFiles = await fs.readdir(projectItemsDir);
+      const itemFiles = existingFiles.filter(f => /^item-\d{3}\.json$/.test(f));
 
-    // Ensure directory exists
-    await fs.mkdir(workDir, { recursive: true });
+      if (itemFiles.length > 0) {
+        console.log(`Deleting ${itemFiles.length} old item files...`);
+        await Promise.all(
+          itemFiles.map(file =>
+            fs.unlink(path.join(projectItemsDir, file)).catch(err =>
+              console.warn(`Failed to delete ${file}:`, err)
+            )
+          )
+        );
+      }
+    } catch (readError) {
+      // Directory doesn't exist or is empty - ignore
+      console.log('No existing files to clean up');
+    }
 
-    // Write JSON file for SmartAssembly
-    const jsonPath = path.join(workDir, 'formdata.json');
-    await fs.writeFile(jsonPath, JSON.stringify(exportData, null, 2), 'utf-8');
+    // Write one JSON file per item
+    const exportedFiles: string[] = [];
 
-    console.log(`Exported ${Object.keys(mergedData).length} variables to ${jsonPath}`);
+    for (const item of projectItems) {
+      // Ensure system fields exist at root level
+      const exportData = {
+        ...item.itemData,
+        CHOICE: item.itemData.CHOICE ?? 1,
+        FRAME_PROCESSED: item.itemData.FRAME_PROCESSED ?? "",
+        _metadata: {
+          itemNumber: item.itemNumber,
+          productType: item.productType,
+          salesOrderNumber: validData.salesOrderNumber,
+          exportedAt: new Date().toISOString(),
+          formIds: item.formIds || [],
+        },
+      };
+
+      const fileName = `item-${item.itemNumber}.json`;
+      const filePath = path.join(projectItemsDir, fileName);
+
+      await fs.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf-8');
+
+      exportedFiles.push(fileName);
+      console.log(`Exported ${fileName} (${Object.keys(item.itemData).length} fields)`);
+    }
+
+    const relativePath = path.relative(process.cwd(), projectItemsDir);
+
+    // Chain PowerShell scripts after file export
+    const scriptsDir = path.join(process.cwd(), 'programs');
+    const scriptResults: { script: string; success: boolean; output: string }[] = [];
+
+    // 1. Run json_to_tab.ps1 - converts JSON to SmartAssembly .tab format
+    const jsonToTabScript = path.join(scriptsDir, 'json_to_tab.ps1');
+    try {
+      await fs.access(jsonToTabScript);
+      console.log(`Running json_to_tab.ps1 on ${projectItemsDir}...`);
+      const jsonToTabResult = await runPowerShellScript(jsonToTabScript, [projectItemsDir]);
+      scriptResults.push({
+        script: 'json_to_tab.ps1',
+        success: jsonToTabResult.success,
+        output: jsonToTabResult.stdout || jsonToTabResult.stderr,
+      });
+
+      if (!jsonToTabResult.success) {
+        console.error(`json_to_tab.ps1 failed: ${jsonToTabResult.stderr}`);
+      }
+    } catch (scriptError) {
+      console.warn(`json_to_tab.ps1 not found or not accessible: ${scriptError}`);
+      scriptResults.push({
+        script: 'json_to_tab.ps1',
+        success: false,
+        output: 'Script not found',
+      });
+    }
+
+    // 2. Run creoD.ps1 - launches Creo Parametric with project directory
+    const creoDScript = path.join(scriptsDir, 'creoD.ps1');
+    try {
+      await fs.access(creoDScript);
+      console.log(`Running creoD.ps1 on ${projectRoot}...`);
+      const creoDResult = await runPowerShellScript(creoDScript, [projectRoot]);
+      scriptResults.push({
+        script: 'creoD.ps1',
+        success: creoDResult.success,
+        output: creoDResult.stdout || creoDResult.stderr,
+      });
+
+      if (!creoDResult.success) {
+        console.error(`creoD.ps1 failed: ${creoDResult.stderr}`);
+      }
+    } catch (scriptError) {
+      console.warn(`creoD.ps1 not found or not accessible: ${scriptError}`);
+      scriptResults.push({
+        script: 'creoD.ps1',
+        success: false,
+        output: 'Script not found',
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      exportPath: jsonPath,
-      variableCount: Object.keys(mergedData).length,
-      sessionId: validData.sessionId,
-      metadata: exportData._metadata,
+      exportPath: relativePath,
+      projectPath: path.relative(process.cwd(), projectRoot),
+      itemCount: projectItems.length,
+      exportedFiles,
+      salesOrderNumber: validData.salesOrderNumber,
+      productType: validData.productType,
+      exportedAt: new Date().toISOString(),
+      scripts: scriptResults,
     });
 
   } catch (error) {
@@ -151,13 +333,15 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/export-variables?sessionId=xxx
+ * GET /api/export-variables?sessionId=xxx&productType=xxx&salesOrderNumber=xxx
  * Check if export exists for a session
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
+    const productType = searchParams.get('productType');
+    const salesOrderNumber = searchParams.get('salesOrderNumber');
 
     if (!sessionId) {
       return NextResponse.json(
@@ -166,8 +350,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const workDir = process.env.SMARTASSEMBLY_WORK_DIR || './smartassembly-work';
-    const jsonPath = path.join(workDir, 'formdata.json');
+    if (!productType || !salesOrderNumber) {
+      return NextResponse.json(
+        { success: false, error: 'productType and salesOrderNumber parameters are required' },
+        { status: 400 }
+      );
+    }
+
+    const projectItemsDir = path.join('project-docs', productType, salesOrderNumber, 'items');
+    const jsonPath = path.join(projectItemsDir, 'formdata.json');
 
     try {
       const content = await fs.readFile(jsonPath, 'utf-8');

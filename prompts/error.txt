@@ -1,0 +1,62 @@
+## Error Type
+Console Error
+
+## Error Message
+In HTML, whitespace text nodes cannot be a child of <tr>. Make sure you don't have any extra whitespace between tags on each line of your source code.
+This will cause a hydration error.
+
+  ...
+    <FieldSet name="lock-optio..." className="relative r...">
+      <fieldset data-slot="field-set" className={"flex fle..."} name="lock-optio...">
+        <FieldContent>
+        <div className="p-6">
+          <div className={"compact-..."}>
+            <div>
+            <div>
+            <div>
+            <div className="col-span-1...">
+              <Field data-invalid={false}>
+                <div role="group" data-slot="field" data-orientation="vertical" className={"group/fi..."} ...>
+                  <FieldContent>
+                  <div className="rounded-lg...">
+                    <_c>
+                      <div className="relative w...">
+                        <table ref={null} className="w-full cap...">
+                          <_c2>
+                            <thead ref={null} className={"[&_tr]:b..."}>
+                              <_c8>
+>                               <tr
+>                                 ref={null}
+>                                 className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+>                               >
+                                  <_c10>
+>                                 {" "}
+                                  ...
+                          ...
+            ...
+
+
+
+    at tr (<anonymous>:null:null)
+    at _c8 (components/ui/table.tsx:58:3)
+    at renderField (components/DynamicFormRenderer.tsx:943:19)
+    at <unknown> (components/DynamicFormRenderer.tsx:1092:43)
+    at Array.map (<anonymous>:null:null)
+    at <unknown> (components/DynamicFormRenderer.tsx:1090:35)
+    at Array.map (<anonymous>:null:null)
+    at DynamicFormRenderer (components/DynamicFormRenderer.tsx:1039:30)
+    at <unknown> (components/ClaudeChat.tsx:2158:17)
+    at Array.map (<anonymous>:null:null)
+    at ClaudeChat (components/ClaudeChat.tsx:2157:25)
+    at Home (app\page.tsx:17:9)
+
+## Code Frame
+  56 |   React.HTMLAttributes<HTMLTableRowElement>
+  57 | >(({ className, ...props }, ref) => (
+> 58 |   <tr
+     |   ^
+  59 |     ref={ref}
+  60 |     className={cn(
+  61 |       "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+
+Next.js version: 16.0.3 (Turbopack)

@@ -28,6 +28,9 @@ interface ProjectContextType {
   showNewProjectDialog: boolean;
   openNewProjectDialog: () => void;
   closeNewProjectDialog: () => void;
+  // Clear all chats callback - registered by ClaudeChat
+  clearAllChats: () => void;
+  registerClearChatsCallback: (callback: () => void) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -35,10 +38,23 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [metadata, setMetadata] = useState<ProjectMetadata | null>(null);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
+  const [clearChatsCallback, setClearChatsCallback] = useState<(() => void) | null>(null);
 
   const clearMetadata = () => setMetadata(null);
   const openNewProjectDialog = useCallback(() => setShowNewProjectDialog(true), []);
   const closeNewProjectDialog = useCallback(() => setShowNewProjectDialog(false), []);
+
+  // Register callback from ClaudeChat for clearing chats
+  const registerClearChatsCallback = useCallback((callback: () => void) => {
+    setClearChatsCallback(() => callback);
+  }, []);
+
+  // Clear all chats using registered callback
+  const clearAllChats = useCallback(() => {
+    if (clearChatsCallback) {
+      clearChatsCallback();
+    }
+  }, [clearChatsCallback]);
 
   const value = useMemo(() => ({
     metadata,
@@ -47,7 +63,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     showNewProjectDialog,
     openNewProjectDialog,
     closeNewProjectDialog,
-  }), [metadata, showNewProjectDialog, openNewProjectDialog, closeNewProjectDialog]);
+    clearAllChats,
+    registerClearChatsCallback,
+  }), [metadata, showNewProjectDialog, openNewProjectDialog, closeNewProjectDialog, clearAllChats, registerClearChatsCallback]);
 
   return (
     <ProjectContext.Provider value={value}>

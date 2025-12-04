@@ -272,7 +272,35 @@ interface FormField {
 
 ## Recent Changes (Documented)
 
-### 1. Tailwind V4 Design System Modernization (2025-12-02)
+### 1. Phase 01: MongoDB-Only Form Workflow (2025-12-04)
+
+**Status:** Complete - Production ready
+
+**Changes:**
+- Removed all filesystem writes from `save-item-data` API route
+- Changed POST/GET handlers to MongoDB-only queries
+- Updated ClaudeChat to use salesOrderNumber instead of projectPath
+- Preserved rename detection with soft-delete pattern
+- Items collection is now single source of truth during workflow
+
+**Impact:**
+- Filesystem writes deferred until explicit export (Phase 02)
+- Improved data consistency (no file/DB sync issues)
+- Better rename tracking with MongoDB audit trail
+- Test coverage: 6/6 passing, 0 critical issues
+
+**Files Modified:**
+- `app/api/save-item-data/route.ts` - Complete rewrite (293 lines)
+- `components/ClaudeChat.tsx` - Updated loadExistingItemState (line 330)
+
+**Architecture Change:**
+```
+Before: Form Submit → Write JSON file + MongoDB upsert
+After:  Form Submit → MongoDB upsert only
+Export: POST /api/export-variables → Write JSON files
+```
+
+### 2. Tailwind V4 Design System Modernization (2025-12-02)
 
 **Status:** Complete - Production ready
 

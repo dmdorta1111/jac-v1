@@ -64,23 +64,31 @@ export class FlowExecutor {
    * @returns Next step or null if no more steps
    */
   findNextStep(): FlowStep | null {
+    console.log('[findNextStep] Starting search from index:', this.currentStepIndex + 1);
+    console.log('[findNextStep] Total filtered steps:', this.filteredSteps.length);
+    console.log('[findNextStep] Current state:', JSON.stringify(this.state, null, 2));
+
     // Search from current index + 1 onwards
     for (let i = this.currentStepIndex + 1; i < this.filteredSteps.length; i++) {
       const step = this.filteredSteps[i];
 
       // Only consider data-collection steps
       if (step.formType !== 'data-collection') {
+        console.log(`[findNextStep] Skipping step ${i} (${step.formTemplate}) - not data-collection`);
         continue;
       }
 
       // Evaluate step condition
-      if (this.evaluateCondition(step)) {
-        console.log('Next step found:', { index: i, formTemplate: step.formTemplate });
+      const conditionResult = this.evaluateCondition(step);
+      console.log(`[findNextStep] Step ${i} (${step.formTemplate}): condition=${step.condition?.expression || 'none'}, result=${conditionResult}`);
+
+      if (conditionResult) {
+        console.log('[findNextStep] Next step found:', { index: i, formTemplate: step.formTemplate });
         return step;
       }
     }
 
-    console.log('No more steps found - flow complete');
+    console.log('[findNextStep] No more steps found - flow complete');
     return null;
   }
 

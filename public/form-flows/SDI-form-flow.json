@@ -371,7 +371,7 @@
         "order": 10,
         "lineNumber": 2954,
         "condition": {
-          "expression": "DOOR_ELEVATION == '*N*' OR DOOR_ELEVATION == '*G*' OR DOOR_ELEVATION == '*V*' OR DOOR_ELEVATION == '*C*'",
+          "expression": "DOOR_ELEVATION == 'N' OR DOOR_ELEVATION == 'G' OR DOOR_ELEVATION == 'V' OR DOOR_ELEVATION == 'C'",
           "parent": "OPENING_TYPE == 1 OR OPENING_TYPE == 3",
           "elevationCodes": {
             "*N*": "Narrow lite",
@@ -453,7 +453,7 @@
         "order": 13,
         "lineNumber": 3112,
         "condition": {
-          "expression": "DOOR_ELEVATION == '*L*'",
+          "expression": "DOOR_ELEVATION == 'L'",
           "parent": "OPENING_TYPE == 1 OR OPENING_TYPE == 3"
         },
         "description": "Door louver information",

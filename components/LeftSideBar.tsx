@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Plus, Sliders, Trash2 } from "lucide-react";
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Clock, Download, Plus, Sliders, Trash2 } from "lucide-react";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useModelModal } from "@/components/providers/model-modal-provider";
 import { useWorkflowModal } from "@/components/providers/workflow-modal-provider";
@@ -73,6 +73,7 @@ interface LeftSidebarProps {
   onNavigateNext?: () => void;
   showNewItemButton?: boolean;
   isLoading?: boolean;
+  onExportClick?: () => void;
 }
 
 export function LeftSidebar({
@@ -86,11 +87,17 @@ export function LeftSidebar({
   onNavigateNext,
   showNewItemButton = false,
   isLoading = false,
+  onExportClick,
 }: LeftSidebarProps) {
   const { isOpen: mobileSidebarOpen, close: closeSidebar } = useSidebar();
   const { open: openModelModal } = useModelModal();
   const { open: openWorkflowModal } = useWorkflowModal();
   const { open: openStdsModal } = useStdsModal();
+
+  // Calculate completion stats for Export button
+  const completedItems = chatSessions.filter(s => s.flowComplete === true);
+  const hasCompletedItems = completedItems.length > 0;
+  const completionText = `${completedItems.length} of ${chatSessions.length} completed`;
 
   // Close sidebar on Escape key
   useEffect(() => {
@@ -230,6 +237,31 @@ export function LeftSidebar({
           >
             <Box className="size-5" />
             3D Viewer
+          </Button>
+
+          {/* Export Items Button */}
+          <Button
+            onClick={() => {
+              if (onExportClick) {
+                onExportClick();
+              }
+              if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                closeSidebar();
+              }
+            }}
+            disabled={!hasCompletedItems}
+            variant="ghost"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold text-green-600 dark:text-green-400 transition-all duration-200 hover:bg-green-500/15 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={`Export completed items (${completionText})`}
+            title={hasCompletedItems ? completionText : 'Complete at least one item to export'}
+          >
+            <Download className="size-5" />
+            <span>Export Items</span>
+            {hasCompletedItems && (
+              <span className="ml-auto text-xs text-green-600/70 dark:text-green-400/70">
+                {completedItems.length}
+              </span>
+            )}
           </Button>
         </div>
       </aside>

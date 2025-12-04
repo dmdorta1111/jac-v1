@@ -12,6 +12,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Field,
+  FieldContent,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useProject } from "@/components/providers/project-context";
 
@@ -218,10 +223,10 @@ export function NewProjectDialog({
             </DialogHeader>
 
             <div className="space-y-3 px-6 py-8">
-              <div className="space-y-2">
-                <label htmlFor="salesOrder" className="text-sm font-medium text-foreground">
-                  Sales Order Number
-                </label>
+              <Field>
+                <FieldContent>
+                  <FieldLabel htmlFor="salesOrder">Sales Order Number</FieldLabel>
+                </FieldContent>
                 <Input
                   id="salesOrder"
                   name="salesOrder"
@@ -233,15 +238,14 @@ export function NewProjectDialog({
                   autoFocus
                   className="rounded-md"
                 />
-              </div>
+              </Field>
 
               {feedback && (
                 <div
-                  className={`rounded-md px-3 py-2.5 text-sm ${
-                    feedback.type === 'success'
+                  className={`rounded-md px-3 py-2.5 text-sm ${feedback.type === 'success'
                       ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                       : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                  }`}
+                    }`}
                 >
                   {feedback.message}
                 </div>

@@ -6,6 +6,32 @@
  */
 
 /**
+ * Normalize values for consistent comparison in flow conditions
+ * Handles type mismatches between form components and condition expressions:
+ * - Switch components return boolean (true/false) but conditions use numeric (1/0)
+ * - Select dropdowns return strings ("1") but conditions use numbers (1)
+ *
+ * @param value - The value to normalize
+ * @returns Normalized value suitable for comparison
+ */
+function normalizeValue(value: any): any {
+  // Convert boolean to number (switch components return true/false)
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+
+  // Convert numeric strings to numbers (select dropdowns return string values)
+  if (typeof value === 'string' && value !== '') {
+    const num = Number(value);
+    if (!isNaN(num)) {
+      return num;
+    }
+  }
+
+  return value;
+}
+
+/**
  * Evaluate a boolean expression safely with given context
  * @param expression - SmartAssembly expression (e.g., "OPENING_TYPE == 1 AND HINGES == 1")
  * @param context - Variable context from flowState
@@ -21,13 +47,19 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   // Convert SmartAssembly operators to JavaScript
   const jsExpression = convertToJavaScript(expression);
 
-  // Validate expression syntax (whitelist approach)
-  validateExpression(jsExpression);
-
   // Extract variable names from expression and ensure they exist in context
   // Default undefined variables to null to prevent ReferenceError
   const expressionVars = extractVariableNames(jsExpression);
   const safeContext: Record<string, any> = { ...context };
+
+  // Debug logging for condition evaluation
+  console.log(`[safeEval] Expression: "${expression}" → JS: "${jsExpression}"`);
+  console.log(`[safeEval] Variables in expression:`, expressionVars);
+  expressionVars.forEach(varName => {
+    const rawValue = context[varName];
+    const normalizedValue = normalizeValue(rawValue);
+    console.log(`[safeEval]   ${varName}: raw=${JSON.stringify(rawValue)} (${typeof rawValue}), normalized=${JSON.stringify(normalizedValue)}`);
+  });
 
   for (const varName of expressionVars) {
     if (!(varName in safeContext)) {
@@ -39,16 +71,49 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   try {
     // Create function with context variables as parameters
     const varNames = Object.keys(safeContext);
-    const varValues = Object.values(safeContext);
+    // Normalize values for consistent comparison (boolean→number, string→number)
+    const varValues = Object.values(safeContext).map(normalizeValue);
+
+    // Sanitize variable names for use as function parameters
+    // Replace invalid characters (like hyphens) with underscores
+    const sanitizeVarName = (name: string): string => {
+      return name.replace(/[^a-zA-Z0-9_]/g, '_');
+    };
+
+    // Create mapping of original names to sanitized names
+    const nameMapping = new Map<string, string>();
+    varNames.forEach(name => {
+      nameMapping.set(name, sanitizeVarName(name));
+    });
+
+    // Replace variable names in expression with sanitized versions
+    let sanitizedExpression = jsExpression;
+    // Sort by length (longest first) to handle cases where one var name contains another
+    const sortedNames = [...varNames].sort((a, b) => b.length - a.length);
+    for (const originalName of sortedNames) {
+      const sanitizedName = nameMapping.get(originalName)!;
+      // Use word boundaries to match whole variable names only
+      const regex = new RegExp(`\\b${escapeRegExp(originalName)}\\b`, 'g');
+      sanitizedExpression = sanitizedExpression.replace(regex, sanitizedName);
+    }
+
+    // Validate sanitized expression syntax (whitelist approach)
+    // Must validate AFTER sanitization since original expression may contain hyphens in variable names
+    validateExpression(sanitizedExpression);
+
+    // Use sanitized names as function parameters
+    const sanitizedParamNames = varNames.map(name => nameMapping.get(name)!);
 
     // Build function body with safe evaluation
-    const fn = new Function(...varNames, `return ${jsExpression};`);
+    const fn = new Function(...sanitizedParamNames, `return ${sanitizedExpression};`);
 
     // Execute with context values
     const result = fn(...varValues);
 
     // Ensure boolean result
-    return Boolean(result);
+    const boolResult = Boolean(result);
+    console.log(`[safeEval] Result: ${boolResult}`);
+    return boolResult;
   } catch (error) {
     console.error('Expression evaluation error:', error, 'Expression:', jsExpression);
     throw new Error(`Failed to evaluate condition: ${expression}`);
@@ -56,15 +121,24 @@ export function safeEval(expression: string, context: Record<string, any>): bool
 }
 
 /**
+ * Escape special regex characters in a string
+ */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Extract variable names from a JavaScript expression
  * Matches identifiers that are not keywords, operators, or literals
+ * Note: Allows hyphens in variable names (e.g., HINGE_LOCATION_1-9) for SmartAssembly compatibility
  */
 function extractVariableNames(expression: string): string[] {
   // Remove string literals first to avoid matching inside strings
   const withoutStrings = expression.replace(/'[^']*'|"[^"]*"/g, '');
 
-  // Match valid JavaScript identifiers
-  const identifierPattern = /\b([A-Z_][A-Z0-9_]*)\b/gi;
+  // Match SmartAssembly variable names (allows hyphens)
+  // Pattern: starts with letter/underscore, followed by letters/digits/underscores/hyphens
+  const identifierPattern = /\b([A-Z_][A-Z0-9_-]*)\b/gi;
   const matches = withoutStrings.match(identifierPattern) || [];
 
   // Filter out JavaScript keywords and boolean literals

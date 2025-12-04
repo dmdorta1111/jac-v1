@@ -106,6 +106,18 @@ try {
         exit 1
     }
 
+    # Look for project-header.json in parent directory (project root)
+    $projectHeaderPath = Join-Path (Split-Path $WorkDir -Parent) "project-header.json"
+    $projectHeaderObj = $null
+    if (Test-Path $projectHeaderPath) {
+        Write-Host "Found project header: $projectHeaderPath"
+        $headerContent = Get-Content -Path $projectHeaderPath -Raw
+        $projectHeaderObj = $headerContent | ConvertFrom-Json
+    }
+    else {
+        Write-Host "No project-header.json found in parent directory"
+    }
+
     foreach ($jsonFile in $jsonFiles) {
         Write-Host "Processing: $($jsonFile.Name)"
 
@@ -122,11 +134,21 @@ try {
         $null = $outputLines.Add("")
         $null = $outputLines.Add("BEGIN_ASM_DESCR")
         $null = $outputLines.Add("")
+
+        # Add project header variables first (if available)
+        if ($null -ne $projectHeaderObj) {
+            $null = $outputLines.Add("!-----------------------------------------------------------------------")
+            $null = $outputLines.Add("! Project Header Variables")
+            $null = $outputLines.Add("!-----------------------------------------------------------------------")
+            Process-JsonObject -Obj $projectHeaderObj -Output $outputLines
+            $null = $outputLines.Add("")
+        }
+
         $null = $outputLines.Add("!-----------------------------------------------------------------------")
-        $null = $outputLines.Add("! Variable Declarations")
+        $null = $outputLines.Add("! Item Variable Declarations")
         $null = $outputLines.Add("!-----------------------------------------------------------------------")
 
-        # Process JSON object
+        # Process item JSON object
         Process-JsonObject -Obj $jsonObj -Output $outputLines
 
         # Add footer

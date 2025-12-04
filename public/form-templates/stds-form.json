@@ -170,33 +170,89 @@
         },
         {
           "id": "stds-door-dimensions-door-construction",
-          "name": "DOOR_CONSTRUCTION",
+          "name": "DOOR_CONSTRUCTION_",
           "label": "Door Construction",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
-          "defaultValue": "LOCKSEAM"
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "LOCKSEAM"
+            },
+            {
+              "value": 1,
+              "label": "SEAMLESS"
+            }
+          ]
         },
         {
           "id": "stds-door-dimensions-top-edge",
-          "name": "TOP_EDGE",
+          "name": "TOP_EDGE_",
           "label": "Top Edge",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
-          "defaultValue": "INVERTED"
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "INVERTED"
+            },
+            {
+              "value": 1,
+              "label": "FLUSH"
+            },
+            {
+              "value": 2,
+              "label": "TACKED"
+            },
+            {
+              "value": 3,
+              "label": "SEALED"
+            },
+            {
+              "value": 4,
+              "label": "SEAMLESS"
+            },
+            {
+              "value": 5,
+              "label": "POLISHED"
+            }
+          ]
         },
         {
           "id": "stds-door-dimensions-bottom-edge",
-          "name": "BOTTOM_EDGE",
+          "name": "BOTTOM_EDGE_",
           "label": "Bottom Edge",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
-          "defaultValue": "INVERTED"
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "INVERTED"
+            },
+            {
+              "value": 1,
+              "label": "FLUSH"
+            },
+            {
+              "value": 2,
+              "label": "TACKED"
+            },
+            {
+              "value": 3,
+              "label": "SEALED"
+            },
+            {
+              "value": 4,
+              "label": "SEAMLESS"
+            },
+            {
+              "value": 5,
+              "label": "POLISHED"
+            }
+          ]
         },
         {
           "id": "stds-door-dimensions-door-edge-reinforcement",
@@ -399,13 +455,25 @@
         },
         {
           "id": "stds-frame-dimensions-frame-construction",
-          "name": "FRAME_CONSTRUCTION",
+          "name": "CONSTRUCTION_",
           "label": "Frame Construction",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
-          "defaultValue": "FACE WELDED"
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "FACE WELD"
+            },
+            {
+              "value": 1,
+              "label": "FULLY WELDED"
+            },
+            {
+              "value": 2,
+              "label": "KNOCK DOWN"
+            }
+          ]
         },
         {
           "id": "stds-frame-dimensions-section",
@@ -590,13 +658,25 @@
       "fields": [
         {
           "id": "stds-strike-lock-strike-edge-shape",
-          "name": "STRIKE_EDGE_SHAPE",
+          "name": "STRIKE_EDGE_",
           "label": "Strike Edge Shape",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
-          "defaultValue": "BEVEL"
+          "type": "select",
+          "defaultValue": 0,
+          "options": [
+            {
+              "value": 0,
+              "label": "BEVEL"
+            },
+            {
+              "value": 1,
+              "label": "SQUARE"
+            },
+            {
+              "value": 2,
+              "label": "BULLNOSE"
+            }
+          ]
         },
         {
           "id": "stds-strike-lock-primary-strike-center",
@@ -1244,13 +1324,21 @@
       "fields": [
         {
           "id": "stds-misc-head-grain",
-          "name": "HEAD_GRAIN",
+          "name": "HEAD_GRAIN_",
           "label": "Head Grain",
           "required": false,
-          "type": "input",
-          "inputType": "text",
-          "placeholder": "",
-          "defaultValue": "VERTICAL"
+          "type": "select",
+          "defaultValue": 1,
+          "options": [
+            {
+              "value": 0,
+              "label": "HORIZONTAL"
+            },
+            {
+              "value": 1,
+              "label": "VERTICAL"
+            }
+          ]
         },
         {
           "id": "stds-misc-manufacturers-locations",

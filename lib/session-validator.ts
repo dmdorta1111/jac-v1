@@ -15,7 +15,8 @@ export interface SessionState {
   validationErrors: Record<string, string>;
   activeFormData: Record<string, any>; // Unsaved form data for session persistence
   completedFormIds: string[]; // Track completed form steps for tab navigation
-  tableSelections: Record<string, number>; // Session-scoped table row selections (fieldName -> rowIndex)
+  tableSelections: Record<string, number>; // Session-scoped table row indices (fieldName -> rowIndex)
+  tableSelectionData: Record<string, Record<string, any>>; // Session-scoped table row data (fieldName -> rowData)
   highestStepReached: number; // Track furthest step visited for forward navigation
   lastAccessedAt?: number;
   projectPath?: string; // Project folder path for isolation (e.g., "project-docs/SDI/SO123")
@@ -77,6 +78,7 @@ export function createFreshSessionState(itemNumber: string = '', projectPath?: s
     activeFormData: {},
     completedFormIds: [],
     tableSelections: {},
+    tableSelectionData: {},
     highestStepReached: 0,
     lastAccessedAt: Date.now(),
     projectPath,

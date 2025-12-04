@@ -1,6 +1,6 @@
 # System Architecture
 
-**Last Updated:** 2025-11-29
+**Last Updated:** 2025-12-04
 
 ## High-Level Architecture
 
@@ -269,9 +269,11 @@ const validationResult = validateFormData(formSpec, mergedData);
 | `/api/form-submission`       | POST   | Save form data to MongoDB        |
 | `/api/generate-project-doc`  | POST   | Generate project documentation   |
 | `/api/read-json`             | GET    | Read JSON files from filesystem  |
-| `/api/save-item-data`        | POST   | Save item-specific data          |
+| `/api/save-item-data`        | POST/GET | Save/load item data (MongoDB-only) |
 | `/api/create-project-folder` | POST   | Create project directory         |
 | `/api/build-asm`             | POST   | Build assembly files             |
+| `/api/export-variables`      | POST   | Export per-item JSON files (Phase 03) |
+| `/api/export-variables`      | GET    | Check export status (legacy)     |
 
 **MongoDB Schema (Form Submissions):**
 ```typescript
@@ -292,6 +294,111 @@ const validationResult = validateFormData(formSpec, mergedData);
   timestamp: Date,
 }
 ```
+
+**MongoDB Schema (Items Collection - Phase 01 Updated):**
+```typescript
+{
+  _id: ObjectId,
+  projectId: ObjectId,           // Foreign key to projects collection
+  itemNumber: string,             // "001", "002", etc.
+  productType: string,            // "SDI", "EMJAC", etc.
+  itemData: Record<string, any>,  // All form data (nested by formId)
+  formIds: string[],              // ["door-info", "hinge-info", ...]
+  isDeleted: boolean,             // Soft-delete for renames
+  createdAt: Date,
+  updatedAt: Date,
+  renamedFrom?: string,           // Original item number if renamed
+  renamedAt?: Date,
+}
+```
+
+**Data Flow Pattern (MongoDB-First - Updated 2025-12-04):**
+```
+Form Submission
+    ↓
+POST /api/save-item-data (MongoDB upsert ONLY)
+    ↓
+Items Collection Updated
+    ↓
+Workflow Continues (no filesystem writes)
+    ↓
+Flow Complete → flowComplete: true
+    ↓
+Export Button Enabled in LeftSidebar
+    ↓
+[User clicks Export Button]
+    ↓
+POST /api/export-variables (queries MongoDB, writes per-item files)
+    ├─→ Query items collection for projectId
+    ├─→ Delete old item-XXX.json files (cleanup)
+    ├─→ Write item-001.json, item-002.json, etc.
+    └─→ Add CHOICE=1, FRAME_PROCESSED="" defaults
+    ↓
+JSON files created in project-docs/{productType}/{SO_NUM}/items/
+```
+
+**Key Principles:**
+1. **MongoDB-First:** Database is single source of truth during workflow
+2. **Explicit Export:** User controls when files are written via Export button
+3. **No Auto-Export:** File generation decoupled from workflow completion
+4. **Filesystem writes occur ONLY during explicit export operations**
+5. **Per-Item Files:** Each item exported to separate JSON file (item-001.json, item-002.json)
+6. **File Cleanup:** Old item files deleted before writing new ones (prevents stale data)
+7. **Security:** Path traversal protection via regex validation and normalized path checks
+
+**Export Button Architecture:**
+- Location: LeftSidebar footer (below 3D Viewer button)
+- Enabled when: ≥1 item has `flowComplete: true`
+- Badge: Shows count of completed items
+- Mobile: Closes sidebar after export
+- Handler: `ClaudeChat.handleExportClick()` calls `/api/export-variables`
+
+**Export API Details (Phase 03 - 2025-12-04):**
+```typescript
+// Request
+POST /api/export-variables
+Body: {
+  salesOrderNumber: string,  // Regex: /^[a-zA-Z0-9_-]+$/
+  productType: string,       // Regex: /^[A-Z]{2,10}$/
+}
+
+// Response (Success)
+{
+  success: true,
+  exportPath: "project-docs/SDI/SO12345/items",
+  itemCount: 3,
+  exportedFiles: ["item-001.json", "item-002.json", "item-003.json"],
+  salesOrderNumber: "SO12345",
+  productType: "SDI",
+  exportedAt: "2025-12-04T05:13:00.000Z"
+}
+
+// Item File Structure (item-001.json)
+{
+  // All form data (nested by formId)
+  "door-info": { DOOR_WIDTH: 36, DOOR_HEIGHT: 80, ... },
+  "hinge-info": { HINGE_TYPE: 1, HINGE_COUNT: 3, ... },
+
+  // System fields (SmartAssembly requirements)
+  "CHOICE": 1,
+  "FRAME_PROCESSED": "",
+
+  // Metadata (informational)
+  "_metadata": {
+    "itemNumber": "001",
+    "productType": "SDI",
+    "salesOrderNumber": "SO12345",
+    "exportedAt": "2025-12-04T05:13:00.000Z",
+    "formIds": ["door-info", "hinge-info"]
+  }
+}
+```
+
+**Security Features:**
+1. **Input Validation:** Zod schema with strict regex patterns
+2. **Path Traversal Protection:** Normalized path validation against project-docs root
+3. **Rate Limiting:** 10 requests/min per IP (RATE_LIMITS.EXPORT)
+4. **Error Handling:** Sentry integration for unexpected errors
 
 ### 6. Template Management
 
