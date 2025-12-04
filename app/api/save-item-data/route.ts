@@ -1,47 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs, { writeFile, readFile, mkdir, readdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
 
 /**
  * POST /api/save-item-data
- * Save/merge item form data to JSON file
- * Handles file renaming when item number changes
+ * Save/merge item form data to MongoDB only (no filesystem writes)
+ * Handles item renaming when item number changes
  *
  * Body:
- * - projectPath: string (e.g., "project-docs/SDI/SO123")
  * - itemNumber: string (e.g., "001") - the NEW/current item number
  * - originalItemNumber: string (optional) - the ORIGINAL item number (for rename detection)
+ * - formId: string (optional) - form identifier for nested data
  * - formData: Record<string, any>
- * - merge: boolean (default true - merge with existing)
- * - sessionId: string (optional) - for MongoDB updates
- * - salesOrderNumber: string (optional) - for MongoDB updates
+ * - sessionId: string - for form_submissions backward compatibility
+ * - salesOrderNumber: string - required for MongoDB queries
  */
 export async function POST(request: NextRequest) {
   try {
     const {
-      projectPath,
       itemNumber,
-      originalItemNumber,  // NEW: Track original for rename
+      originalItemNumber,
       formId,
       formData,
-      merge = true,
       sessionId,
       salesOrderNumber,
     } = await request.json();
 
     // Validate required fields
-    if (!projectPath || !itemNumber || !formData) {
+    if (!itemNumber || !formData || !sessionId || !salesOrderNumber) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: projectPath, itemNumber, formData' },
-        { status: 400 }
-      );
-    }
-
-    // Validate projectPath (prevent directory traversal)
-    if (projectPath.includes('..') || !projectPath.startsWith('project-docs/')) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid project path' },
+        { success: false, error: 'Missing required fields: itemNumber, formData, sessionId, salesOrderNumber' },
         { status: 400 }
       );
     }
@@ -59,48 +45,58 @@ export async function POST(request: NextRequest) {
       ? String(originalItemNumber).replace(/[^0-9]/g, '').padStart(3, '0')
       : null;
 
-    // Build paths
-    const itemsDir = path.join(process.cwd(), projectPath, 'items');
-    const itemFile = path.join(itemsDir, `item-${sanitizedItemNumber}.json`);
-    const originalItemFile = sanitizedOriginalItemNumber
-      ? path.join(itemsDir, `item-${sanitizedOriginalItemNumber}.json`)
-      : null;
+    // Connect to MongoDB
+    const { connectToDatabase, getProjectsCollection, getItemsCollection } = await import('@/lib/mongodb');
+    const db = await connectToDatabase();
+    const projects = getProjectsCollection(db);
+    const items = getItemsCollection(db);
 
-    // Ensure items directory exists
-    await mkdir(itemsDir, { recursive: true });
+    // Get projectId
+    const project = await projects.findOne({
+      salesOrderNumber,
+      isDeleted: { $ne: true },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        { success: false, error: 'Project not found for sales order number' },
+        { status: 404 }
+      );
+    }
 
     // Check if item number changed (rename scenario)
     const isRename = sanitizedOriginalItemNumber &&
-                     sanitizedOriginalItemNumber !== sanitizedItemNumber;
+      sanitizedOriginalItemNumber !== sanitizedItemNumber;
 
-    let existingData: any = {};
-    let existingFormIds: string[] = [];
+    // Check for existing item data (for merge)
+    const existingItem = await items.findOne({
+      projectId: project._id,
+      itemNumber: sanitizedItemNumber,
+      isDeleted: { $ne: true },
+    });
 
-    if (isRename && originalItemFile && existsSync(originalItemFile)) {
-      // RENAME SCENARIO: Load data from ORIGINAL file
-      try {
-        const existingContent = await readFile(originalItemFile, 'utf-8');
-        existingData = JSON.parse(existingContent);
-        existingFormIds = existingData._metadata?.formIds || [];
-        console.log(`Rename detected: ${sanitizedOriginalItemNumber} -> ${sanitizedItemNumber}`);
-      } catch (parseError) {
-        console.warn('Failed to parse original item file:', parseError);
-      }
-    } else if (merge && existsSync(itemFile)) {
-      // Normal merge: Load from target file
-      try {
-        const existingContent = await readFile(itemFile, 'utf-8');
-        existingData = JSON.parse(existingContent);
-        existingFormIds = existingData._metadata?.formIds || [];
-      } catch (parseError) {
-        console.warn('Failed to parse existing item file, starting fresh:', parseError);
-      }
+    // If rename, load data from original item
+    let sourceItem = existingItem;
+    if (isRename && !existingItem) {
+      sourceItem = await items.findOne({
+        projectId: project._id,
+        itemNumber: sanitizedOriginalItemNumber,
+        isDeleted: { $ne: true },
+      });
     }
 
+    const existingData = sourceItem?.itemData || {};
+    const existingFormIds = sourceItem?.formIds || [];
+
     // Merge new form data (accumulate all forms)
+    // Keep formData intact - don't extract CHOICE/FRAME_PROCESSED
+    // They need to be in BOTH the nested structure AND at root level
     const finalData = {
       ...existingData,
       ...(formId ? { [formId]: formData } : formData),
+      // Also preserve CHOICE and FRAME_PROCESSED at root level for SmartAssembly compatibility
+      ...(formData.CHOICE !== undefined ? { CHOICE: formData.CHOICE } : {}),
+      ...(formData.FRAME_PROCESSED !== undefined ? { FRAME_PROCESSED: formData.FRAME_PROCESSED } : {}),
       _metadata: {
         itemNumber: sanitizedItemNumber,
         lastUpdated: new Date().toISOString(),
@@ -111,115 +107,77 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Write to NEW file location
-    await writeFile(itemFile, JSON.stringify(finalData, null, 2), 'utf-8');
+    const now = new Date();
 
-    // DELETE original file if renamed
-    if (isRename && originalItemFile && existsSync(originalItemFile)) {
-      try {
-        await fs.unlink(originalItemFile);
-        console.log(`Deleted original file: item-${sanitizedOriginalItemNumber}.json`);
-      } catch (unlinkError) {
-        console.warn('Failed to delete original file:', unlinkError);
-      }
+    // Upsert item in items collection
+    await items.updateOne(
+      {
+        projectId: project._id,
+        itemNumber: sanitizedItemNumber,
+      },
+      {
+        $set: {
+          productType: formData.PRODUCT_TYPE || formData.productType || '',
+          itemData: finalData,
+          updatedAt: now,
+          ...(isRename ? {
+            renamedFrom: sanitizedOriginalItemNumber,
+            renamedAt: now,
+          } : {}),
+        },
+        $addToSet: formId ? { formIds: formId } : {},
+        $setOnInsert: {
+          projectId: project._id,
+          itemNumber: sanitizedItemNumber,
+          isDeleted: false,
+          createdAt: now,
+        },
+      },
+      { upsert: true }
+    );
+
+    // If renamed, soft-delete old item record
+    if (isRename && sanitizedOriginalItemNumber) {
+      await items.updateOne(
+        {
+          projectId: project._id,
+          itemNumber: sanitizedOriginalItemNumber,
+        },
+        {
+          $set: {
+            isDeleted: true,
+            deletedAt: now,
+            updatedAt: now,
+          },
+        }
+      );
     }
 
-    // Update MongoDB items collection (NEW normalized schema)
-    if (salesOrderNumber) {
-      try {
-        const { connectToDatabase, getProjectsCollection, getItemsCollection } = await import('@/lib/mongodb');
-        const db = await connectToDatabase();
-        const projects = getProjectsCollection(db);
-        const items = getItemsCollection(db);
-
-        // Get projectId
-        const project = await projects.findOne({
-          salesOrderNumber,
-          isDeleted: { $ne: true },
-        });
-
-        if (project) {
-          const now = new Date();
-
-          // Upsert item in items collection
-          await items.updateOne(
-            {
-              projectId: project._id,
-              itemNumber: sanitizedItemNumber,
-            },
-            {
-              $set: {
-                productType: formData.PRODUCT_TYPE || formData.productType || '',
-                itemData: finalData,
-                updatedAt: now,
-                ...(isRename ? {
-                  renamedFrom: sanitizedOriginalItemNumber,
-                  renamedAt: now,
-                } : {}),
-              },
-              $addToSet: formId ? { formIds: formId } : {},
-              $setOnInsert: {
-                projectId: project._id,
-                itemNumber: sanitizedItemNumber,
-                isDeleted: false,
-                createdAt: now,
-              },
-            },
-            { upsert: true }
-          );
-
-          // If renamed, delete old item record
-          if (isRename && sanitizedOriginalItemNumber) {
-            await items.updateOne(
-              {
-                projectId: project._id,
-                itemNumber: sanitizedOriginalItemNumber,
-              },
-              {
-                $set: {
-                  isDeleted: true,
-                  deletedAt: now,
-                  updatedAt: now,
-                },
-              }
-            );
+    // Update form_submissions for backward compatibility (rename tracking)
+    if (isRename && sessionId) {
+      await db.collection('form_submissions').updateMany(
+        {
+          sessionId,
+          'metadata.salesOrderNumber': salesOrderNumber,
+        },
+        {
+          $set: {
+            'metadata.itemNumber': sanitizedItemNumber,
+            'metadata.renamedFrom': sanitizedOriginalItemNumber,
+            'metadata.renamedAt': new Date().toISOString(),
           }
-
-          console.log(`Synced item ${sanitizedItemNumber} to MongoDB items collection`);
         }
-
-        // Also update form_submissions for backward compatibility (rename tracking)
-        if (isRename && sessionId) {
-          await db.collection('form_submissions').updateMany(
-            {
-              sessionId,
-              'metadata.salesOrderNumber': salesOrderNumber,
-            },
-            {
-              $set: {
-                'metadata.itemNumber': sanitizedItemNumber,
-                'metadata.renamedFrom': sanitizedOriginalItemNumber,
-                'metadata.renamedAt': new Date().toISOString(),
-              }
-            }
-          );
-        }
-      } catch (dbError) {
-        console.warn('MongoDB update failed (non-blocking):', dbError);
-        // Continue - file operations succeeded, DB update is best-effort
-      }
+      );
     }
 
-    const relativePath = path.relative(process.cwd(), itemFile);
-
-    console.log(`Saved ${formId || 'form data'} to item-${sanitizedItemNumber}.json${isRename ? ` (renamed from ${sanitizedOriginalItemNumber})` : ''}`);
+    console.log(`Saved ${formId || 'form data'} to MongoDB item ${sanitizedItemNumber}${isRename ? ` (renamed from ${sanitizedOriginalItemNumber})` : ''}`);
 
     return NextResponse.json({
       success: true,
-      filePath: relativePath,
       itemNumber: sanitizedItemNumber,
       renamed: isRename,
       renamedFrom: isRename ? sanitizedOriginalItemNumber : undefined,
+      itemId: existingItem?._id?.toString() || 'created',
     });
 
   } catch (error) {
@@ -236,8 +194,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/save-item-data?projectPath=xxx&itemNumber=xxx
- * Load item data from JSON file
+ * GET /api/save-item-data?salesOrderNumber=xxx&itemNumber=xxx
+ * Load item data from MongoDB
  *
  * If itemNumber provided: returns single item data
  * If no itemNumber: returns all items in project
@@ -245,78 +203,79 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const projectPath = searchParams.get('projectPath');
+    const salesOrderNumber = searchParams.get('salesOrderNumber');
     const itemNumber = searchParams.get('itemNumber');
 
-    if (!projectPath) {
+    if (!salesOrderNumber) {
       return NextResponse.json(
-        { success: false, error: 'projectPath parameter is required' },
+        { success: false, error: 'salesOrderNumber parameter is required' },
         { status: 400 }
       );
     }
 
-    // Validate projectPath
-    if (projectPath.includes('..') || !projectPath.startsWith('project-docs/')) {
+    const { connectToDatabase, getProjectsCollection, getItemsCollection } = await import('@/lib/mongodb');
+    const db = await connectToDatabase();
+    const projects = getProjectsCollection(db);
+    const items = getItemsCollection(db);
+
+    // Get projectId
+    const project = await projects.findOne({
+      salesOrderNumber,
+      isDeleted: { $ne: true },
+    });
+
+    if (!project) {
       return NextResponse.json(
-        { success: false, error: 'Invalid project path' },
-        { status: 400 }
+        { success: false, error: 'Project not found' },
+        { status: 404 }
       );
     }
-
-    const itemsDir = path.join(process.cwd(), projectPath, 'items');
 
     // Load specific item
     if (itemNumber) {
-      const sanitizedItemNumber = String(itemNumber).replace(/[^0-9]/g, '').padStart(3, '0');
-      const itemFile = path.join(itemsDir, `item-${sanitizedItemNumber}.json`);
+      const sanitizedItemNumber = String(itemNumber).padStart(3, '0');
+      const item = await items.findOne({
+        projectId: project._id,
+        itemNumber: sanitizedItemNumber,
+        isDeleted: { $ne: true },
+      });
 
-      if (!existsSync(itemFile)) {
+      if (!item) {
         return NextResponse.json(
           { success: false, error: 'Item not found' },
           { status: 404 }
         );
       }
 
-      const content = await readFile(itemFile, 'utf-8');
-      const data = JSON.parse(content);
-
       return NextResponse.json({
         success: true,
         itemNumber: sanitizedItemNumber,
-        data,
+        itemData: item.itemData,
+        metadata: {
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          formIds: item.formIds,
+        },
       });
     }
 
-    // Load all items
-    if (!existsSync(itemsDir)) {
-      return NextResponse.json({
-        success: true,
-        items: [],
-      });
-    }
-
-    const files = await readdir(itemsDir);
-    const jsonFiles = files.filter(f => f.endsWith('.json'));
-
-    const items = await Promise.all(
-      jsonFiles
-        .filter(f => /^item-\d{3}\.json$/.test(f))  // Only item-XXX.json files
-        .map(async (filename) => {
-          const filePath = path.join(itemsDir, filename);
-          const content = await readFile(filePath, 'utf-8');
-          const data = JSON.parse(content);
-          // Extract item number from filename (item-001.json -> 001)
-          const match = filename.match(/^item-(\d{3})\.json$/);
-          return {
-            itemNumber: match ? match[1] : filename.replace('.json', ''),
-            data,
-          };
-        })
-    );
+    // Load all items for project
+    const projectItems = await items.find({
+      projectId: project._id,
+      isDeleted: { $ne: true },
+    }).toArray();
 
     return NextResponse.json({
       success: true,
-      items,
+      items: projectItems.map(item => ({
+        itemNumber: item.itemNumber,
+        itemData: item.itemData,
+        metadata: {
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          formIds: item.formIds,
+        },
+      })),
     });
 
   } catch (error) {

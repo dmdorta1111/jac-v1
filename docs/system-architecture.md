@@ -269,9 +269,10 @@ const validationResult = validateFormData(formSpec, mergedData);
 | `/api/form-submission`       | POST   | Save form data to MongoDB        |
 | `/api/generate-project-doc`  | POST   | Generate project documentation   |
 | `/api/read-json`             | GET    | Read JSON files from filesystem  |
-| `/api/save-item-data`        | POST   | Save item-specific data          |
+| `/api/save-item-data`        | POST/GET | Save/load item data (MongoDB-only) |
 | `/api/create-project-folder` | POST   | Create project directory         |
 | `/api/build-asm`             | POST   | Build assembly files             |
+| `/api/export-variables`      | POST   | Export project variables to files |
 
 **MongoDB Schema (Form Submissions):**
 ```typescript
@@ -292,6 +293,42 @@ const validationResult = validateFormData(formSpec, mergedData);
   timestamp: Date,
 }
 ```
+
+**MongoDB Schema (Items Collection - Phase 01 Updated):**
+```typescript
+{
+  _id: ObjectId,
+  projectId: ObjectId,           // Foreign key to projects collection
+  itemNumber: string,             // "001", "002", etc.
+  productType: string,            // "SDI", "EMJAC", etc.
+  itemData: Record<string, any>,  // All form data (nested by formId)
+  formIds: string[],              // ["door-info", "hinge-info", ...]
+  isDeleted: boolean,             // Soft-delete for renames
+  createdAt: Date,
+  updatedAt: Date,
+  renamedFrom?: string,           // Original item number if renamed
+  renamedAt?: Date,
+}
+```
+
+**Data Flow Pattern (MongoDB-First - Updated 2025-12-04):**
+```
+Form Submission
+    ↓
+POST /api/save-item-data (MongoDB upsert)
+    ↓
+Items Collection Updated
+    ↓
+Workflow Continues (no files written)
+    ↓
+[User clicks Export]
+    ↓
+POST /api/export-variables (filesystem write)
+    ↓
+JSON files created in project-docs/
+```
+
+**Key Principle:** Database is single source of truth during workflow. Filesystem writes occur ONLY during explicit export operations.
 
 ### 6. Template Management
 

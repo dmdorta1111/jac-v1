@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun, Menu, Plus } from "lucide-react";
+import { Moon, Sun, Menu, Plus, Trash2 } from "lucide-react";
 import { useTheme } from "@/components/providers/theme-provider";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useProject } from "@/components/providers/project-context";
@@ -12,7 +12,7 @@ import Image from "next/image";
 export function Header() {
   const { setTheme, resolvedTheme } = useTheme();
   const { isOpen: sidebarOpen, toggle: toggleSidebar } = useSidebar();
-  const { metadata, openNewProjectDialog } = useProject();
+  const { metadata, openNewProjectDialog, clearMetadata, clearAllChats } = useProject();
 
   // Enable smooth theme transition animations
   useThemeTransition();
@@ -21,12 +21,17 @@ export function Header() {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
+  const handleClearSession = () => {
+    clearMetadata();
+    clearAllChats();
+  };
+
   return (
     <header className="sticky top-0 left-0 right-0 z-50 w-screen border-0 bg-neutral-200/95 dark:bg-neutral-800/95 backdrop-blur-lg" data-theme-animated>
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 w-full">
         {/* Left Side - New Project Button + Mobile Menu Toggle */}
         <div className="flex items-center gap-2" data-theme-animated>
-        
+
           {/* Mobile Menu Toggle */}
           <button
             onClick={toggleSidebar}
@@ -59,9 +64,18 @@ export function Header() {
           >
             {/* SO Number - Primary identifier */}
             <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                Sales Order
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-medium uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                  Sales Order
+                </span>
+                <button
+                  onClick={handleClearSession}
+                  className="text-neutral-400 hover:text-red-500 transition-colors"
+                  title="Clear Session & All Chats"
+                >
+                  <Trash2 className="size-3" />
+                </button>
+              </div>
               <span
                 className="text-sm font-semibold text-neutral-900 dark:text-neutral-50 truncate max-w-[160px]"
                 title={metadata.SO_NUM}

@@ -16,6 +16,11 @@
           "type": "input",
           "inputType": "text",
           "placeholder": "",
+          "tooltip": {
+            "type": "image",
+            "src": "/SDI_gif/door_elevations2.gif",
+            "alt": "Door Elevation Reference"
+          },
           "conditional": {
             "conditions": [
               {

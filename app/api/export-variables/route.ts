@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
     const firstSubmission = submissions[0];
     const exportData = {
       ...mergedData,
+      CHOICE: 1, // Indicates "New item" mode for SmartAssembly
+      FRAME_PROCESSED: "", // Frame processing status (empty = not processed)
       _metadata: {
         sessionId: validData.sessionId,
         salesOrderNumber: firstSubmission.metadata.salesOrderNumber,
@@ -76,14 +78,16 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    // Get SmartAssembly work directory from environment
-    const workDir = process.env.SMARTASSEMBLY_WORK_DIR || './smartassembly-work';
+    // Construct project-specific path
+    const productType = firstSubmission.metadata.productType;
+    const salesOrderNumber = firstSubmission.metadata.salesOrderNumber;
+    const projectItemsDir = path.join('project-docs', productType, salesOrderNumber, 'items');
 
     // Ensure directory exists
-    await fs.mkdir(workDir, { recursive: true });
+    await fs.mkdir(projectItemsDir, { recursive: true });
 
-    // Write JSON file for SmartAssembly
-    const jsonPath = path.join(workDir, 'formdata.json');
+    // Write JSON file to project items directory
+    const jsonPath = path.join(projectItemsDir, 'formdata.json');
     await fs.writeFile(jsonPath, JSON.stringify(exportData, null, 2), 'utf-8');
 
     console.log(`Exported ${Object.keys(mergedData).length} variables to ${jsonPath}`);
@@ -151,13 +155,15 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/export-variables?sessionId=xxx
+ * GET /api/export-variables?sessionId=xxx&productType=xxx&salesOrderNumber=xxx
  * Check if export exists for a session
  */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
+    const productType = searchParams.get('productType');
+    const salesOrderNumber = searchParams.get('salesOrderNumber');
 
     if (!sessionId) {
       return NextResponse.json(
@@ -166,8 +172,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const workDir = process.env.SMARTASSEMBLY_WORK_DIR || './smartassembly-work';
-    const jsonPath = path.join(workDir, 'formdata.json');
+    if (!productType || !salesOrderNumber) {
+      return NextResponse.json(
+        { success: false, error: 'productType and salesOrderNumber parameters are required' },
+        { status: 400 }
+      );
+    }
+
+    const projectItemsDir = path.join('project-docs', productType, salesOrderNumber, 'items');
+    const jsonPath = path.join(projectItemsDir, 'formdata.json');
 
     try {
       const content = await fs.readFile(jsonPath, 'utf-8');

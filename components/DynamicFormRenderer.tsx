@@ -40,7 +40,13 @@ import {
   FieldGroup,
 } from '@/components/ui/field';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, InfoIcon } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type FormFieldValue = string | number | boolean | (string | number)[] | Date | Record<string, string | number> | undefined;
 
@@ -125,6 +131,12 @@ interface FormField {
   };
   options?: Array<{ value: string | number; label: string }>;
   helperText?: string;
+  tooltip?: {
+    type: 'text' | 'image';
+    content?: string;
+    src?: string;
+    alt?: string;
+  };
   rows?: number;
   min?: number;
   max?: number;
@@ -220,7 +232,10 @@ export default function DynamicFormRenderer({
       Object.keys(formData).length === 0;
 
     if (shouldReset) {
-      setFormData(merged);
+      // Deep equality check to prevent infinite loops
+      if (JSON.stringify(formData) !== JSON.stringify(merged)) {
+        setFormData(merged);
+      }
     }
   }, [sessionId, formSpec.formId, initialData]);
 
@@ -439,6 +454,45 @@ export default function DynamicFormRenderer({
     onSubmit(formData);
   };
 
+  // Helper to render tooltip icon with content
+  const renderTooltip = (field: FormField) => {
+    if (!field.tooltip) return null;
+
+    // Make DOOR_ELEVATION tooltip 50% larger and position above
+    const isDoorElevation = field.name === 'DOOR_ELEVATION';
+    const tooltipContentClass = isDoorElevation ? 'max-w-2xl' : 'max-w-sm';
+    const imageClass = isDoorElevation
+      ? 'max-w-full h-auto rounded scale-150 origin-center'
+      : 'max-w-full h-auto rounded';
+    const tooltipSide = isDoorElevation ? 'top' : 'right';
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <InfoIcon className="h-4 w-4 ml-1 text-muted-foreground cursor-help inline-block" />
+          </TooltipTrigger>
+          <TooltipContent side={tooltipSide} className={tooltipContentClass}>
+            {field.tooltip.type === 'image' && field.tooltip.src ? (
+              <div className="flex flex-col gap-2">
+                <img
+                  src={field.tooltip.src}
+                  alt={field.tooltip.alt || 'Tooltip image'}
+                  className={imageClass}
+                />
+                {field.tooltip.alt && (
+                  <p className="text-xs text-muted-foreground">{field.tooltip.alt}</p>
+                )}
+              </div>
+            ) : (
+              <p>{field.tooltip.content || ''}</p>
+            )}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   const renderField = (field: FormField) => {
     if (!checkConditional(field)) {
       return null;
@@ -467,6 +521,7 @@ export default function DynamicFormRenderer({
                 {field.label}
                 {field.required && <span className="text-destructive ml-1">*</span>}
                 {field.readonly && <span className="text-muted-foreground ml-1 text-xs">(read-only)</span>}
+                {renderTooltip(field)}
               </FieldLabel>
               {field.helperText && (
                 <FieldDescription>{field.helperText}</FieldDescription>
@@ -639,6 +694,7 @@ export default function DynamicFormRenderer({
                 <FieldLabel htmlFor={getFieldId(field)}>
                   {field.label}
                   {field.required && <span className="text-destructive ml-1">*</span>}
+                  {renderTooltip(field)}
                 </FieldLabel>
                 <span className="text-sm font-medium text-foreground">
                   {toNumberValue(value, toNumberValue(field.defaultValue, field.min || 0))} {field.unit || ''}
@@ -679,9 +735,8 @@ export default function DynamicFormRenderer({
                 <Button
                   id={getFieldId(field)}
                   variant="outline"
-                  className={`w-full justify-start text-left font-normal ${
-                    !value && 'text-muted-foreground'
-                  }`}
+                  className={`w-full justify-start text-left font-normal ${!value && 'text-muted-foreground'
+                    }`}
                   aria-invalid={!!error}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -710,7 +765,7 @@ export default function DynamicFormRenderer({
             className="py-2"
           >
             <FieldContent>
-              <FieldLabel htmlFor={getFieldId(field)}>{field.label}</FieldLabel>
+              <FieldLabel htmlFor={getFieldId(field)}>{field.label}{renderTooltip(field)}</FieldLabel>
               {field.helperText && (
                 <FieldDescription>{field.helperText}</FieldDescription>
               )}
@@ -912,17 +967,17 @@ export default function DynamicFormRenderer({
           {/* Session-scoped section keys to prevent collisions across multiple sessions */}
           {formSpec.sections.map((section) => (
             <FieldSet
-            key={`${sessionId}-${formSpec.formId}-${section.id}`}
-            name={section.id}
-            className="relative rounded-xl bg-neutral-100/80 dark:bg-neutral-900/50 mb-8 shadow-lg shadow-neutral-400/20 dark:shadow-neutral-950/40 overflow-hidden"
+              key={`${sessionId}-${formSpec.formId}-${section.id}`}
+              name={section.id}
+              className="relative rounded-xl bg-neutral-100/80 dark:bg-neutral-900/50 mb-8 shadow-lg shadow-neutral-400/20 dark:shadow-neutral-950/40 overflow-hidden"
             >
               <FieldContent className="p-6 pb-4">
                 <FieldLegend
-                variant="label"
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-400 tracking-tight"
+                  variant="label"
+                  className="text-3xl sm:text-4xl lg:text-5xl font-bold text-amber-400 tracking-tight"
                 >
                   {section.title}
-                  </FieldLegend>
+                </FieldLegend>
                 {section.description && (
                   <FieldDescription className="mt-1.5 text-xs text-muted-foreground">
                     {section.description}
@@ -932,8 +987,8 @@ export default function DynamicFormRenderer({
 
               {/* Inner container for field spacing from border - generous padding on all sides */}
               <div className="p-6">
-              {/* Grid layout: responsive 1→2→4→5 columns based on breakpoint */}
-              <div className="compact-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4
+                {/* Grid layout: responsive 1→2→4→5 columns based on breakpoint */}
+                <div className="compact-fields grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-4
                   [&_[data-slot=field]]:gap-1
                   [&_[data-slot=field-label]]:text-xs
                   [&_[data-slot=field-description]]:text-[10px]
@@ -961,39 +1016,39 @@ export default function DynamicFormRenderer({
                   [&_textarea]:text-xs
                   [&_textarea]:min-h-[60px]
                   [&_.text-sm]:text-xs">
-                {section.fields.map((field) => {
-                  const colSpan = getFieldColSpan(field);
-                  const renderedField = renderField(field);
-                  if (!renderedField) return null;
+                  {section.fields.map((field) => {
+                    const colSpan = getFieldColSpan(field);
+                    const renderedField = renderField(field);
+                    if (!renderedField) return null;
 
-                  // Build responsive col-span classes for 5-column grid
-                  let spanClass = "col-span-1"; // Default single column
-                  if (colSpan === 5) {
-                    // Full width across all breakpoints
-                    spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
-                  } else if (colSpan === 2) {
-                    // Medium width fields (select, date, slider)
-                    spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
-                  }
+                    // Build responsive col-span classes for 5-column grid
+                    let spanClass = "col-span-1"; // Default single column
+                    if (colSpan === 5) {
+                      // Full width across all breakpoints
+                      spanClass = "col-span-1 sm:col-span-2 lg:col-span-4 xl:col-span-5";
+                    } else if (colSpan === 2) {
+                      // Medium width fields (select, date, slider)
+                      spanClass = "col-span-1 sm:col-span-1 lg:col-span-2 xl:col-span-2";
+                    }
 
-                  return (
-                    <div
-                      key={`${sessionId}-${formSpec.formId}-${field.id}`}
-                      className={spanClass}
-                    >
-                      {renderedField}
-                    </div>
-                  );
-                })}
-              </div>
+                    return (
+                      <div
+                        key={`${sessionId}-${formSpec.formId}-${field.id}`}
+                        className={spanClass}
+                      >
+                        {renderedField}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </FieldSet>
           ))}
 
           {/* Form Actions */}
           <div className="flex gap-3 pt-4 sm:pt-6 border-t border-border mt-4">
-            <div className="scale-75 origin-left">
-              <Button type="submit" variant="secondary">
+            <div className="scale-[0.98] origin-left">
+              <Button type="submit" variant="secondary" className="text-muted-foreground">
                 {formSpec.submitButton.text}
               </Button>
             </div>

@@ -148,12 +148,8 @@ export async function POST(request: NextRequest) {
 
       // Handle JSON output for project header
       if (output === 'json') {
-        // Extract standards defaults from stds-form.json
-        const standardsDefaults = await extractStandardsDefaults();
-
         const jsonContent = {
           ...projectData,
-          standards: standardsDefaults,
           createdAt: new Date().toISOString(),
         };
         const jsonFilename = 'project-header.json';

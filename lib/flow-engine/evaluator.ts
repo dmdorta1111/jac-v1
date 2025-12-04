@@ -21,9 +21,6 @@ export function safeEval(expression: string, context: Record<string, any>): bool
   // Convert SmartAssembly operators to JavaScript
   const jsExpression = convertToJavaScript(expression);
 
-  // Validate expression syntax (whitelist approach)
-  validateExpression(jsExpression);
-
   // Extract variable names from expression and ensure they exist in context
   // Default undefined variables to null to prevent ReferenceError
   const expressionVars = extractVariableNames(jsExpression);
@@ -41,8 +38,38 @@ export function safeEval(expression: string, context: Record<string, any>): bool
     const varNames = Object.keys(safeContext);
     const varValues = Object.values(safeContext);
 
+    // Sanitize variable names for use as function parameters
+    // Replace invalid characters (like hyphens) with underscores
+    const sanitizeVarName = (name: string): string => {
+      return name.replace(/[^a-zA-Z0-9_]/g, '_');
+    };
+
+    // Create mapping of original names to sanitized names
+    const nameMapping = new Map<string, string>();
+    varNames.forEach(name => {
+      nameMapping.set(name, sanitizeVarName(name));
+    });
+
+    // Replace variable names in expression with sanitized versions
+    let sanitizedExpression = jsExpression;
+    // Sort by length (longest first) to handle cases where one var name contains another
+    const sortedNames = [...varNames].sort((a, b) => b.length - a.length);
+    for (const originalName of sortedNames) {
+      const sanitizedName = nameMapping.get(originalName)!;
+      // Use word boundaries to match whole variable names only
+      const regex = new RegExp(`\\b${escapeRegExp(originalName)}\\b`, 'g');
+      sanitizedExpression = sanitizedExpression.replace(regex, sanitizedName);
+    }
+
+    // Validate sanitized expression syntax (whitelist approach)
+    // Must validate AFTER sanitization since original expression may contain hyphens in variable names
+    validateExpression(sanitizedExpression);
+
+    // Use sanitized names as function parameters
+    const sanitizedParamNames = varNames.map(name => nameMapping.get(name)!);
+
     // Build function body with safe evaluation
-    const fn = new Function(...varNames, `return ${jsExpression};`);
+    const fn = new Function(...sanitizedParamNames, `return ${sanitizedExpression};`);
 
     // Execute with context values
     const result = fn(...varValues);
@@ -56,15 +83,24 @@ export function safeEval(expression: string, context: Record<string, any>): bool
 }
 
 /**
+ * Escape special regex characters in a string
+ */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Extract variable names from a JavaScript expression
  * Matches identifiers that are not keywords, operators, or literals
+ * Note: Allows hyphens in variable names (e.g., HINGE_LOCATION_1-9) for SmartAssembly compatibility
  */
 function extractVariableNames(expression: string): string[] {
   // Remove string literals first to avoid matching inside strings
   const withoutStrings = expression.replace(/'[^']*'|"[^"]*"/g, '');
 
-  // Match valid JavaScript identifiers
-  const identifierPattern = /\b([A-Z_][A-Z0-9_]*)\b/gi;
+  // Match SmartAssembly variable names (allows hyphens)
+  // Pattern: starts with letter/underscore, followed by letters/digits/underscores/hyphens
+  const identifierPattern = /\b([A-Z_][A-Z0-9_-]*)\b/gi;
   const matches = withoutStrings.match(identifierPattern) || [];
 
   // Filter out JavaScript keywords and boolean literals

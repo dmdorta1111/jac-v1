@@ -111,7 +111,7 @@ export function ClaudeChat() {
   const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
 
   // Access project context for button actions
-  const { openNewProjectDialog } = useProject();
+  const { openNewProjectDialog, registerClearChatsCallback } = useProject();
 
   // Blue glow by default, orange glow on hover for suggestion buttons
   useOrangeGlowHover(".suggestion-button", {
@@ -169,6 +169,54 @@ export function ClaudeChat() {
   const { standards, refresh: refreshStandards } = useStandards();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Function to clear all chats and session data
+  const clearAllChatsData = useCallback(() => {
+    setChatSessions([]);
+    setCurrentSessionId(null);
+    setMessages([]);
+    setSessionStateMap({});
+    setActiveFormDataMap({});
+    setCurrentItemNumber(null);
+    setFlowState({});
+    setFilteredSteps([]);
+    setCurrentStepOrder(0);
+    setTotalSteps(0);
+    setFlowExecutor(null);
+    setValidationErrors({});
+    setProjectContext(null);
+
+    // Clear localStorage
+    try {
+      localStorage.removeItem('sessions:list');
+      localStorage.removeItem('sessions:state');
+      localStorage.removeItem('project:metadata');
+    } catch (e) {
+      console.warn('Failed to clear localStorage:', e);
+    }
+  }, []);
+
+  // Register clear chats callback with project context on mount
+  useEffect(() => {
+    registerClearChatsCallback(clearAllChatsData);
+  }, [registerClearChatsCallback, clearAllChatsData]);
+
+  // Restore projectContext from metadata on mount/metadata change
+  useEffect(() => {
+    if (metadata?.productType && metadata?.salesOrderNumber && metadata?.folderPath) {
+      // Only restore if projectContext is not already set to avoid unnecessary updates
+      if (!projectContext ||
+        projectContext.salesOrderNumber !== metadata.salesOrderNumber ||
+        projectContext.folderPath !== metadata.folderPath) {
+        console.log('[ClaudeChat] Restoring projectContext from metadata');
+        setProjectContext({
+          productType: metadata.productType,
+          salesOrderNumber: metadata.salesOrderNumber,
+          folderPath: metadata.folderPath,
+        });
+      }
+    }
+  }, [metadata?.productType, metadata?.salesOrderNumber, metadata?.folderPath, projectContext]);
 
   // GSAP hover animation for suggestion buttons
   // WeakMap prevents memory leaks by allowing garbage collection when buttons are removed
@@ -274,25 +322,54 @@ export function ClaudeChat() {
   };
 
   /**
-   * Load existing item state from JSON file
-   * @param folderPath - Project folder path
+   * Load existing item state from MongoDB
+   * @param salesOrderNumber - Sales order number
    * @param itemNumber - Item number (e.g., "001")
    * @returns Item data or empty object
    */
-  const loadExistingItemState = async (folderPath: string, itemNumber: string): Promise<Record<string, any>> => {
+  const loadExistingItemState = async (salesOrderNumber: string, itemNumber: string): Promise<Record<string, any>> => {
     try {
-      const res = await fetch(`/api/save-item-data?projectPath=${encodeURIComponent(folderPath)}&itemNumber=${itemNumber}`);
+      const res = await fetch(`/api/save-item-data?salesOrderNumber=${encodeURIComponent(salesOrderNumber)}&itemNumber=${itemNumber}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.success && data.data) {
-          console.log('Loaded item state for:', itemNumber, Object.keys(data.data));
-          return data.data;
+        if (data.success && data.itemData) {
+          console.log('Loaded item state from MongoDB:', itemNumber, Object.keys(data.itemData));
+          return data.itemData;
         }
       }
     } catch (e) {
       console.warn('No item data found:', e);
     }
     return {};
+  };
+
+  /**
+   * Validates that required project metadata fields are complete.
+   * Checks for non-empty, non-null strings after trimming whitespace.
+   *
+   * @param metadata - Project metadata object from project-header.json
+   * @returns true if JOB_NAME and CUSTOMER_NAME are both valid
+   */
+  const isProjectMetadataComplete = (
+    metadata: Record<string, any>
+  ): boolean => {
+    const jobName = metadata.JOB_NAME;
+    const customerName = metadata.CUSTOMER_NAME;
+
+    // Check JOB_NAME: must be non-empty string after trim
+    if (!jobName || typeof jobName !== 'string' || jobName.trim() === '') {
+      console.log('[Validation] JOB_NAME is missing or empty');
+      return false;
+    }
+
+    // Check CUSTOMER_NAME: must be non-empty string after trim
+    if (!customerName || typeof customerName !== 'string' || customerName.trim() === '') {
+      console.log('[Validation] CUSTOMER_NAME is missing or empty');
+      return false;
+    }
+
+    console.log('[Validation] Project metadata is complete');
+    return true;
   };
 
   /**
@@ -314,7 +391,14 @@ export function ClaudeChat() {
       // 1. Load project header data from JSON file
       const existingState = await loadExistingProjectState(folderPath);
 
-      // 2. Set project metadata from header
+      // 2. Validate metadata completeness
+      const isMetadataComplete = isProjectMetadataComplete(existingState);
+      console.log(`[LoadExisting] Metadata validation: ${isMetadataComplete ? 'PASS' : 'FAIL'}`);
+      if (!isMetadataComplete) {
+        console.log('[LoadExisting] Missing fields - will display project header form');
+      }
+
+      // 3. Set project metadata from header
       const projectMetadataUpdate = {
         SO_NUM: existingState.SO_NUM || salesOrderNumber,
         JOB_NAME: existingState.JOB_NAME || '',
@@ -324,7 +408,7 @@ export function ClaudeChat() {
         folderPath,
         isRevision: false,
         currentSessionId: undefined,
-        projectHeaderCompleted: true, // Mark as completed since header exists
+        projectHeaderCompleted: isMetadataComplete, // Dynamic based on validation
         itemSessions: {} as Record<string, { sessionId: string; itemNumber: string; createdAt: number; title: string }>,
       };
       setProjectMetadata(projectMetadataUpdate);
@@ -351,6 +435,18 @@ export function ClaudeChat() {
 
       // 6. Try to rebuild sessions from MongoDB
       const hasSessionsInDB = await loadExistingProjectFromDB(salesOrderNumber);
+
+      // 7. Check if metadata validation failed - display form if needed
+      if (!isMetadataComplete) {
+        console.log('[LoadExisting] Metadata incomplete - displaying project header form');
+        await loadAndDisplayProjectHeaderForm(
+          productType,
+          salesOrderNumber,
+          folderPath,
+          existingState  // Pass existing data for pre-filling
+        );
+        return; // Early return - form is displayed instead of welcome message
+      }
 
       if (!hasSessionsInDB) {
         // No sessions in DB - show welcome message for existing project
@@ -483,7 +579,8 @@ export function ClaudeChat() {
   const loadAndDisplayProjectHeaderForm = async (
     productType: string,
     salesOrderNumber: string,
-    folderPath: string
+    folderPath: string,
+    existingData?: Record<string, any>  // Optional pre-fill data from existing project
   ) => {
     try {
       // For SDI product type, load flow and initialize form flow
@@ -521,31 +618,47 @@ export function ClaudeChat() {
 
         // Get first form from filtered steps (project-header is now step 0)
         const entryFormId = steps[0].formTemplate;
-        const formSpec = await loadFormTemplate(entryFormId);
+        const formSpec = await loadFormWithStandards(entryFormId);
 
         if (!formSpec) {
           throw new Error(`Entry form template not found: ${entryFormId}`);
         }
 
-        // Pre-fill SO_NUM field with sales order number
+        // Pre-fill fields from existingData if provided, otherwise just SO_NUM
         const prefilledSpec = {
           ...formSpec,
           sections: formSpec.sections.map(section => ({
             ...section,
             fields: section.fields.map(field => {
+              // Pre-fill from existingData if provided (for loaded projects)
+              if (existingData && existingData[field.name] !== undefined && existingData[field.name] !== null) {
+                const value = existingData[field.name];
+                // Only use non-empty strings
+                if (typeof value === 'string' && value.trim() !== '') {
+                  return { ...field, defaultValue: value };
+                }
+              }
+
+              // Always pre-fill SO_NUM from parameter
               if (field.name === 'SO_NUM') {
                 return { ...field, defaultValue: salesOrderNumber };
               }
+
               return field;
             }),
           })),
         };
 
+        // Customize message based on whether this is existing project or new
+        const messageText = existingData
+          ? `📁 **Project Loaded** (SO# ${salesOrderNumber})\n\n⚠️ **Incomplete Project Information**\n\nThe following required fields are missing. Please complete them to continue:${!existingData.JOB_NAME || existingData.JOB_NAME.trim() === '' ? '\n• Job Name' : ''}${!existingData.CUSTOMER_NAME || existingData.CUSTOMER_NAME.trim() === '' ? '\n• Customer Name' : ''}`
+          : `Project folder created at:\n\`${folderPath}\`\n\n**Step 1: Project Header**\n\nPlease fill out the project information. After submission, you'll create items for this project.`;
+
         // Create bot message with form
         const botMessage: Message = {
           id: generateId(),
           sender: 'bot',
-          text: `Project folder created at:\n\`${folderPath}\`\n\n**Step 1: Project Header**\n\nPlease fill out the project information. After submission, you'll create items for this project.`,
+          text: messageText,
           timestamp: new Date(),
           formSpec: prefilledSpec,
         };
@@ -555,31 +668,47 @@ export function ClaudeChat() {
       }
 
       // Fallback: Load standard project-header for non-SDI products
-      const formSpec = await loadFormTemplate('project-header');
+      const formSpec = await loadFormWithStandards('project-header');
 
       if (!formSpec) {
         throw new Error('Project header template not found');
       }
 
-      // Pre-fill SO_NUM field with sales order number
+      // Pre-fill fields from existingData if provided, otherwise just SO_NUM
       const prefilledSpec = {
         ...formSpec,
         sections: formSpec.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => {
+            // Pre-fill from existingData if provided (for loaded projects)
+            if (existingData && existingData[field.name] !== undefined && existingData[field.name] !== null) {
+              const value = existingData[field.name];
+              // Only use non-empty strings
+              if (typeof value === 'string' && value.trim() !== '') {
+                return { ...field, defaultValue: value };
+              }
+            }
+
+            // Always pre-fill SO_NUM from parameter
             if (field.name === 'SO_NUM') {
               return { ...field, defaultValue: salesOrderNumber };
             }
+
             return field;
           }),
         })),
       };
 
+      // Customize message based on whether this is existing project or new
+      const messageText = existingData
+        ? `📁 **Project Loaded** (SO# ${salesOrderNumber})\n\n⚠️ **Incomplete Project Information**\n\nThe following required fields are missing. Please complete them to continue:${!existingData.JOB_NAME || existingData.JOB_NAME.trim() === '' ? '\n• Job Name' : ''}${!existingData.CUSTOMER_NAME || existingData.CUSTOMER_NAME.trim() === '' ? '\n• Customer Name' : ''}`
+        : `Project folder created at:\n\`${folderPath}\`\n\nPlease fill out the project header information:`;
+
       // Create bot message with form
       const botMessage: Message = {
         id: generateId(),
         sender: 'bot',
-        text: `Project folder created at:\n\`${folderPath}\`\n\nPlease fill out the project header information:`,
+        text: messageText,
         timestamp: new Date(),
         formSpec: prefilledSpec,
       };
@@ -705,18 +834,15 @@ export function ClaudeChat() {
       setFlowExecutor(executor);
 
       // 6. Load sdi-project form template
-      const formSpec = await loadFormTemplate('sdi-project');
+      const formSpec = await loadFormWithStandards('sdi-project');
       if (!formSpec) {
         throw new Error('sdi-project template not found');
       }
 
-      // Apply project standards to form
-      const formWithStandards = applyStandardsToForm(formSpec, standards);
-
       // Pre-fill ITEM_NUM field (editable - user can change it)
       const prefilledSpec = {
-        ...formWithStandards,
-        sections: formWithStandards.sections.map(section => ({
+        ...formSpec,
+        sections: formSpec.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => {
             if (field.name === 'ITEM_NUM') {
@@ -823,10 +949,10 @@ export function ClaudeChat() {
       const targetStep = sessionState.highestStepReached ?? sessionState.currentStepOrder;
       let mergedFlowState = { ...sessionState.flowState };
 
-      // 3a. Load disk data (async)
-      if (metadata?.folderPath && sessionState.itemNumber) {
+      // 3a. Load MongoDB data (async)
+      if (metadata?.salesOrderNumber && sessionState.itemNumber) {
         try {
-          const diskData = await loadExistingItemState(metadata.folderPath, sessionState.itemNumber);
+          const diskData = await loadExistingItemState(metadata.salesOrderNumber, sessionState.itemNumber);
 
           if (Object.keys(diskData).length > 0) {
             // Disk data takes priority (source of truth)
@@ -919,15 +1045,12 @@ export function ClaudeChat() {
         const currentFormId = sessionState.filteredSteps[targetStep]?.formTemplate;
         if (currentFormId) {
           // Load and display the current form
-          const formSpec = await loadFormTemplate(currentFormId);
+          const formSpec = await loadFormWithStandards(currentFormId);
           if (formSpec) {
-            // Apply project standards to form
-            const formWithStandards = applyStandardsToForm(formSpec, standards);
-
             const existingData = newExecutor.getState();
             const prefilledSpec = {
-              ...formWithStandards,
-              sections: formWithStandards.sections.map(section => ({
+              ...formSpec,
+              sections: formSpec.sections.map(section => ({
                 ...section,
                 fields: section.fields.map(field => ({
                   ...field,
@@ -966,6 +1089,33 @@ export function ClaudeChat() {
     await startNewItemChat();
   };
 
+  /**
+   * Check if form should receive standards
+   * Apply standards to ALL forms except stds-form (to prevent circular application)
+   */
+  const shouldApplyStandards = (formId: string): boolean => {
+    return formId !== 'stds-form';
+  };
+
+  /**
+   * Load form template and apply project standards if applicable
+   * @param formId - Form template ID to load
+   * @returns FormSpec with standards applied (if conditions met)
+   */
+  const loadFormWithStandards = async (formId: string) => {
+    let formSpec = await loadFormTemplate(formId);
+    if (!formSpec) {
+      return null;
+    }
+
+    // Apply project standards to form (if applicable)
+    if (shouldApplyStandards(formId) && metadata?.folderPath) {
+      formSpec = applyStandardsToForm(formSpec, standards);
+    }
+
+    return formSpec;
+  };
+
   // Handle form submission from DynamicFormRenderer
   const handleFormSubmit = async (formData: Record<string, any>) => {
     // Check if we have project context (from folder creation)
@@ -992,7 +1142,7 @@ export function ClaudeChat() {
         // NEW: Check if this is project-header submission (step 0)
         if (currentStepOrder === 0 && currentStepId === 'project-header') {
           // 1. Load form template for validation
-          const formSpec = await loadFormTemplate(currentStepId);
+          const formSpec = await loadFormWithStandards(currentStepId);
           if (!formSpec) {
             throw new Error(`Form template not found: ${currentStepId}`);
           }
@@ -1073,7 +1223,7 @@ export function ClaudeChat() {
 
         // Continue with regular flow for other steps (existing code starts here)
         // 1. Load current form template for validation
-        const formSpec = await loadFormTemplate(currentStepId);
+        const formSpec = await loadFormWithStandards(currentStepId);
         if (!formSpec) {
           throw new Error(`Form template not found: ${currentStepId}`);
         }
@@ -1096,6 +1246,11 @@ export function ClaudeChat() {
 
         // 3. Save validated form data to MongoDB
         try {
+          // Add CHOICE=1 and FRAME_PROCESSED when sdi-project form is submitted
+          const formDataForMongoDB = currentStepId === 'sdi-project'
+            ? { ...validationResult.data, CHOICE: 1, FRAME_PROCESSED: "" }
+            : validationResult.data;
+
           const submissionResponse = await fetch('/api/form-submission', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1103,7 +1258,7 @@ export function ClaudeChat() {
               sessionId: currentSessionId || generateId(),
               stepId: currentStepId,
               formId: currentStepId,
-              formData: validationResult.data,
+              formData: formDataForMongoDB,
               metadata: {
                 salesOrderNumber: projectContext.salesOrderNumber,
                 itemNumber: currentItemNumber || validationResult.data.ITEM_NUM || '',
@@ -1128,9 +1283,9 @@ export function ClaudeChat() {
         }
 
         // 4. Update FlowExecutor state with validated data
-        // Add CHOICE=1 when sdi-project form is submitted (indicates "New item" mode)
+        // Add CHOICE=1 and FRAME_PROCESSED when sdi-project form is submitted
         const stateDataToUpdate = currentStepId === 'sdi-project'
-          ? { ...validationResult.data, CHOICE: 1 }
+          ? { ...validationResult.data, CHOICE: 1, FRAME_PROCESSED: "" }
           : validationResult.data;
         flowExecutor.updateState(currentStepId, stateDataToUpdate);
         flowExecutor.setCurrentStepIndex(currentStepOrder);
@@ -1190,23 +1345,21 @@ export function ClaudeChat() {
             const paddedOriginalItemNumber = originalItemNum ? String(originalItemNum).padStart(3, '0') : null;
 
             try {
-              // Add CHOICE=1 parameter when sdi-project form is submitted (indicates "New item" mode)
+              // Add CHOICE=1 and FRAME_PROCESSED when sdi-project form is submitted
               const formDataToSave = currentStepId === 'sdi-project'
-                ? { ...validationResult.data, CHOICE: 1 }
+                ? { ...validationResult.data, CHOICE: 1, FRAME_PROCESSED: "" }
                 : validationResult.data;
 
               const saveResponse = await fetch('/api/save-item-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  projectPath: projectContext.folderPath,
                   itemNumber: paddedNewItemNumber,
                   originalItemNumber: paddedOriginalItemNumber,  // For rename detection
                   formId: currentStepId,
                   formData: formDataToSave,
-                  merge: true,
-                  sessionId: currentSessionId,  // For MongoDB updates
-                  salesOrderNumber: projectContext.salesOrderNumber,  // For MongoDB updates
+                  sessionId: currentSessionId,
+                  salesOrderNumber: projectContext.salesOrderNumber,
                 }),
               });
 
@@ -1257,6 +1410,17 @@ export function ClaudeChat() {
           }
         }
 
+        // Refresh standards if stds-form was submitted
+        if (currentStepId === 'stds-form') {
+          try {
+            await refreshStandards();
+            console.log('Standards refreshed after stds-form submission');
+          } catch (refreshError) {
+            console.error('Failed to refresh standards:', refreshError);
+            // Continue flow - not blocking
+          }
+        }
+
         // Remove form from current message
         setMessages((prev) => prev.map(msg =>
           msg.formSpec ? { ...msg, formSpec: undefined } : msg
@@ -1290,7 +1454,7 @@ export function ClaudeChat() {
 
         if (nextStep) {
           // Load next form
-          const nextFormSpec = await loadFormTemplate(nextStep.formTemplate);
+          const nextFormSpec = await loadFormWithStandards(nextStep.formTemplate);
 
           if (!nextFormSpec) {
             throw new Error(`Form template not found: ${nextStep.formTemplate}`);
@@ -1474,21 +1638,18 @@ export function ClaudeChat() {
 
     try {
       // 1. Load form template
-      const formSpec = await loadFormTemplate(formId);
+      const formSpec = await loadFormWithStandards(formId);
       if (!formSpec) {
         throw new Error(`Form template not found: ${formId}`);
       }
 
-      // 2. Apply project standards to form
-      const formWithStandards = applyStandardsToForm(formSpec, standards);
-
-      // 3. Get existing data from flowState
+      // 2. Get existing data from flowState
       const existingData = flowExecutor.getState();
 
-      // 4. Pre-fill form with existing data (user data takes priority over standards)
+      // 3. Pre-fill form with existing data (user data takes priority over standards)
       const prefilledSpec = {
-        ...formWithStandards,
-        sections: formWithStandards.sections.map(section => ({
+        ...formSpec,
+        sections: formSpec.sections.map(section => ({
           ...section,
           fields: section.fields.map(field => ({
             ...field,
@@ -1610,11 +1771,11 @@ export function ClaudeChat() {
         prev.map((session) =>
           session.id === currentSessionId
             ? {
-                ...session,
-                messages,
-                updatedAt: new Date(),
-                title: generateSessionTitle(messages),
-              }
+              ...session,
+              messages,
+              updatedAt: new Date(),
+              title: generateSessionTitle(messages),
+            }
             : session
         )
       );
@@ -1792,7 +1953,7 @@ export function ClaudeChat() {
 
     // Check for example triggers
     const lowerText = message.text.trim().toLowerCase();
-    
+
     if (lowerText.includes("project setup") || lowerText.includes("setup example")) {
       setMessages((prev) => [...prev, projectSetupExample]);
       setIsLoading(false);
@@ -2065,99 +2226,105 @@ function MessageBubble({ message, sessionId, onFormSubmit, onFormDataChange, val
 
   const Avatar = (
     <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-sm ${
-        isUser
-          ? "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-800 dark:text-white dark:border-neutral-700"
-          : "bg-secondary text-foreground border-transparent shadow-md dark:bg-card dark:text-muted-foreground dark:shadow-black/20"
-      }`}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${isUser
+        ? "bg-neutral-100 text-neutral-800 border-neutral-200 dark:bg-neutral-800 dark:text-white dark:border-neutral-700"
+        : "border-transparent"
+        }`}
     >
-      {isUser ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
+      {isUser ? (
+        <User className="h-5 w-5" />
+      ) : (
+        <img
+          src="/Jac_avatar.png"
+          alt="Jac"
+          className="h-full w-full object-cover rounded-xl"
+        />
+      )}
     </div>
   );
 
   const messageBody = (
     <div className={hasForm ? 'w-full' : ''}>
-          {isUser ? (
-            <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-neutral-800 dark:text-neutral-100">
-              {message.text}
-            </p>
-          ) : (
-            <MessageResponse className="whitespace-pre-wrap text-sm leading-7 text-slate-800 dark:text-foreground">
-              {message.text}
-            </MessageResponse>
-          )}
+      {isUser ? (
+        <p className="whitespace-pre-wrap text-sm font-medium leading-7 text-neutral-800 dark:text-neutral-100">
+          {message.text}
+        </p>
+      ) : (
+        <MessageResponse className="whitespace-pre-wrap text-sm leading-7 text-slate-800 dark:text-foreground">
+          {message.text}
+        </MessageResponse>
+      )}
 
-          {/* File Attachments */}
-          {message.files && message.files.length > 0 && (
-            <MessageAttachments className="mt-3 border-t border-slate-300 pt-3 dark:border-white/10">
-              {message.files.map((file) => (
-                <MessageAttachment
-                  key={file.id}
-                  data={{
-                    type: "file",
-                    filename: file.name,
-                    mediaType: file.type,
-                    url: "",
-                  }}
-                  className="size-auto flex-row items-center gap-1.5 rounded-lg bg-white/50 px-2.5 py-1.5 text-xs dark:bg-white/10"
-                />
-              ))}
-            </MessageAttachments>
-          )}
+      {/* File Attachments */}
+      {message.files && message.files.length > 0 && (
+        <MessageAttachments className="mt-3 border-t border-slate-300 pt-3 dark:border-white/10">
+          {message.files.map((file) => (
+            <MessageAttachment
+              key={file.id}
+              data={{
+                type: "file",
+                filename: file.name,
+                mediaType: file.type,
+                url: "",
+              }}
+              className="size-auto flex-row items-center gap-1.5 rounded-lg bg-white/50 px-2.5 py-1.5 text-xs dark:bg-white/10"
+            />
+          ))}
+        </MessageAttachments>
+      )}
 
-          {/* Dynamic Form */}
-          {hasForm && onFormSubmit && message.formSpec?.formId && (
-            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4 w-full">
-              <DynamicFormRenderer
-                key={`${sessionId}-${message.id}-${message.formSpec.formId}`}
-                formSpec={message.formSpec}
-                sessionId={sessionId}
-                initialData={initialFormData}
-                onSubmit={onFormSubmit}
-                onFormDataChange={onFormDataChange}
-                validationErrors={validationErrors}
-                selectedTableRows={selectedTableRows}
-                onTableRowSelect={onTableRowSelect}
-              />
-            </div>
-          )}
+      {/* Dynamic Form */}
+      {hasForm && onFormSubmit && message.formSpec?.formId && (
+        <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4 w-full">
+          <DynamicFormRenderer
+            key={`${sessionId}-${message.id}-${message.formSpec.formId}`}
+            formSpec={message.formSpec}
+            sessionId={sessionId}
+            initialData={initialFormData}
+            onSubmit={onFormSubmit}
+            onFormDataChange={onFormDataChange}
+            validationErrors={validationErrors}
+            selectedTableRows={selectedTableRows}
+            onTableRowSelect={onTableRowSelect}
+          />
+        </div>
+      )}
 
-          <span
-            className={`mt-4 block text-xs ${
-              isUser ? "text-neutral-500" : "text-muted-foreground"
-            }`}
-          >
-            {message.timestamp.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
-      </div>
-    );
+      <span
+        className={`mt-4 block text-xs ${isUser ? "text-neutral-500 text-right" : "text-muted-foreground text-right"
+          }`}
+      >
+        {message.timestamp.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </span>
+    </div>
+  );
 
-    return (
-      <div className={`flex w-full animate-slide-up ${isUser ? "justify-end" : "justify-start"}`}>
-        {isUser ? (
-          <div className="flex items-start gap-3">
-                  <MessageComponent from={role} className="flex-1 max-w-[95%] items-end text-right">
-                    <MessageContent className="w-full rounded-sm border border-neutral-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-neutral-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-50">
-                {messageBody}
-              </MessageContent>
-            </MessageComponent>
-            <div className="flex flex-col items-end">{Avatar}</div>
-          </div>
-        ) : (
-          <div className={`flex items-start gap-3 ${hasForm ? 'w-full' : ''}`}>
-            <div className="flex flex-col items-start">{Avatar}</div>
-            <MessageComponent from={role} className={`text-left ${hasForm ? 'flex-1 max-w-none' : 'max-w-[90%]'}`}>
-              <MessageContent className="rounded-none bg-transparent px-0 py-0 text-foreground shadow-none">
-                {messageBody}
-              </MessageContent>
-            </MessageComponent>
-          </div>
-        )}
-      </div>
-    );
+  return (
+    <div className={`flex w-full animate-slide-up ${isUser ? "justify-end" : "justify-start"}`}>
+      {isUser ? (
+        <div className="flex items-start gap-3">
+          <MessageComponent from={role} className="flex-1 max-w-[95%] items-end text-right">
+            <MessageContent className="w-full rounded-sm border border-neutral-200 bg-white px-6 py-5 text-slate-900 shadow-md group-[.is-user]:rounded-sm group-[.is-user]:border-neutral-200 group-[.is-user]:bg-white group-[.is-user]:text-slate-900 group-[.is-user]:shadow-md dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-50">
+              {messageBody}
+            </MessageContent>
+          </MessageComponent>
+          <div className="flex flex-col items-end">{Avatar}</div>
+        </div>
+      ) : (
+        <div className={`flex items-start gap-3 ${hasForm ? 'w-full' : ''}`}>
+          <div className="flex flex-col items-start">{Avatar}</div>
+          <MessageComponent from={role} className={`text-left ${hasForm ? 'flex-1 max-w-none' : 'max-w-[90%]'}`}>
+            <MessageContent className="rounded-none bg-transparent px-0 py-0 text-foreground shadow-none">
+              {messageBody}
+            </MessageContent>
+          </MessageComponent>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function TypingIndicator() {

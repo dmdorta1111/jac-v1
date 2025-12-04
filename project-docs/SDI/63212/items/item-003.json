@@ -1,0 +1,53 @@
+{
+  "options": {
+    "FLUSH_BOLT_CENTER_TOP": 12,
+    "FLUSH_BOLT_CENTER_BOTTOM": 12,
+    "SILENCER_HOLE_DIA": 0.281,
+    "HASP_CENTER": null,
+    "TUFLOCK_CENTER": null,
+    "PEEP_CL": null,
+    "PEEP_DIA": null,
+    "HINGES": true,
+    "CLOSER": true,
+    "WELDED_PREPS": false,
+    "PRIMARY_LOCK": false,
+    "SECONDARY_LOCK": false,
+    "DUMMY_TRIM": false,
+    "PRIMARY_STRIKE": false,
+    "SECONDARY_STRIKE": false,
+    "PUSH_PULL": false,
+    "HOLDER_STOP": false,
+    "AUTO_OPERATOR": false,
+    "COORDINATOR": false,
+    "MAG_LOCK_SINGLE": false,
+    "EPT_SINGLE": false,
+    "DPS_SINGLE": false,
+    "ASTRAGAL": false,
+    "ASTRAGAL_INSTALLED": false,
+    "HEAD_STRIKE": false,
+    "SILENCERS": false,
+    "DOOR_EDGE_REINFORCEMENT": false,
+    "KICK_PLATE": false
+  },
+  "_metadata": {
+    "itemNumber": "003",
+    "lastUpdated": "2025-12-04T04:41:24.161Z",
+    "formIds": [
+      "options",
+      "hinge-info"
+    ]
+  },
+  "hinge-info": {
+    "TOP_GAP": 0.125,
+    "TEMPLATE_HINGE_GAP": null,
+    "HINGE_GAP_ADD": null,
+    "ALT_STRIKE_CENTER": null,
+    "CUSTOM_HINGE_QTY": null,
+    "ELECTRIC_HINGE_POSITION": null,
+    "ALT_STRIKE_CENTER_": false,
+    "WELDED_BOXES": false,
+    "THRU_BOLT": false,
+    "CONTINUOUS_HINGE_REINFORCEMENT": true,
+    "INSTAL_HINGE": false
+  }
+}
