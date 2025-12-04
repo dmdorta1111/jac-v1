@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import { ExportVariablesRequestSchema } from '@/lib/schemas/form-submission';
+import { ExportProjectRequestSchema } from '@/lib/schemas/form-submission';
 import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
@@ -9,19 +8,19 @@ import * as Sentry from '@sentry/nextjs';
 
 /**
  * POST /api/export-variables
- * Export all form data for a session as SmartAssembly JSON
+ * Export all items for a project to individual JSON files for SmartAssembly
  *
  * Rate limit: 10 requests per minute per IP
  *
  * Request body:
- * - sessionId: Session to export
- * - salesOrderNumber: Optional sales order filter
- * - itemNumber: Optional item number filter
+ * - salesOrderNumber: Sales order number (required)
+ * - productType: Product type (default: SDI)
  *
  * Response:
  * - success: true if exported successfully
- * - exportPath: Path to generated formdata.json
- * - variableCount: Number of variables exported
+ * - exportPath: Path to items directory
+ * - itemCount: Number of items exported
+ * - exportedFiles: Array of file names created
  */
 export async function POST(request: NextRequest) {
   // Apply rate limiting
@@ -32,72 +31,121 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate request
-    const validData = ExportVariablesRequestSchema.parse(body);
+    const validData = ExportProjectRequestSchema.parse(body);
 
     // Connect to MongoDB
+    const { connectToDatabase, getProjectsCollection, getItemsCollection } = await import('@/lib/mongodb');
     const db = await connectToDatabase();
+    const projects = getProjectsCollection(db);
+    const items = getItemsCollection(db);
 
-    // Fetch all submissions for session
-    const submissions = await db
-      .collection('form_submissions')
-      .find({ sessionId: validData.sessionId })
-      .sort({ 'metadata.submittedAt': 1 })
-      .toArray();
+    // Find project
+    const project = await projects.findOne({
+      salesOrderNumber: validData.salesOrderNumber,
+      isDeleted: { $ne: true },
+    });
 
-    if (submissions.length === 0) {
+    if (!project) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'No submissions found for session',
-          sessionId: validData.sessionId,
-        },
+        { success: false, error: 'Project not found' },
         { status: 404 }
       );
     }
 
-    // Merge all form data into single object
-    // Later submissions override earlier ones for same field names
-    const mergedData = submissions.reduce((acc, sub) => ({
-      ...acc,
-      ...sub.formData,
-    }), {} as Record<string, any>);
+    // Query all items for project
+    const projectItems = await items.find({
+      projectId: project._id,
+      isDeleted: { $ne: true },
+    }).sort({ itemNumber: 1 }).toArray();
 
-    // Add metadata fields to exported variables
-    const firstSubmission = submissions[0];
-    const exportData = {
-      ...mergedData,
-      CHOICE: 1, // Indicates "New item" mode for SmartAssembly
-      FRAME_PROCESSED: "", // Frame processing status (empty = not processed)
-      _metadata: {
-        sessionId: validData.sessionId,
-        salesOrderNumber: firstSubmission.metadata.salesOrderNumber,
-        itemNumber: firstSubmission.metadata.itemNumber,
-        productType: firstSubmission.metadata.productType,
-        exportedAt: new Date().toISOString(),
-        formCount: submissions.length,
-      },
-    };
+    if (projectItems.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'No items found for project' },
+        { status: 404 }
+      );
+    }
 
-    // Construct project-specific path
-    const productType = firstSubmission.metadata.productType;
-    const salesOrderNumber = firstSubmission.metadata.salesOrderNumber;
-    const projectItemsDir = path.join('project-docs', productType, salesOrderNumber, 'items');
+    console.log(`Exporting ${projectItems.length} items for ${validData.salesOrderNumber}`);
+
+    // Construct project items directory
+    const projectItemsDir = path.join(
+      process.cwd(),
+      'project-docs',
+      validData.productType,
+      validData.salesOrderNumber,
+      'items'
+    );
+
+    // Security: Validate path doesn't escape project-docs directory
+    const normalizedPath = path.normalize(projectItemsDir);
+    const projectDocsRoot = path.join(process.cwd(), 'project-docs');
+    if (!normalizedPath.startsWith(projectDocsRoot)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid path: directory traversal detected' },
+        { status: 400 }
+      );
+    }
 
     // Ensure directory exists
     await fs.mkdir(projectItemsDir, { recursive: true });
 
-    // Write JSON file to project items directory
-    const jsonPath = path.join(projectItemsDir, 'formdata.json');
-    await fs.writeFile(jsonPath, JSON.stringify(exportData, null, 2), 'utf-8');
+    // Cleanup: Delete existing item-XXX.json files
+    try {
+      const existingFiles = await fs.readdir(projectItemsDir);
+      const itemFiles = existingFiles.filter(f => /^item-\d{3}\.json$/.test(f));
 
-    console.log(`Exported ${Object.keys(mergedData).length} variables to ${jsonPath}`);
+      if (itemFiles.length > 0) {
+        console.log(`Deleting ${itemFiles.length} old item files...`);
+        await Promise.all(
+          itemFiles.map(file =>
+            fs.unlink(path.join(projectItemsDir, file)).catch(err =>
+              console.warn(`Failed to delete ${file}:`, err)
+            )
+          )
+        );
+      }
+    } catch (readError) {
+      // Directory doesn't exist or is empty - ignore
+      console.log('No existing files to clean up');
+    }
+
+    // Write one JSON file per item
+    const exportedFiles: string[] = [];
+
+    for (const item of projectItems) {
+      // Ensure system fields exist at root level
+      const exportData = {
+        ...item.itemData,
+        CHOICE: item.itemData.CHOICE ?? 1,
+        FRAME_PROCESSED: item.itemData.FRAME_PROCESSED ?? "",
+        _metadata: {
+          itemNumber: item.itemNumber,
+          productType: item.productType,
+          salesOrderNumber: validData.salesOrderNumber,
+          exportedAt: new Date().toISOString(),
+          formIds: item.formIds || [],
+        },
+      };
+
+      const fileName = `item-${item.itemNumber}.json`;
+      const filePath = path.join(projectItemsDir, fileName);
+
+      await fs.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf-8');
+
+      exportedFiles.push(fileName);
+      console.log(`Exported ${fileName} (${Object.keys(item.itemData).length} fields)`);
+    }
+
+    const relativePath = path.relative(process.cwd(), projectItemsDir);
 
     return NextResponse.json({
       success: true,
-      exportPath: jsonPath,
-      variableCount: Object.keys(mergedData).length,
-      sessionId: validData.sessionId,
-      metadata: exportData._metadata,
+      exportPath: relativePath,
+      itemCount: projectItems.length,
+      exportedFiles,
+      salesOrderNumber: validData.salesOrderNumber,
+      productType: validData.productType,
+      exportedAt: new Date().toISOString(),
     });
 
   } catch (error) {

@@ -41,7 +41,8 @@ export type FormSubmissionMetadata = z.infer<typeof FormSubmissionMetadataSchema
 export type FormSubmission = z.infer<typeof FormSubmissionSchema>;
 
 /**
- * Schema for SmartAssembly variable export request
+ * Schema for SmartAssembly variable export request (legacy - per session)
+ * @deprecated Use ExportProjectRequestSchema for multi-item projects
  */
 export const ExportVariablesRequestSchema = z.object({
   sessionId: z.string().min(1, 'Session ID is required'),
@@ -50,6 +51,21 @@ export const ExportVariablesRequestSchema = z.object({
 });
 
 export type ExportVariablesRequest = z.infer<typeof ExportVariablesRequestSchema>;
+
+/**
+ * Schema for project export request (Phase 03 - per-item files)
+ * Exports all items for a project to individual JSON files
+ */
+export const ExportProjectRequestSchema = z.object({
+  salesOrderNumber: z.string()
+    .min(1, 'Sales order number is required')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Sales order number must contain only alphanumeric characters, hyphens, and underscores'),
+  productType: z.string()
+    .regex(/^[A-Z]{2,10}$/, 'Product type must be 2-10 uppercase letters')
+    .default('SDI'),
+});
+
+export type ExportProjectRequest = z.infer<typeof ExportProjectRequestSchema>;
 
 /**
  * Schema for Build_Asm trigger request
