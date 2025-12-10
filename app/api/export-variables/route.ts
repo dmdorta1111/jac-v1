@@ -192,12 +192,13 @@ export async function POST(request: NextRequest) {
       // Ensure system fields exist at root level
       const exportData = {
         ...item.itemData,
-        CHOICE: item.itemData.CHOICE ?? 1,
+        CHOICE: item.itemData.CHOICE ?? 9,
+        ITEM_TO_DRAW: item.itemNumber,
         FRAME_PROCESSED: item.itemData.FRAME_PROCESSED ?? "",
         _metadata: {
-          itemNumber: item.itemNumber,
+          ITEM_NUM: item.itemNumber,
           productType: item.productType,
-          salesOrderNumber: validData.salesOrderNumber,
+          SO_NUM: validData.salesOrderNumber,
           exportedAt: new Date().toISOString(),
           formIds: item.formIds || [],
         },

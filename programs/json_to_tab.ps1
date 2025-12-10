@@ -31,7 +31,7 @@ function Format-SAValue {
         "STRING"  { return "`"$Value`"" }
         "INTEGER" { return [int]$Value }
         "DOUBLE"  { return [double]$Value }
-        "BOOL"    { if ($Value) { return "1" } else { return "0" } }
+        "BOOL"    { if ($Value) { return 1 } else { return 0 } }
         default   { return $Value }
     }
 }

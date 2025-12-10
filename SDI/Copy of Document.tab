@@ -541,7 +541,7 @@ EXCEL_GET_VALUE 2 1 SO_NUM
 								END_IF	
 								
 								GET_TIME_STRING "%x" date
-								CONFIG_ELEM		
+								! CONFIG_ELEM		
 
 								SCHEDULE_HISTORY = REV0_NUM+"^"+REV0_DATE+"^"+REV0_BY+"^"+\
 												 REV1_NUM+"^"+REV1_DATE+"^"+REV1_BY+"^"+\

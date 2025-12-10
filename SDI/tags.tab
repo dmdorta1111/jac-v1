@@ -16,7 +16,7 @@ SHEET_QTY = QTY
 
 WHILE TAG_NUM <> ""
 	TAG_NUM = ""
-	CONFIG_ELEM
+	! CONFIG_ELEM
 	IF TAG_QTY > 0
 		IF SUB_TAGS == ""
 			SUB_TAGS = TAG_NUM +"^"+itos(TAG_QTY) 
